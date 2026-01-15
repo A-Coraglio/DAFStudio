@@ -1,5 +1,4 @@
 from backend.apps.games.models.ddo import PlayerDDO
-
 async def get_player(self,player_id):
     player = "select * from player where id = $1"
 
