@@ -18,3 +18,9 @@ chore -> maintenance
 init -> initial commit
 rearrange -> files moved, added, deleted etc
 update -> update code (versions, library compatibility)
+
+## To commit
+
+git add .
+git commit -m "type/message"
+git push origin {branch}
