@@ -1,0 +1,2 @@
+class PlayerDDO():
+    id : int 
