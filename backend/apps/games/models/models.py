@@ -11,3 +11,4 @@ class GameModel():
     async def insert_game(self, datos):
         "se crea un game"
         return
+        "select * from canchas wher empresa_id = 3"
