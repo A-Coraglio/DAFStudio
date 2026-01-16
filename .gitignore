@@ -2,3 +2,4 @@ docker-compose.yml
 proyect/
 project/
 .env
+__pycache__/
