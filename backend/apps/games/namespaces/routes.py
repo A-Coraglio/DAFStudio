@@ -1,10 +1,19 @@
 
 
+from fastapi import APIRouter
+
+router : APIRouter = APIRouter(prefix="/api")
 
 
 
-from backend.service.dto import GameDTO
-
-
-router.post("/create-game")
-async def create_game(palyer_id : int):
+#example route
+@router.get("/get-sports/",responses={
+        200: {
+            "model": dict,
+            "description": "Successful response"
+        }
+    })
+async def get_sports():
+    
+    return [{}]
+    
