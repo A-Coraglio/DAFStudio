@@ -21,6 +21,7 @@ update -> update code (versions, library compatibility)
 
 ## To commit
 
+git status
 git add .
 git commit -m "type/message"
 git push origin {branch}
