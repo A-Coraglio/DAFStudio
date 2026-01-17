@@ -7,7 +7,7 @@ load_dotenv()
 
 
 class DatabaseManager:
-    _pool: Pool = None
+    _pool: Pool | None
 
     def __init__(self) -> None:
         self._pool = None

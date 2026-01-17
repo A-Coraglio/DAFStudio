@@ -4,10 +4,10 @@ from asyncpg.pool import Pool
 from load_database import database_object, DatabaseManager
 
 class GeneralModel:
-    _db : DatabaseManager = None
+    _db : DatabaseManager 
 
     def __init__(self):
-        self._db : DatabaseManager = database_object
+        self._db  = database_object
   
 
     @asynccontextmanager 
