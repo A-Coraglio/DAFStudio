@@ -10,10 +10,9 @@ router : APIRouter = APIRouter(prefix="/api")
 @router.get("/get-sports/",responses={
         200: {
             "model": dict,
-            "description": "Successful response"
+            "description": "list of games"
         }
     })
 async def get_sports():
-    
-    return [{}]
+    return [{"ok?": "ok"}]
     
