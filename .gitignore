@@ -3,5 +3,6 @@ proyect/
 project/
 .env
 __pycache__/
+database-env/
 documentation/
 

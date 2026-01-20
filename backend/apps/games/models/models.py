@@ -1,13 +1,16 @@
-from backend.apps.games.models.ddo import PlayerDDO
-async def get_player(self,player_id):
-    player = "select * from player where id = $1"
+from apps.games.models import GeneralModel
+from apps.games.models.ddo import UserDDO
+from typing import cast
+from asyncpg.pool import PoolConnectionProxy
 
+class UserModel(GeneralModel):
+    __table_name__ = "users"
+    async def list_users(self) -> list[UserDDO]:
+        async with self.get_db_connection() as connection:
+            connection : PoolConnectionProxy = cast(PoolConnectionProxy,connection)
+            query = f"SELECT * from {self.__table_name__}"
 
-    player_ddo = PlayerDDO(id=player["id"])
-    return player_ddo
+            results = await connection.fetch(query)
 
-class GameModel():
-    async def insert_game(self, datos):
-        "se crea un game"
-        return
-        "select * from canchas wher empresa_id = 3"
+            return [ UserDDO(id=i["id"], name=i["name"]) for i in results]
+        
