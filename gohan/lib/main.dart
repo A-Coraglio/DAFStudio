@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'login_page.dart';
+import 'auth_gate.dart';
+import 'auth_storage.dart';
+import 'preferences.dart';
 
 void main() {
   runApp(const MyApp());
@@ -12,6 +15,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       title: 'Flutter Demo',
       theme: ThemeData(
         // This is the theme of your application.
@@ -32,9 +36,11 @@ class MyApp extends StatelessWidget {
         
         colorScheme: .fromSeed(seedColor: Colors.deepPurple),
       ),
-      home: const LoginPage(),
+      
+      home: const AuthGate(),
       routes: {
-        '/home': (context) => const MyHomePage(title: 'Agustin Clicker'),
+        '/login': (context) => LoginPage(),
+        '/home': (context) => const MyHomePage(title: 'Home'),
       },
     );
   }
@@ -43,86 +49,177 @@ class MyApp extends StatelessWidget {
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key, required this.title});
 
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
   final String title;
 
-  @override
+  @override 
   State<MyHomePage> createState() => _MyHomePageState();
 }
-
 class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+  String? _sport;
 
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
+  final _sports = const [
+    'Fútbol',
+    'Básquet',
+    'Tenis',
+    'Natación',
+    'Ciclismo',
+  ] ;
+  @override
+  void initState() {
+    super.initState();
+    _loadSport();
   }
+  
+  Future<void> _loadSport() async {
+    final saved = await Preferences.getSport();
+    if (!mounted) return;
+    setState(() => _sport = saved);
+  }
+  
+  Future<void> _pickSport() async {
+    final chosen = await showModalBottomSheet<String>(
+      context: context,
+      builder: (ctx) => SafeArea(
+        child: ListView(
+          shrinkWrap: true,
+          children: _sports
+              .map((s) => ListTile(
+                    title: Text(s),
+                    trailing: _sport == s ? const Icon(Icons.check) : null,
+                    onTap: () => Navigator.pop(ctx, s),
+                  ))
+              .toList(),
+        ),
+      ),
+    );
+
+    if (chosen == null) return;
+
+    await Preferences.setSport(chosen);
+    if (!mounted) return;
+    setState(() => _sport = chosen);
+  }
+
+  Future<void> _logout() async {
+  await AuthStorage.clearToken();
+  if (!mounted) return;
+  Navigator.of(context).pushReplacementNamed('/login');
+}
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
+    final sportLabel = _sport ?? 'Elegir deporte';
     return Scaffold(
       appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
         title: Text(widget.title),
+        actions: [
+          TextButton.icon(
+            onPressed: _pickSport,
+            icon: const Icon(Icons.sports),
+            label: Text(sportLabel),
+          ),
+          IconButton(
+            tooltip: 'Cerrar sesión',
+            icon: const Icon(Icons.logout),
+            onPressed: _logout,
+          ), 
+        ],
       ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
-          mainAxisAlignment: .center,
+      body: Padding(
+        padding: const EdgeInsets.all(16),
+        child: ListView(
           children: [
-            const Text('You have pushed the button this many times:'),
             Text(
-              '$_counter',
+              'Bienvenido 👋',
               style: Theme.of(context).textTheme.headlineMedium,
+            ),
+            const SizedBox(height: 8),
+            
+            if (_sport != null) ...[
+              Text(
+                'Antes de continuar, elegí el deporte para continuar.',
+                style: Theme.of(context).textTheme.bodyLarge,
+              ),
+              const SizedBox(height: 16),
+            ] else ...[
+              Text(
+                'Deporte actual: $_sport',
+                style: Theme.of(context).textTheme.bodyLarge,
+              ),
+              const SizedBox(height: 16),
+            ],
+            Text(
+              'Elegí una opción para continuar.',
+              style: Theme.of(context).textTheme.bodyLarge,
+            ),
+            const SizedBox(height: 16),
+
+            // Tarjeta: Perfil
+            _HomeCard(
+              icon: Icons.person,
+              title: 'Perfil',
+              subtitle: 'Ver datos del usuario',
+              onTap: () {
+                // Más adelante la conectamos a ProfilePage
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Todavía no hay un perfil')),
+                );
+              },
+            ),
+
+            // Tarjeta: Configuración
+            _HomeCard(
+              icon: Icons.settings,
+              title: 'Configuración',
+              subtitle: 'Preferencias de la app',
+              onTap: () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Todavía no hicimos Configuración')),
+                );
+              },
+            ),
+
+            // Tarjeta: Otra sección (puede ser partidos)
+            _HomeCard(
+              icon: Icons.list_alt,
+              title: 'Listado',
+              subtitle: 'Ejemplo de sección con datos',
+              onTap: () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Todavía no hicimos Listado')),
+                );
+              },
             ),
           ],
         ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
       ),
     );
   }
 }
 
+class _HomeCard extends StatelessWidget {
+  const _HomeCard({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: ListTile(
+        leading: Icon(icon),
+        title: Text(title),
+        subtitle: Text(subtitle),
+        trailing: const Icon(Icons.chevron_right),
+        onTap: onTap,
+      ),
+    );
+  } 
+}

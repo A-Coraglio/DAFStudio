@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'auth_storage.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -12,6 +13,9 @@ class _LoginPageState extends State<LoginPage> {
 
   final _emailCtrl = TextEditingController();
   final _passCtrl = TextEditingController();
+  final _emailFocus = FocusNode();
+  final _passFocus = FocusNode();
+
 
   bool _obscure = true;
   bool _loading = false;
@@ -20,10 +24,14 @@ class _LoginPageState extends State<LoginPage> {
   void dispose() {
     _emailCtrl.dispose();
     _passCtrl.dispose();
+    _emailFocus.dispose();
+    _passFocus.dispose();
     super.dispose();
   }
 
   Future<void> _doLogin() async {
+    FocusScope.of(context).unfocus();
+    
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _loading = true);
@@ -40,6 +48,7 @@ class _LoginPageState extends State<LoginPage> {
 
     if (ok) {
       // IMPORTANTE: acá podés navegar a tu Home real
+      await AuthStorage.saveToken('FAKE_TOKEN_PARA_PRUEBAS');
       Navigator.of(context).pushReplacementNamed('/home');
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -64,7 +73,11 @@ class _LoginPageState extends State<LoginPage> {
                 children: [
                   TextFormField(
                     controller: _emailCtrl,
+                    focusNode: _emailFocus,
                     keyboardType: TextInputType.emailAddress,
+                    onFieldSubmitted: (_){
+                      FocusScope.of(context).requestFocus(_passFocus);
+                    },
                     decoration: const InputDecoration(
                       labelText: 'Email',
                       border: OutlineInputBorder(),
@@ -79,7 +92,12 @@ class _LoginPageState extends State<LoginPage> {
                   const SizedBox(height: 12),
                   TextFormField(
                     controller: _passCtrl,
+                    focusNode: _passFocus,
                     obscureText: _obscure,
+                    textInputAction: TextInputAction.done,
+                    onFieldSubmitted: (_) {
+                      if (!_loading) _doLogin();
+                    },
                     decoration: InputDecoration(
                       labelText: 'Contraseña',
                       border: const OutlineInputBorder(),
