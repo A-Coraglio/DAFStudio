@@ -50,6 +50,8 @@ class _LoginPageState extends State<LoginPage> {
     if (ok) {
       // IMPORTANTE: acá podés navegar a tu Home real
       await AuthStorage.saveToken('FAKE_TOKEN_PARA_PRUEBAS');
+      if (!mounted) return;
+      
       Navigator.of(context).pushReplacementNamed('/home');
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
