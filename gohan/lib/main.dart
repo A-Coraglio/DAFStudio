@@ -3,6 +3,7 @@ import 'login_page.dart';
 import 'auth_gate.dart';
 import 'auth_storage.dart';
 import 'preferences.dart';
+import 'profile_page.dart';
 
 void main() {
   runApp(const MyApp());
@@ -17,30 +18,15 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Flutter Demo',
-      theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a purple toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
-        
-        colorScheme: .fromSeed(seedColor: Colors.deepPurple),
+      theme: ThemeData(      
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
       
       home: const AuthGate(),
       routes: {
         '/login': (context) => LoginPage(),
         '/home': (context) => const MyHomePage(title: 'Home'),
+        '/profile': (context) => const ProfilePage(),
       },
     );
   }
@@ -135,7 +121,7 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
             const SizedBox(height: 8),
             
-            if (_sport != null) ...[
+            if (_sport == null) ...[
               Text(
                 'Antes de continuar, elegí el deporte para continuar.',
                 style: Theme.of(context).textTheme.bodyLarge,
@@ -153,19 +139,6 @@ class _MyHomePageState extends State<MyHomePage> {
               style: Theme.of(context).textTheme.bodyLarge,
             ),
             const SizedBox(height: 16),
-
-            // Tarjeta: Perfil
-            _HomeCard(
-              icon: Icons.person,
-              title: 'Perfil',
-              subtitle: 'Ver datos del usuario',
-              onTap: () {
-                // Más adelante la conectamos a ProfilePage
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Todavía no hay un perfil')),
-                );
-              },
-            ),
 
             // Tarjeta: Configuración
             _HomeCard(
@@ -193,8 +166,15 @@ class _MyHomePageState extends State<MyHomePage> {
           ],
         ),
       ),
+      floatingActionButton: FloatingActionButton(
+      heroTag: 'profileFab',
+      tooltip: 'Perfil',
+      onPressed: () => Navigator.of(context).pushNamed('/profile'),
+      child: const Icon(Icons.person),
+    ),
+    floatingActionButtonLocation: FloatingActionButtonLocation.startFloat,
     );
-  }
+    }
 }
 
 class _HomeCard extends StatelessWidget {
