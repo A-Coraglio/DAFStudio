@@ -1,6 +1,5 @@
 from sqlmodel import SQLModel, Field
 
-class User(SQLModel, table=True):
-    id: int = Field(primary_key=True, index=True)
-    name : str = Field(nullable=False,max_length=30)
-        
+class UserType(SQLModel, table=True):
+    id: int = Field(primary_key=True)
+    name: str = Field(max_length=50)
