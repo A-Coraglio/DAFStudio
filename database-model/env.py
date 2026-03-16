@@ -11,9 +11,10 @@ from sqlmodel.sql.sqltypes import AutoString
 from dotenv import load_dotenv
 
 load_dotenv()  
-
-for _, module_name, _ in pkgutil.iter_modules(models.__path__):
-    __import__(f"{models.__name__}.{module_name}")
+print("asd")
+for module_info in pkgutil.walk_packages(models.__path__, models.__name__ + "."):
+    __import__(f"{module_info.name}")
+    print(f"{module_info.name}")
 # access to the values within the .ini file in use.
 config = context.config
 
@@ -37,7 +38,7 @@ target_metadata = SQLModel.metadata
 def render_item(type_, obj, autogen_context):
     # Map SQLModel AutoString → sa.String
     if type_ == "type" and isinstance(obj, AutoString):
-        return "sa.String(length=%d)" % obj.length
+        return f"sa.String(length={obj.length})" 
     return False  
 
 def run_migrations_offline() -> None:
@@ -78,10 +79,10 @@ def run_migrations_online() -> None:
             "DB_NAME": os.environ.get("DB_NAME", "")
         }
     url = config.get_main_option("sqlalchemy.url")
-    url = re.sub(r"\${(.+?)}", lambda m: url_tokens[m.group(1)], url)
+    url = re.sub(r"\${(.+?)}", lambda m: url_tokens[m.group(1)], url) # type: ignore
 
     connectable = engine_from_config(
-        {**config.get_section(config.config_ini_section), "sqlalchemy.url": url},
+        {**config.get_section(config.config_ini_section), "sqlalchemy.url": url}, # type: ignore
         prefix="sqlalchemy.",
         poolclass=pool.NullPool,
     )
