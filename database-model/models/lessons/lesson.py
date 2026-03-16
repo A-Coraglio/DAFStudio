@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from sqlmodel import SQLModel, Field
 
 class Lesson(SQLModel, table=True):
@@ -11,4 +11,4 @@ class Lesson(SQLModel, table=True):
     end_time: datetime
     status: str = Field(default="pending")  # pending, confirmed, cancelled
     total_price: float
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))

@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from sqlmodel import SQLModel, Field
 
 class Game(SQLModel, table=True):
@@ -9,4 +9,4 @@ class Game(SQLModel, table=True):
     max_players: int
     level: str | None = Field(max_length=20, default=None)
     status: str = Field(default="open")  # open, full, finished
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
