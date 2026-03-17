@@ -1,11 +1,11 @@
 
-from apps.games.service.dto import UserOutputDTO
-from apps.games.models.models import UserModel
-from apps.games.models.ddo import UserDDO
+from apps.games.service.dto import GamesOutputDTO
+from apps.games.models.models import GamesModel
+from apps.games.models.ddo import GameDDO
 
 
 class AppService():
-    async def user_lister(self) -> list[UserOutputDTO]:
+    async def games_lister(self) -> list[GamesOutputDTO]:
         
-        result : list[UserDDO] = await UserModel().list_users()
-        return [UserOutputDTO(id=i.id, name=i.name) for i in result]
+        result : list[GameDDO] = await GamesModel().list_games()
+        return [GamesOutputDTO(id=i.id, name=i.name) for i in result]
