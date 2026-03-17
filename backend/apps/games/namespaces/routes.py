@@ -46,7 +46,7 @@ async def create_games():
             "description": "game instance"
         }
     })
-async def create_games():
+async def update_games():
 
     game : GamesOutputDTO = await AppService().games_updater() #TODO create
     return game
