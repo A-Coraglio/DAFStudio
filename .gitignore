@@ -5,4 +5,4 @@ project/
 __pycache__/
 database-env/
 documentation/
-
+venv/
