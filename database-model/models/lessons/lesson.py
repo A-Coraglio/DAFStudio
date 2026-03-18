@@ -2,6 +2,7 @@ from datetime import datetime, timezone
 from sqlmodel import SQLModel, Field
 
 class Lesson(SQLModel, table=True):
+    __tablename__ = "lesson"
     id: int = Field(primary_key=True, index=True)
     teacher_id: int = Field(foreign_key="teacher.id")
     student_id: int = Field(foreign_key="player.id")
