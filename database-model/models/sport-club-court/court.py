@@ -7,4 +7,3 @@ class Court(SQLModel, table=True):
     name: str = Field(max_length=50)
     price_per_hour: float
     is_indoor: bool = False
-    is_active: bool = True

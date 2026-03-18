@@ -6,6 +6,4 @@ class Club(SQLModel, table=True):
     name: str = Field(max_length=100)
     address: str
     city: str
-    latitude: float | None = None
-    longitude: float | None = None
     description: str | None = None
