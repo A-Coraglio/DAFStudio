@@ -4,6 +4,7 @@ from sqlmodel import SQLModel, Field
 class Game(SQLModel, table=True):
     __tablename__ = "game"
     id: int = Field(primary_key=True, index=True)
+    name: str = Field(max_length=100)
     # booking_id: int | None = Field(foreign_key="booking.id", default=None)
     sport_id: int = Field(foreign_key="sports.id")
     organizer_id: int = Field(foreign_key="user.id")

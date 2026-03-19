@@ -1,8 +1,8 @@
 from sqlmodel import SQLModel, Field
 from datetime import datetime, timezone
 
-class User(SQLModel, table=True):
-    __tablename__ = "user"
+class AuthUser(SQLModel, table=True):
+    __tablename__ = "auth_user"
     id: int = Field(primary_key=True, index=True)
     username: str = Field(max_length=50, unique=True)
     email: str = Field(unique=True)
