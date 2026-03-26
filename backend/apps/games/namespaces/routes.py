@@ -1,12 +1,18 @@
-
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, HTTPException
+from fastapi.responses import JSONResponse
+from pydantic import BaseModel
 from apps.games.service.dto import GamesOutputDTO
 from apps.games.service.appservice import AppService
 
 router : APIRouter = APIRouter(prefix="/api")
 
+class GameCreateSchema(BaseModel):
+    name: str
 
-#example route
+class GameUpdateSchema(BaseModel):
+    name: str
+
+
 @router.get("/games/",responses={
         200: {
             "model": GamesOutputDTO,
@@ -20,44 +26,53 @@ async def list_games():
 
 @router.get("/games/{game_id}/",responses={
         200: {
-            "model": GamesOutputDTO, #TODO change
-            "description": "game instance"
+            "model": GamesOutputDTO, 
+            "description": "game instance"},
+        404: {
+            "description": "game not found"
         }
     })
-async def get_games():
+async def get_games(game_id: int):
 
-    game : GamesOutputDTO = await AppService().games_getter() #TODO create
+    game : GamesOutputDTO | None = await AppService().games_getter(game_id=game_id)
+    if game is None:
+        raise HTTPException(status_code=404, detail="Game not found")
     return game
 
 @router.post("/games/",responses={
         200: {
-            "model": GamesOutputDTO, #TODO change
-            "description": "game instance"
+            "model": GamesOutputDTO,
+            "description": "Created game instance"
         }
     })
-async def create_games():
+async def create_games(body: GameCreateSchema):
 
-    game : GamesOutputDTO = await AppService().games_creator() #TODO create
-    return game
+    game : GamesOutputDTO = await AppService().games_creator(name=body.name)
+    return JSONResponse(status_code=200, content=game.model_dump())
 
 @router.put("/games/{games_id}/",responses={
         200: {
-            "model": GamesOutputDTO, #TODO change
-            "description": "game instance"
+            "model": GamesOutputDTO,
+            "description": "Updated game instance"},
+        404: {"Description": "game not found"}
         }
-    })
-async def update_games():
+    )
+async def update_games(game_id: int, body: GameUpdateSchema):
 
-    game : GamesOutputDTO = await AppService().games_updater() #TODO create
+    game : GamesOutputDTO | None = await AppService().games_updater(game_id=game_id, name=body.name)
+    if game is None:
+        raise HTTPException(status_code=404, detail="Game not found")
     return game
 
 @router.delete("/games/{games_id}/",responses={
         200: {
-            "model": GamesOutputDTO, #TODO change
-            "description": "id of the deleted instance"
+            "model": GamesOutputDTO,
+            "description": "id of the deleted instance"},
+        404: {"Description": "game not found"}
         }
-    })
-async def delete_game():
-
-    game : GamesOutputDTO = await AppService().games_deleter() #TODO create
-    return game
+    )
+async def delete_game(game_id: int):
+    deleted_id : int | None = await AppService().games_deleter(game_id=game_id)
+    if deleted_id is None:
+        raise HTTPException(status_code=404, detail="Game not found")
+    return {"deleted_id": deleted_id}
