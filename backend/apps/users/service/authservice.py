@@ -84,3 +84,5 @@ class AuthService():
         if not deleted_id:
             raise ValueError("Could not delete user")
         return deleted_id
+    
+    
