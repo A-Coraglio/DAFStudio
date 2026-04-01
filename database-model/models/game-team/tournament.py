@@ -4,7 +4,7 @@ from sqlmodel import SQLModel, Field
 class Tournament(SQLModel, table=True):
     __tablename__ = "tournament" # type: ignore
     id: int = Field(primary_key=True, index=True)
-    organizer_id: int = Field(foreign_key="user.id")
+    organizer_id: int = Field(foreign_key="auth_user.id")
     sport_id: int = Field(foreign_key="sports.id")
     club_id: int | None = Field(foreign_key="club.id", default=None)
     name: str = Field(max_length=100)

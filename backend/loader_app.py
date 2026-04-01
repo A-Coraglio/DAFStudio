@@ -2,7 +2,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from load_database import database_object
 from apps.games.namespaces.routes import router as games_router
-
+from apps.users.namespaces.routes import router as users_router
 
 
 @asynccontextmanager
@@ -15,3 +15,4 @@ app : FastAPI = FastAPI(lifespan=lifespan)
 
 
 app.include_router(games_router)
+app.include_router(users_router)
