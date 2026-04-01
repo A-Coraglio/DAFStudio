@@ -34,9 +34,7 @@ async def list_games():
     })
 async def get_games(game_id: int):
 
-    game : GamesOutputDTO | None = await AppService().games_getter(game_id=game_id)
-    if game is None:
-        raise HTTPException(status_code=404, detail="Game not found")
+    game : GamesOutputDTO = await AppService().games_getter(game_id=game_id)
     return game
 
 @router.post("/games/",responses={
@@ -48,7 +46,7 @@ async def get_games(game_id: int):
 async def create_games(body: GameCreateSchema):
 
     game : GamesOutputDTO = await AppService().games_creator(name=body.name)
-    return JSONResponse(status_code=200, content=game.model_dump())
+    return game
 
 @router.put("/games/{games_id}/",responses={
         200: {
@@ -59,20 +57,16 @@ async def create_games(body: GameCreateSchema):
     )
 async def update_games(game_id: int, body: GameUpdateSchema):
 
-    game : GamesOutputDTO | None = await AppService().games_updater(game_id=game_id, name=body.name)
-    if game is None:
-        raise HTTPException(status_code=404, detail="Game not found")
+    game : GamesOutputDTO  = await AppService().games_updater(game_id=game_id, name=body.name)
     return game
 
 @router.delete("/games/{games_id}/",responses={
         200: {
-            "model": GamesOutputDTO,
+            "model": dict,
             "description": "id of the deleted instance"},
         404: {"Description": "game not found"}
         }
     )
 async def delete_game(game_id: int):
-    deleted_id : int | None = await AppService().games_deleter(game_id=game_id)
-    if deleted_id is None:
-        raise HTTPException(status_code=404, detail="Game not found")
+    deleted_id : int  = await AppService().games_deleter(game_id=game_id)
     return {"deleted_id": deleted_id}

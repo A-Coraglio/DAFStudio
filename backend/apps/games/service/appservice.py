@@ -25,18 +25,14 @@ class AppService():
         result: GameDDO = await GamesModel().create_game(name=name)
         return self._to_output_dto(result)
 
-    async def games_getter(self, game_id: int) -> GamesOutputDTO | None:
-        result: GameDDO | None = await GamesModel().get_game_by_id(game_id=game_id)
-        if result is None:
-            return None
+    async def games_getter(self, game_id: int) -> GamesOutputDTO :
+        result: GameDDO = await GamesModel().get_game_by_id(game_id=game_id)
         return self._to_output_dto(result)
 
-    async def games_updater(self, game_id: int, name: str) -> GamesOutputDTO | None:
-        result: GameDDO | None = await GamesModel().update_game(game_id=game_id, name=name)
-        if result is None:
-            return None
+    async def games_updater(self, game_id: int, name: str) -> GamesOutputDTO :
+        result: GameDDO = await GamesModel().update_game(game_id=game_id, name=name)
         return self._to_output_dto(result)
 
-    async def games_deleter(self, game_id: int) -> int | None:
-        deleted_id: int | None = await GamesModel().delete_game(game_id=game_id)
+    async def games_deleter(self, game_id: int) -> int :
+        deleted_id: int = await GamesModel().delete_game(game_id=game_id)
         return deleted_id
