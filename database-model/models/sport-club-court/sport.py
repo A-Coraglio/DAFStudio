@@ -1,7 +1,7 @@
 from sqlmodel import SQLModel, Field
 
 class Sport(SQLModel, table=True):
-    __tablename__ = "sports"
+    __tablename__ = "sports" # type: ignore
     id: int = Field(primary_key=True)
     name: str = Field(max_length=50)  # "padel", "tennis", "football"
     max_players_per_team: int

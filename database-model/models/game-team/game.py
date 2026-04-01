@@ -2,7 +2,7 @@ from datetime import datetime, timezone
 from sqlmodel import SQLModel, Field
 
 class Game(SQLModel, table=True):
-    __tablename__ = "game"
+    __tablename__ = "game" # type: ignore
     id: int = Field(primary_key=True, index=True)
     name: str = Field(max_length=100)
     # booking_id: int | None = Field(foreign_key="booking.id", default=None)

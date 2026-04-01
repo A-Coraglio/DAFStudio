@@ -1,7 +1,7 @@
 from sqlmodel import SQLModel, Field
 
 class Teacher(SQLModel, table=True):
-    __tablename__ = "teacher"
+    __tablename__ = "teacher" # type: ignore
     id: int = Field(primary_key=True)
     user_id: int = Field(foreign_key="user.id", unique=True)
     bio: str | None = None

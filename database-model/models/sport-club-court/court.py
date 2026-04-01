@@ -1,7 +1,7 @@
 from sqlmodel import SQLModel, Field
 
 class Court(SQLModel, table=True):
-    __tablename__ = "court"
+    __tablename__ = "court" # type: ignore
     id: int = Field(primary_key=True, index=True)
     club_id: int = Field(foreign_key="club.id")
     sport_id: int = Field(foreign_key="sports.id")

@@ -14,9 +14,9 @@ router : APIRouter = APIRouter(prefix="/api")
         }
     })
 async def list_games():
-
     games_list : list[GamesOutputDTO] = await AppService().games_lister()
     return games_list
+
 
 @router.get("/games/{game_id}/",responses={
         200: {
@@ -25,7 +25,6 @@ async def list_games():
         }
     })
 async def get_games():
-
     game : GamesOutputDTO = await AppService().games_getter() #TODO create
     return game
 
@@ -36,7 +35,6 @@ async def get_games():
         }
     })
 async def create_games():
-
     game : GamesOutputDTO = await AppService().games_creator() #TODO create
     return game
 
@@ -47,7 +45,6 @@ async def create_games():
         }
     })
 async def update_games():
-
     game : GamesOutputDTO = await AppService().games_updater() #TODO create
     return game
 
@@ -58,6 +55,5 @@ async def update_games():
         }
     })
 async def delete_game():
-
     game : GamesOutputDTO = await AppService().games_deleter() #TODO create
     return game
