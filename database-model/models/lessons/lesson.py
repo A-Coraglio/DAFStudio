@@ -1,5 +1,6 @@
 from datetime import datetime, timezone
 from sqlmodel import SQLModel, Field
+from sqlalchemy.sql import func
 
 class Lesson(SQLModel, table=True):
     __tablename__ = "lesson" # type: ignore
@@ -12,4 +13,7 @@ class Lesson(SQLModel, table=True):
     end_time: datetime
     status: str = Field(default="pending")  # pending, confirmed, cancelled
     total_price: float
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = Field(
+        default_factory=lambda: datetime.now(timezone.utc),
+        sa_column_kwargs={"server_default": func.now()},
+    )

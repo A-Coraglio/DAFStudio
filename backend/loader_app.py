@@ -1,5 +1,6 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from apps.games.exceptions.exceptions import AppException
 from load_database import database_object
@@ -20,6 +21,13 @@ async def lifespan(app: FastAPI):
     
 app : FastAPI = FastAPI(lifespan=lifespan)
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=False,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 app.include_router(games_router)
 app.include_router(users_router)

@@ -1,5 +1,6 @@
 from datetime import datetime, timezone
 from sqlmodel import SQLModel, Field
+from sqlalchemy.sql import func
 
 
 class MatchmakingTicket(SQLModel, table=True):
@@ -23,4 +24,7 @@ class MatchmakingTicket(SQLModel, table=True):
     window_end: datetime
     status: str = Field(default="waiting", max_length=20)  # waiting, matched, cancelled, expired
     matched_game_id: int | None = Field(foreign_key="game.id", default=None)
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = Field(
+        default_factory=lambda: datetime.now(timezone.utc),
+        sa_column_kwargs={"server_default": func.now()},
+    )

@@ -1,5 +1,6 @@
 from datetime import datetime, timezone
 from sqlmodel import SQLModel, Field
+from sqlalchemy.sql import func
 
 class Game(SQLModel, table=True):
     __tablename__ = "game" # type: ignore
@@ -20,4 +21,7 @@ class Game(SQLModel, table=True):
     # via game_result_confirmation. Null while the match is pending / in-flight.
     result_home: int | None = Field(default=None)
     result_away: int | None = Field(default=None)
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = Field(
+        default_factory=lambda: datetime.now(timezone.utc),
+        sa_column_kwargs={"server_default": func.now()},
+    )
