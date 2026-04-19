@@ -5,10 +5,19 @@ class Game(SQLModel, table=True):
     __tablename__ = "game" # type: ignore
     id: int = Field(primary_key=True, index=True)
     name: str = Field(max_length=100)
-    # booking_id: int | None = Field(foreign_key="booking.id", default=None)
     sport_id: int = Field(foreign_key="sports.id")
     organizer_id: int = Field(foreign_key="auth_user.id")
+    # court_id is nullable: matchmaking games resolve the court only when the
+    court_id: int | None = Field(foreign_key="court.id", default=None)
     max_players: int
     level: str | None = Field(max_length=20, default=None)
-    status: str = Field(default="open")  # open, full, finished
+    # "casual" = social, no ranking points. "competitive"
+    # points. "matchmaking" = auto-created by the matchmaker, awards points.
+    mode: str = Field(default="casual", max_length=20)
+    status: str = Field(default="open")  # open, full, finished, cancelled
+    scheduled_at: datetime | None = Field(default=None)
+    # Final score. Filled once a quorum of players reports the same result
+    # via game_result_confirmation. Null while the match is pending / in-flight.
+    result_home: int | None = Field(default=None)
+    result_away: int | None = Field(default=None)
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))

@@ -5,6 +5,11 @@ from apps.games.exceptions.exceptions import AppException
 from load_database import database_object
 from apps.games.namespaces.routes import router as games_router
 from apps.users.namespaces.routes import router as users_router
+from apps.sports.namespaces.routes import router as sports_router
+from apps.courts.namespaces.routes import router as courts_router
+from apps.clubs.namespaces.routes import router as clubs_router
+from apps.players.namespaces.routes import router as players_router
+from apps.matchmaking.namespaces.routes import router as matchmaking_router
 from traceback import format_exc
 
 @asynccontextmanager
@@ -18,6 +23,11 @@ app : FastAPI = FastAPI(lifespan=lifespan)
 
 app.include_router(games_router)
 app.include_router(users_router)
+app.include_router(sports_router)
+app.include_router(courts_router)
+app.include_router(clubs_router)
+app.include_router(players_router)
+app.include_router(matchmaking_router)
 
 
 

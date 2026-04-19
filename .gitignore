@@ -6,3 +6,6 @@ __pycache__/
 database-env/
 documentation/
 venv/
+.claude/
+.venv/
+docs/

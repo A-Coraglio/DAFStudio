@@ -11,6 +11,12 @@ from apps.users.service.dto import (
     UserOutputDTO,
     TokenOutputDTO
 )
+from apps.users.exceptions.exceptions import (
+    EmailAlreadyRegisteredException,
+    InvalidCredentialsException,
+    UserNotFoundException,
+)
+from apps.players.models.models import PlayerModel
 
 SECRET_KEY = os.environ.get("SECRET_KEY", "changeme")
 ALGORITHM = "HS256"
@@ -37,32 +43,36 @@ class AuthService():
     async def users_register(self, data: RegisterInputDTO) -> UserOutputDTO:
         existing = await UserModel().get_user_by_email(email=data.email)
         if existing:
-            raise ValueError("La contraseña ya existe wachin")
+            raise EmailAlreadyRegisteredException()
         password_hash = self._hash_password(data.password)
         user = await UserModel().create_user(
             username=data.username,
             email=data.email,
             password_hash=password_hash
         )
+        # Every auth_user gets an empty player profile so the user can
+        # immediately use the app. The onboarding step fills in name, sport,
+        # level via PUT /api/players/me/.
+        await PlayerModel().create_player(user_id=user.id)
         return self._to_output_dto(user)
 
     async def users_login(self, data: LoginInputDTO) -> TokenOutputDTO:
         user = await UserModel().get_user_by_email(email=data.email)
         if not user or not self._verify_password(data.password, user.password_hash):
-            raise ValueError("Usuario o contraseña incorrectos, pone algo bien")
+            raise InvalidCredentialsException()
         token = self._create_token(user.id)
         return TokenOutputDTO(access_token=token)
 
     async def users_getter(self, user_id: int) -> UserOutputDTO:
         user = await UserModel().get_user_by_id(user_id=user_id)
         if not user:
-            raise ValueError("User not found")
+            raise UserNotFoundException(message=f"User with id {user_id} not found")
         return self._to_output_dto(user)
 
     async def users_updater(self, user_id: int, data: UpdateUserInputDTO) -> UserOutputDTO:
         user = await UserModel().get_user_by_id(user_id=user_id)
         if not user:
-            raise ValueError("User not found")
+            raise UserNotFoundException(message=f"User with id {user_id} not found")
 
         password_hash = self._hash_password(data.password) if data.password else None
 
@@ -72,17 +82,14 @@ class AuthService():
             email=data.email,
             password_hash=password_hash
         )
-        if not updated:
-            raise ValueError("Nothing to update")
-        return self._to_output_dto(updated)
+        # If no fields were provided, the model returns None → keep user unchanged.
+        return self._to_output_dto(updated or user)
 
     async def users_deleter(self, user_id: int) -> int:
         user = await UserModel().get_user_by_id(user_id=user_id)
         if not user:
-            raise ValueError("User not found")
+            raise UserNotFoundException(message=f"User with id {user_id} not found")
         deleted_id = await UserModel().delete_user(user_id=user_id)
         if not deleted_id:
-            raise ValueError("Could not delete user")
+            raise UserNotFoundException(message=f"User with id {user_id} not found")
         return deleted_id
-    
-    
