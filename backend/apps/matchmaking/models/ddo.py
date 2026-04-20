@@ -33,3 +33,4 @@ class MatchmakingTicketDDO(BaseModel):
     status: str = Field(default="waiting")
     matched_game_id: int | None = Field(default=None)
     created_at: datetime
+    proposed_at: datetime | None = Field(default=None)

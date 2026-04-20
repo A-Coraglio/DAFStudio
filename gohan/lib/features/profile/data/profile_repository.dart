@@ -19,4 +19,20 @@ class ProfileRepository {
     );
     return PlayerProfile.fromJson(res.data!);
   }
+
+  /// Uploads a new avatar via multipart. `bytes` is the raw image bytes;
+  /// `filename` is only used for the extension check on the backend.
+  Future<PlayerProfile> uploadAvatar({
+    required List<int> bytes,
+    required String filename,
+  }) async {
+    final form = FormData.fromMap({
+      'file': MultipartFile.fromBytes(bytes, filename: filename),
+    });
+    final res = await _dio.post<Map<String, dynamic>>(
+      '/api/players/me/avatar/',
+      data: form,
+    );
+    return PlayerProfile.fromJson(res.data!);
+  }
 }

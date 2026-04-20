@@ -27,6 +27,12 @@ _RANKING_STEP = 50
 _RANKING_STEP_SECONDS = 30
 _RANKING_CAP = 2000
 
+# A proposed match waits this long for *everyone* to accept before the group
+# is collapsed: non-accepters → 'expired', accepters → back to 'waiting'.
+# Generous (10 min) because users may queue while doing other things and
+# only notice the popup when they come back to the app.
+ACCEPTANCE_TIMEOUT_SECONDS = 600
+
 
 def ranking_tolerance(ticket_age_seconds: float) -> int:
     steps = int(ticket_age_seconds // _RANKING_STEP_SECONDS)
@@ -119,11 +125,25 @@ class Matcher:
     """Stateless runner — one pass over all sports."""
 
     async def run(self) -> int:
+        # Clean up timed-out proposals first so the expired tickets don't
+        # block the users who accepted from being re-matched this same pass.
+        await self.expire_stale()
         sports = await SportModel().list_sports()
         total = 0
         for sport in sports:
             total += await self._match_sport(sport)
         return total
+
+    async def expire_stale(self) -> int:
+        """Collapse any group whose acceptance phase timed out. Returns the
+        number of groups expired."""
+        game_ids = await MatchmakingTicketModel().list_stale_game_ids(
+            timeout_seconds=ACCEPTANCE_TIMEOUT_SECONDS
+        )
+        for game_id in game_ids:
+            await GamesModel().update_game(game_id=game_id, status="cancelled")
+            await MatchmakingTicketModel().expire_group(matched_game_id=game_id)
+        return len(game_ids)
 
     async def _match_sport(self, sport: SportDDO) -> int:
         group_size = 2 * max(1, sport.max_players_per_team)
@@ -190,7 +210,29 @@ class Matcher:
         )
         await GamesModel().update_game(game_id=game.id, status="pending_acceptance")
 
-        # Link players to the game and flip tickets to 'proposed'.
+        # Flip tickets to 'proposed'. `set_proposed` is guarded by
+        # `status='waiting'` so a concurrent matcher that already grabbed
+        # any of these tickets returns None — we treat that as a partial
+        # flip and tear down this group instead of leaving a half-built
+        # game live.
+        flipped_ids: list[int] = []
+        aborted = False
+        for ctx in group:
+            updated = await MatchmakingTicketModel().set_proposed(
+                ticket_id=ctx.ticket.id,
+                matched_game_id=game.id,
+            )
+            if updated is None:
+                aborted = True
+                break
+            flipped_ids.append(ctx.ticket.id)
+
+        if aborted:
+            await MatchmakingTicketModel().reopen_group(matched_game_id=game.id)
+            await GamesModel().update_game(game_id=game.id, status="cancelled")
+            return
+
+        # All tickets flipped — now link the players to the game.
         for ctx in group:
             player = await PlayerModel().get_player_by_user_id(
                 user_id=ctx.ticket.user_id
@@ -199,11 +241,6 @@ class Matcher:
                 continue
             await GamePlayerModel().add_player(
                 game_id=game.id, player_id=player.id
-            )
-            await MatchmakingTicketModel().set_status(
-                ticket_id=ctx.ticket.id,
-                status="proposed",
-                matched_game_id=game.id,
             )
 
     async def _pick_venue(

@@ -15,3 +15,7 @@ class PlayerDDO(BaseModel):
         default=None,
         description="Sport the user picked during onboarding",
     )
+    avatar_path: str | None = Field(
+        default=None,
+        description="Relative path under /uploads/ (e.g. avatars/123.png)",
+    )

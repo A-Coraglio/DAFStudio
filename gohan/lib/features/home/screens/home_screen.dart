@@ -5,9 +5,9 @@ import 'package:go_router/go_router.dart';
 import '../../../core/widgets/error_view.dart';
 import '../../profile/providers/profile_providers.dart';
 import '../../sports/providers/sports_providers.dart';
+import '../../sports/widgets/sport_selector_button.dart';
 import '../widgets/home_cta_list.dart';
 import '../widgets/home_welcome.dart';
-import '../widgets/sport_selector_button.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});

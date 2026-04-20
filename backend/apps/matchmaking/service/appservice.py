@@ -1,5 +1,8 @@
+from apps.games.service.iso_utils import iso_utc
 from apps.matchmaking.models.models import MatchmakingTicketModel
 from apps.matchmaking.models.ddo import MatchmakingTicketDDO
+from apps.sports.models.models import SportModel
+from apps.sports.exceptions.exceptions import SportNotFoundException
 from apps.matchmaking.service.dto import (
     QueueInputDTO,
     TicketOutputDTO,
@@ -28,11 +31,19 @@ class AppService:
             max_radius_km=ticket.max_radius_km,
             origin_lat=ticket.origin_lat,
             origin_lon=ticket.origin_lon,
+            # window_start/end are "play-time the user picked" — sent as
+            # local naive from the frontend and echoed back naive so the
+            # client can display exactly what was chosen. Do NOT stamp UTC.
             window_start=ticket.window_start.isoformat(),
             window_end=ticket.window_end.isoformat(),
             status=ticket.status,
             matched_game_id=ticket.matched_game_id,
-            created_at=ticket.created_at.isoformat(),
+            created_at=iso_utc(ticket.created_at),
+            proposed_at=(
+                iso_utc(ticket.proposed_at)
+                if ticket.proposed_at is not None
+                else None
+            ),
         )
 
     async def queue(
@@ -82,6 +93,9 @@ class AppService:
         return self._to_output_dto(updated or existing)
 
     async def status(self, current_user_id: int) -> StatusOutputDTO:
+        # Before reading the user's ticket, expire any stale proposals so
+        # the caller sees 'expired' / 'waiting' instead of a frozen 'proposed'.
+        await Matcher().expire_stale()
         ticket = await MatchmakingTicketModel().get_active_ticket_for_user(
             user_id=current_user_id
         )
@@ -94,10 +108,42 @@ class AppService:
             proposed_game = await GamesAppService().games_getter(
                 game_id=ticket.matched_game_id
             )
+
+        eta_seconds, depth = await self._eta_for_ticket(ticket)
+
         return StatusOutputDTO(
             ticket=self._to_output_dto(ticket) if ticket else None,
             proposed_game=proposed_game,
+            estimated_wait_seconds=eta_seconds,
+            queue_depth=depth,
         )
+
+    async def _eta_for_ticket(
+        self, ticket: MatchmakingTicketDDO | None
+    ) -> tuple[int | None, int | None]:
+        """Coarse ETA based on queue density for the ticket's sport.
+
+        Heuristic only. Buckets:
+          - group already formable (enough waiters) → next cron sweep (~20s)
+          - half-full pool                          → ~2 minutes
+          - nearly empty                            → null (can't estimate)
+        """
+        if ticket is None or ticket.status != "waiting":
+            return None, None
+        try:
+            sport = await SportModel().get_sport_by_id(sport_id=ticket.sport_id)
+        except SportNotFoundException:
+            return None, None
+        group_size = 2 * max(1, sport.max_players_per_team)
+        waiting = await MatchmakingTicketModel().list_waiting_for_sport(
+            sport_id=ticket.sport_id
+        )
+        depth = len(waiting)
+        if depth >= group_size:
+            return 20, depth
+        if depth * 2 >= group_size:
+            return 120, depth
+        return None, depth
 
     async def accept(
         self, ticket_id: int, current_user_id: int

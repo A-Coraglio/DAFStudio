@@ -28,6 +28,7 @@ def _row_to_ddo(row) -> MatchmakingTicketDDO:
         status=row["status"],
         matched_game_id=row["matched_game_id"],
         created_at=row["created_at"],
+        proposed_at=row["proposed_at"],
     )
 
 
@@ -151,6 +152,77 @@ class MatchmakingTicketModel(GeneralModel):
             try:
                 result = await connection.fetchrow(query, *values)
                 return _row_to_ddo(result) if result else None
+            except Exception as e:
+                raise DatbaseException(message=f"Database error: {e}")
+
+    async def set_proposed(
+        self,
+        ticket_id: int,
+        matched_game_id: int,
+    ) -> MatchmakingTicketDDO | None:
+        """Flip a waiting ticket into 'proposed' and stamp proposed_at = now().
+        proposed_at is the anchor for the acceptance-phase timeout.
+
+        Guarded by `WHERE status = 'waiting'` so a concurrent matcher that
+        already flipped this ticket can't double-propose it. Returns None
+        when the ticket was already taken — the caller should treat the
+        group as dead on a partial flip and not create the game.
+        """
+        async with self.get_db_connection() as connection:
+            connection: PoolConnectionProxy = cast(PoolConnectionProxy, connection)
+            query = (
+                f"UPDATE {self.__table_name__} "
+                "SET status = 'proposed', matched_game_id = $1, "
+                "    proposed_at = now() "
+                "WHERE id = $2 AND status = 'waiting' RETURNING *"
+            )
+            try:
+                result = await connection.fetchrow(query, matched_game_id, ticket_id)
+                return _row_to_ddo(result) if result else None
+            except Exception as e:
+                raise DatbaseException(message=f"Database error: {e}")
+
+    async def list_stale_game_ids(self, timeout_seconds: int) -> list[int]:
+        """Distinct matched_game_ids whose acceptance phase timed out.
+        A group is stale if any of its proposed-or-accepted tickets is older
+        than timeout_seconds since `proposed_at`."""
+        async with self.get_db_connection() as connection:
+            connection: PoolConnectionProxy = cast(PoolConnectionProxy, connection)
+            query = (
+                f"SELECT DISTINCT matched_game_id FROM {self.__table_name__} "
+                "WHERE status IN ('proposed', 'accepted') "
+                "AND matched_game_id IS NOT NULL "
+                "AND proposed_at IS NOT NULL "
+                f"AND proposed_at < now() - ($1 || ' seconds')::interval"
+            )
+            try:
+                results = await connection.fetch(query, str(timeout_seconds))
+                return [r["matched_game_id"] for r in results]
+            except Exception as e:
+                raise DatbaseException(message=f"Database error: {e}")
+
+    async def expire_group(self, matched_game_id: int) -> int:
+        """Collapse a timed-out group: tickets that never accepted become
+        'expired'; tickets that did accept are returned to the queue."""
+        async with self.get_db_connection() as connection:
+            connection: PoolConnectionProxy = cast(PoolConnectionProxy, connection)
+            query = (
+                f"UPDATE {self.__table_name__} "
+                "SET status = CASE "
+                "    WHEN status = 'accepted' THEN 'waiting' "
+                "    ELSE 'expired' "
+                "END, "
+                "matched_game_id = CASE "
+                "    WHEN status = 'accepted' THEN NULL "
+                "    ELSE matched_game_id "
+                "END, "
+                "proposed_at = NULL "
+                "WHERE matched_game_id = $1 AND status IN ('proposed', 'accepted') "
+                "RETURNING id"
+            )
+            try:
+                results = await connection.fetch(query, matched_game_id)
+                return len(results)
             except Exception as e:
                 raise DatbaseException(message=f"Database error: {e}")
 

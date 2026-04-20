@@ -33,6 +33,7 @@ class MatchmakingTicket {
   final TicketStatus status;
   final int? matchedGameId;
   final DateTime createdAt;
+  final DateTime? proposedAt;
 
   const MatchmakingTicket({
     required this.id,
@@ -46,6 +47,7 @@ class MatchmakingTicket {
     required this.status,
     required this.matchedGameId,
     required this.createdAt,
+    required this.proposedAt,
   });
 
   factory MatchmakingTicket.fromJson(Map<String, dynamic> json) =>
@@ -61,5 +63,8 @@ class MatchmakingTicket {
         status: TicketStatus.fromString(json['status'] as String),
         matchedGameId: json['matched_game_id'] as int?,
         createdAt: DateTime.parse(json['created_at'] as String),
+        proposedAt: json['proposed_at'] == null
+            ? null
+            : DateTime.parse(json['proposed_at'] as String),
       );
 }

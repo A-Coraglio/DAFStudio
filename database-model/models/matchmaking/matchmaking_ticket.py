@@ -28,3 +28,7 @@ class MatchmakingTicket(SQLModel, table=True):
         default_factory=lambda: datetime.now(timezone.utc),
         sa_column_kwargs={"server_default": func.now()},
     )
+    # Timestamp the ticket was flipped to 'proposed'. Used to enforce the
+    # acceptance-phase timeout — if the group doesn't fully accept within
+    # ACCEPTANCE_TIMEOUT_SECONDS of this moment, the proposal is expired.
+    proposed_at: datetime | None = Field(default=None)

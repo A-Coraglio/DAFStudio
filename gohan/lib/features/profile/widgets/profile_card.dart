@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../data/player_profile.dart';
+import 'avatar_picker.dart';
 
 class ProfileCard extends StatelessWidget {
   const ProfileCard({
@@ -17,6 +18,10 @@ class ProfileCard extends StatelessWidget {
     return Card(
       child: Column(
         children: [
+          Padding(
+            padding: const EdgeInsets.only(top: 20, bottom: 8),
+            child: Center(child: AvatarPicker(profile: profile)),
+          ),
           ListTile(
             leading: const Icon(Icons.person),
             title: Text(profile.displayName),

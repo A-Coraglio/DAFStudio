@@ -32,7 +32,11 @@ class MatchmakingScreen extends ConsumerWidget {
             return const QueueForm();
           }
           return switch (ticket.status) {
-            TicketStatus.waiting => WaitingPanel(ticket: ticket),
+            TicketStatus.waiting => WaitingPanel(
+                ticket: ticket,
+                estimatedWaitSeconds: status.estimatedWaitSeconds,
+                queueDepth: status.queueDepth,
+              ),
             TicketStatus.proposed || TicketStatus.accepted =>
               MatchFoundPanel(ticket: ticket, game: status.proposedGame),
             TicketStatus.matched => status.proposedGame == null

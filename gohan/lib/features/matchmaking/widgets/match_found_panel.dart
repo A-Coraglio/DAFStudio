@@ -58,7 +58,9 @@ class _MatchFoundPanelState extends ConsumerState<MatchFoundPanel> {
         ),
         const SizedBox(height: 8),
         Center(
-          child: AcceptanceCountdown(since: widget.ticket.createdAt),
+          child: AcceptanceCountdown(
+            since: widget.ticket.proposedAt ?? widget.ticket.createdAt,
+          ),
         ),
         const SizedBox(height: 16),
         if (widget.game != null) GameInfoCard(game: widget.game!),
@@ -85,7 +87,7 @@ class _MatchFoundPanelState extends ConsumerState<MatchFoundPanel> {
               ? null
               : () => _run(() => repo.reject(widget.ticket.id)),
           icon: const Icon(Icons.close),
-          label: const Text('Rechazar'),
+          label: const Text('Cancelar'),
         ),
       ],
     );

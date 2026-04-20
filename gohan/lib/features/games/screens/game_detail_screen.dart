@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/widgets/error_view.dart';
 import '../providers/games_providers.dart';
 import '../widgets/game_action_button.dart';
+import '../widgets/game_chat_button.dart';
 import '../widgets/game_info_card.dart';
 import '../widgets/game_players_list.dart';
 import '../widgets/report_result_button.dart';
@@ -53,6 +54,8 @@ class GameDetailScreen extends ConsumerWidget {
                 game: game,
                 players: playersAsync.valueOrNull ?? const [],
               ),
+              const SizedBox(height: 8),
+              GameChatButton(gameId: gameId),
             ],
           ),
         ),

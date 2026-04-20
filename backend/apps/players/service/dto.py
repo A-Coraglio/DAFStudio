@@ -9,6 +9,10 @@ class PlayerOutputDTO(BaseModel):
     level: str | None = Field(default=None, description="beginner, intermediate, advanced")
     ranking_points: int = Field(description="ELO-like ranking (visible)")
     favorite_sport_id: int | None = Field(default=None)
+    avatar_url: str | None = Field(
+        default=None,
+        description="Absolute URL for the avatar image, or null if unset",
+    )
 
 
 class UpdatePlayerInputDTO(BaseModel):

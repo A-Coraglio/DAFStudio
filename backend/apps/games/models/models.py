@@ -140,8 +140,8 @@ class GamesModel(GeneralModel):
             connection: PoolConnectionProxy = cast(PoolConnectionProxy, connection)
             query = (
                 f"INSERT INTO {self.__table_name__} "
-                "(name, sport_id, organizer_id, max_players, mode, level, court_id, scheduled_at) "
-                "VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *"
+                "(name, sport_id, organizer_id, max_players, mode, level, court_id, scheduled_at, status) "
+                "VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'open') RETURNING *"
             )
             try:
                 result = await connection.fetchrow(

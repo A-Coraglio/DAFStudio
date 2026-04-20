@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import 'home_card.dart';
+import 'play_now_card.dart';
 
 /// The three main actions on the home screen. All three are wired to real
-/// screens after Fase 4+5.
+/// screens after Fase 4+5. The first card is live and reflects the
+/// matchmaking ticket state when the user has one active.
 class HomeCtaList extends StatelessWidget {
   const HomeCtaList({super.key});
 
@@ -12,12 +14,7 @@ class HomeCtaList extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        HomeCard(
-          icon: Icons.bolt,
-          title: 'Jugar ya',
-          subtitle: 'Matchmaking: te emparejamos con gente cerca',
-          onTap: () => context.push('/matchmaking'),
-        ),
+        const PlayNowCard(),
         HomeCard(
           icon: Icons.list_alt,
           title: 'Explorar partidos',
@@ -29,6 +26,12 @@ class HomeCtaList extends StatelessWidget {
           title: 'Crear partido',
           subtitle: 'Armá uno y esperá jugadores',
           onTap: () => context.push('/games/new'),
+        ),
+        HomeCard(
+          icon: Icons.chat_bubble_outline,
+          title: 'Chats',
+          subtitle: 'Conversaciones generales y de tus partidos',
+          onTap: () => context.push('/chats'),
         ),
       ],
     );

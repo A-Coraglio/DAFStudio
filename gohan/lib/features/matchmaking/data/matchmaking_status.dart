@@ -8,8 +8,15 @@ import 'matchmaking_ticket.dart';
 class MatchmakingStatus {
   final MatchmakingTicket? ticket;
   final Game? proposedGame;
+  final int? estimatedWaitSeconds;
+  final int? queueDepth;
 
-  const MatchmakingStatus({required this.ticket, required this.proposedGame});
+  const MatchmakingStatus({
+    required this.ticket,
+    required this.proposedGame,
+    required this.estimatedWaitSeconds,
+    required this.queueDepth,
+  });
 
   factory MatchmakingStatus.fromJson(Map<String, dynamic> json) {
     final t = json['ticket'];
@@ -20,6 +27,8 @@ class MatchmakingStatus {
           : MatchmakingTicket.fromJson(t as Map<String, dynamic>),
       proposedGame:
           g == null ? null : Game.fromJson(g as Map<String, dynamic>),
+      estimatedWaitSeconds: json['estimated_wait_seconds'] as int?,
+      queueDepth: json['queue_depth'] as int?,
     );
   }
 }

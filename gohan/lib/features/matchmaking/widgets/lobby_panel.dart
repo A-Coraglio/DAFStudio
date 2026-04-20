@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../games/data/game.dart';
+import '../../games/widgets/game_chat_button.dart';
 import '../../games/widgets/game_info_card.dart';
 import '../../games/widgets/game_players_list.dart';
 
@@ -41,7 +42,9 @@ class LobbyPanel extends StatelessWidget {
         Text('Jugadores', style: Theme.of(context).textTheme.titleMedium),
         const SizedBox(height: 8),
         GamePlayersList(gameId: game.id),
-        const SizedBox(height: 24),
+        const SizedBox(height: 16),
+        GameChatButton(gameId: game.id),
+        const SizedBox(height: 16),
         FilledButton.icon(
           onPressed: () => context.go('/games/${game.id}'),
           icon: const Icon(Icons.sports),

@@ -6,6 +6,7 @@ class PlayerProfile {
   final String? level;
   final int rankingPoints;
   final int? favoriteSportId;
+  final String? avatarUrl;
 
   const PlayerProfile({
     required this.id,
@@ -15,6 +16,7 @@ class PlayerProfile {
     required this.level,
     required this.rankingPoints,
     required this.favoriteSportId,
+    required this.avatarUrl,
   });
 
   factory PlayerProfile.fromJson(Map<String, dynamic> json) => PlayerProfile(
@@ -25,6 +27,7 @@ class PlayerProfile {
         level: json['level'] as String?,
         rankingPoints: json['ranking_points'] as int,
         favoriteSportId: json['favorite_sport_id'] as int?,
+        avatarUrl: json['avatar_url'] as String?,
       );
 
   /// True when the user has completed the onboarding step — we only require

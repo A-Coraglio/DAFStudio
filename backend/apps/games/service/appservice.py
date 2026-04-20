@@ -1,5 +1,6 @@
 from datetime import datetime
 
+from apps.games.service.iso_utils import iso_utc
 from apps.games.service.dto import (
     GamesOutputDTO,
     GameCreateInputDTO,
@@ -43,10 +44,12 @@ class AppService:
             level=game.level,
             mode=game.mode,
             status=game.status,
+            # scheduled_at is "when the organizer wants to play" — user-picked
+            # naive local time, echoed verbatim so it renders as chosen.
             scheduled_at=game.scheduled_at.isoformat() if game.scheduled_at else None,
             result_home=game.result_home,
             result_away=game.result_away,
-            created_at=game.created_at.isoformat(),
+            created_at=iso_utc(game.created_at),
         )
 
     async def _game_to_dto_with_count(self, game: GameDDO) -> GamesOutputDTO:
@@ -153,7 +156,7 @@ class AppService:
                 game_id=row.game_id,
                 player_id=row.player_id,
                 team_id=row.team_id,
-                created_at=row.created_at.isoformat(),
+                created_at=iso_utc(row.created_at),
                 first_name=profile.first_name if profile else None,
                 last_name=profile.last_name if profile else None,
                 level=profile.level if profile else None,

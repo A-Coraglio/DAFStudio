@@ -11,3 +11,7 @@ class Player(SQLModel, table=True):
     level: str | None = Field(max_length=20, default=None)  # "beginner", "intermediate", "advanced"
     ranking_points: int = Field(default=0)
     favorite_sport_id: int | None = Field(foreign_key="sports.id", default=None)
+    # Relative path under the backend's static `/uploads/` mount. Null when
+    # the user hasn't set an avatar. Stored as path-not-URL so the backend
+    # can switch storage backends without a migration.
+    avatar_path: str | None = Field(max_length=255, default=None)

@@ -25,6 +25,7 @@ class TicketOutputDTO(BaseModel):
     status: str
     matched_game_id: int | None = None
     created_at: str
+    proposed_at: str | None = None
 
 
 class StatusOutputDTO(BaseModel):
@@ -36,6 +37,15 @@ class StatusOutputDTO(BaseModel):
     proposed_game: GamesOutputDTO | None = Field(
         default=None,
         description="Game proposal pending acceptance, if ticket status is 'proposed' or 'accepted'",
+    )
+    estimated_wait_seconds: int | None = Field(
+        default=None,
+        description="Coarse ETA for filling the group. Null when the pool is "
+                    "too thin to estimate. Heuristic only — not a guarantee.",
+    )
+    queue_depth: int | None = Field(
+        default=None,
+        description="Total waiting tickets for this sport right now, including self.",
     )
 
 

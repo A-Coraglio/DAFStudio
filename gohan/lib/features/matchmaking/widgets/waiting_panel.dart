@@ -6,14 +6,22 @@ import '../../../core/http/api_client.dart';
 import '../../sports/providers/sports_providers.dart';
 import '../data/matchmaking_ticket.dart';
 import '../providers/matchmaking_providers.dart';
+import 'eta_hint.dart';
 import 'queue_timer.dart';
 
 /// Shown while the user is in queue (`waiting`). Spins a live timer +
 /// cancel button.
 class WaitingPanel extends ConsumerWidget {
-  const WaitingPanel({super.key, required this.ticket});
+  const WaitingPanel({
+    super.key,
+    required this.ticket,
+    required this.estimatedWaitSeconds,
+    required this.queueDepth,
+  });
 
   final MatchmakingTicket ticket;
+  final int? estimatedWaitSeconds;
+  final int? queueDepth;
 
   String _sportName(WidgetRef ref) =>
       ref.watch(sportsListProvider).maybeWhen(
@@ -39,6 +47,10 @@ class WaitingPanel extends ConsumerWidget {
               style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: 8),
           QueueTimer(since: ticket.createdAt),
+          EtaHint(
+            estimatedWaitSeconds: estimatedWaitSeconds,
+            queueDepth: queueDepth,
+          ),
           const SizedBox(height: 24),
           Text(
             '${_sportName(ref)} · hasta ${ticket.maxRadiusKm.round()} km',

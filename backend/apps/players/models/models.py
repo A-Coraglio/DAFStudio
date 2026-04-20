@@ -15,6 +15,7 @@ def _row_to_ddo(row) -> PlayerDDO:
         level=row["level"],
         ranking_points=row["ranking_points"],
         favorite_sport_id=row["favorite_sport_id"],
+        avatar_path=row["avatar_path"],
     )
 
 
@@ -137,6 +138,21 @@ class PlayerModel(GeneralModel):
             )
             try:
                 result = await connection.fetchrow(query, *values)
+                return _row_to_ddo(result) if result else None
+            except Exception as e:
+                raise DatbaseException(message=f"Database error: {e}")
+
+    async def set_avatar_path(
+        self, player_id: int, avatar_path: str | None
+    ) -> PlayerDDO | None:
+        async with self.get_db_connection() as connection:
+            connection: PoolConnectionProxy = cast(PoolConnectionProxy, connection)
+            query = (
+                f"UPDATE {self.__table_name__} "
+                "SET avatar_path = $1 WHERE id = $2 RETURNING *"
+            )
+            try:
+                result = await connection.fetchrow(query, avatar_path, player_id)
                 return _row_to_ddo(result) if result else None
             except Exception as e:
                 raise DatbaseException(message=f"Database error: {e}")

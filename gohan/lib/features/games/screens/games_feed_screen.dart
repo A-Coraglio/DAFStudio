@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/widgets/error_view.dart';
 import '../../sports/providers/sports_providers.dart';
+import '../../sports/widgets/sport_selector_button.dart';
 import '../providers/games_providers.dart';
 import '../widgets/feed_empty_state.dart';
 import '../widgets/game_card.dart';
@@ -25,6 +26,7 @@ class GamesFeedScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Explorar partidos'),
+        actions: const [SportSelectorButton()],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(56),
           child: Padding(
