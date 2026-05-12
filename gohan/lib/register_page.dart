@@ -1,79 +1,76 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'supabase_config.dart';
 
-class LoginPage extends StatefulWidget {
-  const LoginPage({super.key});
+class RegisterPage extends StatefulWidget {
+  const RegisterPage({super.key});
 
   @override
-  State<LoginPage> createState() => _LoginPageState();
+  State<RegisterPage> createState() => _RegisterPageState();
 }
 
-class _LoginPageState extends State<LoginPage> {
+class _RegisterPageState extends State<RegisterPage> {
   final _formKey = GlobalKey<FormState>();
 
   final _emailCtrl = TextEditingController();
   final _passCtrl = TextEditingController();
+  final _pass2Ctrl = TextEditingController();
   final _emailFocus = FocusNode();
   final _passFocus = FocusNode();
+  final _pass2Focus = FocusNode();
 
   bool _obscure = true;
   bool _loading = false;
-
-  SupabaseClient get _supa => Supabase.instance.client;
 
   @override
   void dispose() {
     _emailCtrl.dispose();
     _passCtrl.dispose();
+    _pass2Ctrl.dispose();
     _emailFocus.dispose();
     _passFocus.dispose();
+    _pass2Focus.dispose();
     super.dispose();
   }
 
-  void _showError(String msg) {
+  void _snack(String msg) {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
   }
 
-  Future<void> _doLogin() async {
+  Future<void> _doRegister() async {
     FocusScope.of(context).unfocus();
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _loading = true);
     try {
-      await _supa.auth.signInWithPassword(
+      final res = await Supabase.instance.client.auth.signUp(
         email: _emailCtrl.text.trim(),
         password: _passCtrl.text,
       );
+
       if (!mounted) return;
-      Navigator.of(context).pushReplacementNamed('/home');
+
+      if (res.session != null) {
+        // Email confirmation desactivado: ya quedó logueado.
+        Navigator.of(context).pushReplacementNamed('/home');
+      } else {
+        // Email confirmation activado: usuario creado pero debe verificar.
+        _snack('Cuenta creada. Revisá tu email para confirmarla.');
+        Navigator.of(context).pop();
+      }
     } on AuthException catch (e) {
-      _showError(e.message);
+      _snack(e.message);
     } catch (_) {
-      _showError('No se pudo iniciar sesión. Probá de nuevo.');
+      _snack('No se pudo crear la cuenta. Probá de nuevo.');
     } finally {
       if (mounted) setState(() => _loading = false);
-    }
-  }
-
-  Future<void> _signInWithProvider(OAuthProvider provider) async {
-    try {
-      await _supa.auth.signInWithOAuth(
-        provider,
-        redirectTo: SupabaseConfig.oauthRedirect,
-      );
-    } on AuthException catch (e) {
-      _showError(e.message);
-    } catch (_) {
-      _showError('No se pudo abrir el proveedor.');
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Login')),
+      appBar: AppBar(title: const Text('Crear cuenta')),
       body: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 380),
@@ -107,9 +104,8 @@ class _LoginPageState extends State<LoginPage> {
                     controller: _passCtrl,
                     focusNode: _passFocus,
                     obscureText: _obscure,
-                    textInputAction: TextInputAction.done,
                     onFieldSubmitted: (_) {
-                      if (!_loading) _doLogin();
+                      FocusScope.of(context).requestFocus(_pass2Focus);
                     },
                     decoration: InputDecoration(
                       labelText: 'Contraseña',
@@ -123,8 +119,29 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                     ),
                     validator: (v) {
-                      if ((v ?? '').isEmpty) return 'Ingresá tu contraseña';
+                      if ((v ?? '').isEmpty) return 'Ingresá una contraseña';
                       if ((v ?? '').length < 6) return 'Mínimo 6 caracteres';
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    controller: _pass2Ctrl,
+                    focusNode: _pass2Focus,
+                    obscureText: _obscure,
+                    textInputAction: TextInputAction.done,
+                    onFieldSubmitted: (_) {
+                      if (!_loading) _doRegister();
+                    },
+                    decoration: const InputDecoration(
+                      labelText: 'Repetir contraseña',
+                      border: OutlineInputBorder(),
+                    ),
+                    validator: (v) {
+                      if ((v ?? '').isEmpty) return 'Repetí la contraseña';
+                      if (v != _passCtrl.text) {
+                        return 'Las contraseñas no coinciden';
+                      }
                       return null;
                     },
                   ),
@@ -133,7 +150,7 @@ class _LoginPageState extends State<LoginPage> {
                     width: double.infinity,
                     height: 48,
                     child: ElevatedButton(
-                      onPressed: _loading ? null : _doLogin,
+                      onPressed: _loading ? null : _doRegister,
                       child: _loading
                           ? const SizedBox(
                               width: 20,
@@ -141,42 +158,15 @@ class _LoginPageState extends State<LoginPage> {
                               child:
                                   CircularProgressIndicator(strokeWidth: 2),
                             )
-                          : const Text('Ingresar'),
+                          : const Text('Crear cuenta'),
                     ),
                   ),
                   const SizedBox(height: 8),
                   TextButton(
                     onPressed: _loading
                         ? null
-                        : () => Navigator.of(context)
-                            .pushNamed('/register'),
-                    child: const Text('¿No tenés cuenta? Registrate'),
-                  ),
-                  const SizedBox(height: 8),
-                  const _OrDivider(),
-                  const SizedBox(height: 8),
-                  SizedBox(
-                    width: double.infinity,
-                    height: 48,
-                    child: OutlinedButton.icon(
-                      onPressed: _loading
-                          ? null
-                          : () => _signInWithProvider(OAuthProvider.google),
-                      icon: const Icon(Icons.g_mobiledata, size: 28),
-                      label: const Text('Continuar con Google'),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  SizedBox(
-                    width: double.infinity,
-                    height: 48,
-                    child: OutlinedButton.icon(
-                      onPressed: _loading
-                          ? null
-                          : () => _signInWithProvider(OAuthProvider.azure),
-                      icon: const Icon(Icons.window),
-                      label: const Text('Continuar con Microsoft'),
-                    ),
+                        : () => Navigator.of(context).pop(),
+                    child: const Text('Ya tengo cuenta — Iniciar sesión'),
                   ),
                 ],
               ),
@@ -184,24 +174,6 @@ class _LoginPageState extends State<LoginPage> {
           ),
         ),
       ),
-    );
-  }
-}
-
-class _OrDivider extends StatelessWidget {
-  const _OrDivider();
-
-  @override
-  Widget build(BuildContext context) {
-    return const Row(
-      children: [
-        Expanded(child: Divider()),
-        Padding(
-          padding: EdgeInsets.symmetric(horizontal: 8),
-          child: Text('o'),
-        ),
-        Expanded(child: Divider()),
-      ],
     );
   }
 }

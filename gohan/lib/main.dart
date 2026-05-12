@@ -1,11 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'login_page.dart';
+import 'register_page.dart';
 import 'auth_gate.dart';
-import 'auth_storage.dart';
 import 'preferences.dart';
 import 'profile_page.dart';
+import 'supabase_config.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Supabase.initialize(
+    url: SupabaseConfig.url,
+    anonKey: SupabaseConfig.publishableKey,
+  );
   runApp(const MyApp());
 }
 
@@ -24,7 +31,8 @@ class MyApp extends StatelessWidget {
       
       home: const AuthGate(),
       routes: {
-        '/login': (context) => LoginPage(),
+        '/login': (context) => const LoginPage(),
+        '/register': (context) => const RegisterPage(),
         '/home': (context) => const MyHomePage(title: 'Home'),
         '/profile': (context) => const ProfilePage(),
       },
@@ -87,10 +95,10 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Future<void> _logout() async {
-  await AuthStorage.clearToken();
-  if (!mounted) return;
-  Navigator.of(context).pushReplacementNamed('/login');
-}
+    await Supabase.instance.client.auth.signOut();
+    if (!mounted) return;
+    Navigator.of(context).pushReplacementNamed('/login');
+  }
 
   @override
   Widget build(BuildContext context) {
