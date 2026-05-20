@@ -3,6 +3,7 @@ from fastapi.responses import JSONResponse
 from apps.users.service.dto import (
     RegisterInputDTO,
     LoginInputDTO,
+    GoogleLoginInputDTO,
     UpdateUserInputDTO,
     UserOutputDTO,
     TokenOutputDTO
@@ -39,6 +40,21 @@ async def registers(body: RegisterInputDTO):
 })
 async def logins(body: LoginInputDTO):
     token: TokenOutputDTO = await AuthService().users_login(data=body)
+    return JSONResponse(status_code=200, content=token.model_dump())
+
+
+@router.post("/google/", responses={
+    200: {"model": TokenOutputDTO, "description": "JWT token after Google sign-in"},
+    401: {"description": "Invalid Google token"},
+    503: {"description": "Google sign-in not configured on the server"},
+})
+async def login_with_google(body: GoogleLoginInputDTO):
+    """Exchange a Google `id_token` (obtained by the client via the native
+    Google Sign-In SDK) for one of our JWTs. Creates the auth_user + player
+    on first sign-in, then logs in normally on subsequent sign-ins."""
+    token: TokenOutputDTO = await AuthService().users_login_with_google(
+        id_token=body.id_token
+    )
     return JSONResponse(status_code=200, content=token.model_dump())
 
 

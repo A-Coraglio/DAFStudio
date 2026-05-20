@@ -7,6 +7,14 @@ class LoginRequest {
   Map<String, dynamic> toJson() => {'email': email, 'password': password};
 }
 
+/// Input for `POST /api/auth/google/`.
+class GoogleLoginRequest {
+  final String idToken;
+  const GoogleLoginRequest({required this.idToken});
+
+  Map<String, dynamic> toJson() => {'id_token': idToken};
+}
+
 /// Response of `POST /api/auth/login/`.
 class LoginResponse {
   final String accessToken;

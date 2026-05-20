@@ -22,4 +22,14 @@ class AuthRepository {
     );
     return UserAccount.fromJson(res.data!);
   }
+
+  /// Exchanges a Google id_token (obtained by the native Google Sign-In SDK)
+  /// for our own JWT. Creates the user on first sign-in.
+  Future<LoginResponse> loginWithGoogle(GoogleLoginRequest req) async {
+    final res = await _dio.post<Map<String, dynamic>>(
+      '/api/auth/google/',
+      data: req.toJson(),
+    );
+    return LoginResponse.fromJson(res.data!);
+  }
 }

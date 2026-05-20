@@ -2,6 +2,11 @@ from passlib.context import CryptContext
 from jose import jwt
 from datetime import datetime, timedelta, timezone
 import os
+import secrets
+
+from google.auth.transport import requests as google_requests
+from google.oauth2 import id_token as google_id_token
+
 from apps.users.models.models import UserModel
 from apps.users.models.ddo import UserDDO
 from apps.users.service.dto import (
@@ -13,7 +18,9 @@ from apps.users.service.dto import (
 )
 from apps.users.exceptions.exceptions import (
     EmailAlreadyRegisteredException,
+    GoogleAuthNotConfiguredException,
     InvalidCredentialsException,
+    InvalidGoogleTokenException,
     UserNotFoundException,
 )
 from apps.players.models.models import PlayerModel
@@ -21,6 +28,15 @@ from apps.players.models.models import PlayerModel
 SECRET_KEY = os.environ.get("SECRET_KEY", "changeme")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
+
+# Comma-separated list of accepted Google OAuth client IDs (Web + Android +
+# iOS — different platforms get different client ids from Google Cloud, but
+# all of them issue id_tokens with the same `email` claim, so we accept any).
+GOOGLE_OAUTH_CLIENT_IDS = [
+    cid.strip()
+    for cid in os.environ.get("GOOGLE_OAUTH_CLIENT_IDS", "").split(",")
+    if cid.strip()
+]
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -60,6 +76,55 @@ class AuthService():
         user = await UserModel().get_user_by_email(email=data.email)
         if not user or not self._verify_password(data.password, user.password_hash):
             raise InvalidCredentialsException()
+        token = self._create_token(user.id)
+        return TokenOutputDTO(access_token=token)
+
+    async def users_login_with_google(self, id_token: str) -> TokenOutputDTO:
+        """Verifies a Google id_token, finds-or-creates the matching auth_user,
+        and emits our own JWT. We accept any client id in the configured allow
+        list (Web / Android / iOS each get their own id from Google Cloud).
+        """
+        if not GOOGLE_OAUTH_CLIENT_IDS:
+            raise GoogleAuthNotConfiguredException()
+
+        try:
+            # `audience=None` lets the library accept any aud claim; we then
+            # check it manually against our allow list. This is cleaner than
+            # looping and catching ValueError per client id.
+            payload = google_id_token.verify_oauth2_token(
+                id_token, google_requests.Request(), audience=None,
+            )
+        except ValueError as e:
+            raise InvalidGoogleTokenException(message=f"Token inválido: {e}")
+
+        if payload.get("aud") not in GOOGLE_OAUTH_CLIENT_IDS:
+            raise InvalidGoogleTokenException(
+                message="Token de Google emitido para una app no autorizada"
+            )
+        email = payload.get("email")
+        if not email or not payload.get("email_verified"):
+            raise InvalidGoogleTokenException(
+                message="Tu cuenta de Google no tiene email verificado"
+            )
+
+        user = await UserModel().get_user_by_email(email=email)
+        if user is None:
+            # First sign-in for this user: provision an auth_user + player.
+            # Random password = "unset"; the user can later set one via
+            # /api/auth/users/{id}/ if they want to log in with email too.
+            username = (
+                payload.get("name")
+                or payload.get("given_name")
+                or email.split("@", 1)[0]
+            )
+            random_password_hash = self._hash_password(secrets.token_urlsafe(32))
+            user = await UserModel().create_user(
+                username=username,
+                email=email,
+                password_hash=random_password_hash,
+            )
+            await PlayerModel().create_player(user_id=user.id)
+
         token = self._create_token(user.id)
         return TokenOutputDTO(access_token=token)
 

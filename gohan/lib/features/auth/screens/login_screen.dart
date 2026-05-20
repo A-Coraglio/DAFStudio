@@ -9,7 +9,9 @@ import '../../../core/widgets/primary_submit_button.dart';
 import '../data/auth_models.dart';
 import '../providers/auth_providers.dart';
 import '../widgets/auth_header.dart';
+import '../widgets/auth_or_divider.dart';
 import '../widgets/email_field.dart';
+import '../widgets/google_sign_in_button.dart';
 import '../widgets/password_field.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
@@ -94,6 +96,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     loading: _loading,
                   ),
                   const SizedBox(height: 12),
+                  const AuthOrDivider(),
+                  const SizedBox(height: 12),
+                  GoogleSignInButton(disabled: _loading),
+                  const SizedBox(height: 12),
                   TextButton(
                     onPressed: _loading ? null : () => context.go('/register'),
                     child: const Text('Crear cuenta'),
@@ -107,3 +113,4 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     );
   }
 }
+

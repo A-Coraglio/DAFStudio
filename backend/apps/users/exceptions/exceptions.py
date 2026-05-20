@@ -28,3 +28,20 @@ class EmailAlreadyRegisteredException(AppException):
         error_code: int = 409,
     ) -> None:
         super().__init__(message=message, error_code=error_code)
+
+
+class GoogleAuthNotConfiguredException(AppException):
+    """Server is not configured to accept Google sign-ins (no client id set).
+    Surfaces as 503 so the client can show a sensible message and fall back
+    to email/password."""
+    def __init__(
+        self,
+        message: str = "Login con Google no configurado en el servidor",
+        error_code: int = 503,
+    ) -> None:
+        super().__init__(message=message, error_code=error_code)
+
+
+class InvalidGoogleTokenException(UnauthorizedException):
+    def __init__(self, message: str = "Token de Google inválido") -> None:
+        super().__init__(message=message)

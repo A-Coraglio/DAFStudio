@@ -50,6 +50,11 @@ dependencies:
   cupertino_icons: ^1.0.8
   geolocator: ^14.0.2
 
+  # Native Google Sign-In. Returns an id_token that the Flutter client posts
+  # to /api/auth/google/; the backend validates it against Google and emits
+  # our own JWT — Google is just the identity source.
+  google_sign_in: ^6.2.1
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
