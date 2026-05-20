@@ -7,7 +7,6 @@ const _options = <({String? value, String label})>[
   (value: null, label: 'Todos'),
   (value: 'casual', label: 'Casual'),
   (value: 'competitive', label: 'Competitivo'),
-  (value: 'matchmaking', label: 'Matchmaking'),
 ];
 
 /// Horizontal choice chips that drive `feedModeFilterProvider`.
@@ -27,7 +26,7 @@ class ModeFilterChips extends ConsumerWidget {
               label: Text(opt.label),
               selected: selected == opt.value,
               onSelected: (_) {
-                ref.read(feedModeFilterProvider.notifier).state = opt.value;
+                ref.read(feedModeFilterProvider.notifier).set(opt.value);
               },
             ),
             const SizedBox(width: 8),

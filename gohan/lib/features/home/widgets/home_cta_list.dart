@@ -19,7 +19,7 @@ class HomeCtaList extends StatelessWidget {
           icon: Icons.list_alt,
           title: 'Explorar partidos',
           subtitle: 'Unite a partidos abiertos en tu zona',
-          onTap: () => context.push('/games'),
+          onTap: () => context.go('/games'),
         ),
         HomeCard(
           icon: Icons.add_circle_outline,
@@ -31,7 +31,7 @@ class HomeCtaList extends StatelessWidget {
           icon: Icons.chat_bubble_outline,
           title: 'Chats',
           subtitle: 'Conversaciones generales y de tus partidos',
-          onTap: () => context.push('/chats'),
+          onTap: () => context.go('/chats'),
         ),
       ],
     );

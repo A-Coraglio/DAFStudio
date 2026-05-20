@@ -3,6 +3,7 @@ from apps.chats.models.models import (
     ChatModel,
     ChatParticipantModel,
     ChatMessageModel,
+    ChatReadStateModel,
 )
 from apps.chats.models.ddo import ChatDDO, ChatMessageDDO
 from apps.chats.service.dto import (
@@ -27,6 +28,14 @@ class AppService:
             game_id=chat.game_id,
             name=chat.name,
             created_at=iso_utc(chat.created_at),
+            game_name=chat.game_name,
+            last_message=chat.last_message,
+            last_message_at=(
+                iso_utc(chat.last_message_at)
+                if chat.last_message_at
+                else None
+            ),
+            unread_count=chat.unread_count,
         )
 
     def _message_to_dto(self, msg: ChatMessageDDO) -> MessageOutputDTO:
@@ -118,3 +127,22 @@ class AppService:
             content=data.content,
         )
         return self._message_to_dto(msg)
+
+    # -------- read state --------
+
+    async def mark_chat_read(
+        self, chat_id: int, current_user_id: int
+    ) -> None:
+        """Moves the user's read cursor to the latest message — called when
+        they open the chat. Same access check as reading messages."""
+        chat = await ChatModel().get_by_id(chat_id=chat_id)
+        await self._assert_can_read(chat, current_user_id)
+        await ChatReadStateModel().mark_read(
+            chat_id=chat_id, user_id=current_user_id
+        )
+
+    async def unread_total(self, current_user_id: int) -> int:
+        """Sum of unread messages across every chat the user can see —
+        backs the bottom-nav Chats badge."""
+        chats = await ChatModel().list_for_user(user_id=current_user_id)
+        return sum(c.unread_count for c in chats)

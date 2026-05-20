@@ -5,7 +5,7 @@ from asyncpg.pool import PoolConnectionProxy
 from pydantic import BaseModel, Field
 
 from apps.games.models import GeneralModel
-from apps.games.exceptions.exceptions import DatbaseException
+from apps.common.exceptions.exceptions import DatabaseException
 
 
 class GamePlayerDDO(BaseModel):
@@ -38,7 +38,7 @@ class GamePlayerModel(GeneralModel):
                 results = await connection.fetch(query, game_id)
                 return [_row_to_ddo(r) for r in results]
             except Exception as e:
-                raise DatbaseException(message=f"Database error: {e}")
+                raise DatabaseException(message=f"Database error: {e}")
 
     async def count_players(self, game_id: int) -> int:
         async with self.get_db_connection() as connection:
@@ -50,7 +50,7 @@ class GamePlayerModel(GeneralModel):
                 result = await connection.fetchrow(query, game_id)
                 return int(result["c"]) if result else 0
             except Exception as e:
-                raise DatbaseException(message=f"Database error: {e}")
+                raise DatabaseException(message=f"Database error: {e}")
 
     async def counts_by_game_ids(
         self, game_ids: list[int]
@@ -69,7 +69,7 @@ class GamePlayerModel(GeneralModel):
                 results = await connection.fetch(query, game_ids)
                 return {int(r["game_id"]): int(r["c"]) for r in results}
             except Exception as e:
-                raise DatbaseException(message=f"Database error: {e}")
+                raise DatabaseException(message=f"Database error: {e}")
 
     async def is_player_in_game(self, game_id: int, player_id: int) -> bool:
         async with self.get_db_connection() as connection:
@@ -82,7 +82,7 @@ class GamePlayerModel(GeneralModel):
                 result = await connection.fetchrow(query, game_id, player_id)
                 return result is not None
             except Exception as e:
-                raise DatbaseException(message=f"Database error: {e}")
+                raise DatabaseException(message=f"Database error: {e}")
 
     async def add_player(
         self,
@@ -101,7 +101,7 @@ class GamePlayerModel(GeneralModel):
                 result = await connection.fetchrow(query, game_id, player_id, team_id)
                 return _row_to_ddo(result)
             except Exception as e:
-                raise DatbaseException(message=f"Database error: {e}")
+                raise DatabaseException(message=f"Database error: {e}")
 
     async def remove_player(self, game_id: int, player_id: int) -> bool:
         async with self.get_db_connection() as connection:
@@ -114,4 +114,4 @@ class GamePlayerModel(GeneralModel):
                 result = await connection.fetchrow(query, game_id, player_id)
                 return result is not None
             except Exception as e:
-                raise DatbaseException(message=f"Database error: {e}")
+                raise DatabaseException(message=f"Database error: {e}")

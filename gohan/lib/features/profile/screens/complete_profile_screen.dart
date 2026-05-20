@@ -4,15 +4,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/http/api_client.dart';
-import '../../../core/widgets/primary_submit_button.dart';
 import '../data/player_profile.dart';
 import '../providers/profile_providers.dart';
-import '../../sports/widgets/sport_dropdown_field.dart';
-import '../widgets/name_field.dart';
+import '../widgets/onboarding_name_step.dart';
+import '../widgets/onboarding_progress.dart';
+import '../widgets/onboarding_sport_step.dart';
 
 /// Shown right after register / login when the player profile is missing
-/// first_name, last_name or favorite_sport_id. User can't reach /home until
-/// they fill it in — the router guard enforces that.
+/// first_name, last_name or favorite_sport_id. A two-step flow — name, then
+/// favorite sport. The router guard blocks /home until it's done.
 class CompleteProfileScreen extends ConsumerStatefulWidget {
   const CompleteProfileScreen({super.key});
 
@@ -23,10 +23,11 @@ class CompleteProfileScreen extends ConsumerStatefulWidget {
 
 class _CompleteProfileScreenState
     extends ConsumerState<CompleteProfileScreen> {
-  final _formKey = GlobalKey<FormState>();
+  final _nameFormKey = GlobalKey<FormState>();
   final _firstNameCtrl = TextEditingController();
   final _lastNameCtrl = TextEditingController();
   int? _sportId;
+  int _step = 0;
   bool _loading = false;
 
   @override
@@ -36,10 +37,19 @@ class _CompleteProfileScreenState
     super.dispose();
   }
 
-  Future<void> _submit() async {
-    FocusScope.of(context).unfocus();
-    if (!_formKey.currentState!.validate()) return;
+  void _next() {
+    if (_nameFormKey.currentState!.validate()) {
+      setState(() => _step = 1);
+    }
+  }
 
+  Future<void> _submit() async {
+    if (_sportId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Elegí tu deporte favorito.')),
+      );
+      return;
+    }
     setState(() => _loading = true);
     try {
       await ref.read(profileRepositoryProvider).updateMyProfile(
@@ -65,49 +75,41 @@ class _CompleteProfileScreenState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Completá tu perfil')),
+      appBar: AppBar(
+        title: const Text('Completá tu perfil'),
+        automaticallyImplyLeading: false,
+        leading: _step == 0
+            ? null
+            : IconButton(
+                icon: const Icon(Icons.arrow_back),
+                onPressed: () => setState(() => _step = 0),
+              ),
+      ),
       body: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 420),
           child: Padding(
             padding: const EdgeInsets.all(16),
-            child: Form(
-              key: _formKey,
-              child: ListView(
-                shrinkWrap: true,
-                children: [
-                  Text(
-                    'Contanos un poco sobre vos',
-                    style: Theme.of(context).textTheme.headlineSmall,
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    'Usamos esto para armar partidos y mostrar tu perfil.',
-                    style: Theme.of(context).textTheme.bodyMedium,
-                  ),
-                  const SizedBox(height: 20),
-                  NameField(
-                    controller: _firstNameCtrl,
-                    label: 'Nombre',
-                  ),
-                  const SizedBox(height: 12),
-                  NameField(
-                    controller: _lastNameCtrl,
-                    label: 'Apellido',
-                  ),
-                  const SizedBox(height: 12),
-                  SportDropdownField(
-                    value: _sportId,
+            child: ListView(
+              shrinkWrap: true,
+              children: [
+                OnboardingProgress(step: _step, total: 2),
+                const SizedBox(height: 24),
+                if (_step == 0)
+                  OnboardingNameStep(
+                    formKey: _nameFormKey,
+                    firstNameCtrl: _firstNameCtrl,
+                    lastNameCtrl: _lastNameCtrl,
+                    onContinue: _next,
+                  )
+                else
+                  OnboardingSportStep(
+                    sportId: _sportId,
                     onChanged: (v) => setState(() => _sportId = v),
-                  ),
-                  const SizedBox(height: 24),
-                  PrimarySubmitButton(
-                    label: 'Guardar',
-                    onPressed: _submit,
+                    onSubmit: _submit,
                     loading: _loading,
                   ),
-                ],
-              ),
+              ],
             ),
           ),
         ),

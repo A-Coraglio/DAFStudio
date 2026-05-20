@@ -1,7 +1,7 @@
 from apps.sports.models import GeneralModel
 from apps.sports.models.ddo import SportDDO
 from apps.sports.exceptions.exceptions import SportNotFoundException
-from apps.games.exceptions.exceptions import DatbaseException
+from apps.common.exceptions.exceptions import DatabaseException
 from typing import cast
 from asyncpg.pool import PoolConnectionProxy
 
@@ -25,7 +25,7 @@ class SportModel(GeneralModel):
                 results = await connection.fetch(query)
                 return [_row_to_ddo(r) for r in results]
             except Exception as e:
-                raise DatbaseException(message=f"Database error: {e}")
+                raise DatabaseException(message=f"Database error: {e}")
 
     async def get_sport_by_id(self, sport_id: int) -> SportDDO:
         async with self.get_db_connection() as connection:
@@ -41,4 +41,4 @@ class SportModel(GeneralModel):
             except SportNotFoundException:
                 raise
             except Exception as e:
-                raise DatbaseException(message=f"Database error: {e}")
+                raise DatabaseException(message=f"Database error: {e}")

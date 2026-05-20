@@ -6,10 +6,11 @@ from sqlalchemy.sql import func
 class MatchmakingTicket(SQLModel, table=True):
     """A user's request to be matched into a game.
 
-    The worker reads waiting tickets, groups them by sport + geographic
-    overlap + time-window overlap, and when enough compatible players are
-    found creates a `game` (mode=matchmaking) and flips the tickets to
-    status="matched" with matched_game_id set.
+    The worker reads waiting tickets, groups them by (sport, mode) with
+    geographic overlap and time-window overlap, and when enough compatible
+    players are found creates a `game` whose `mode` is inherited from the
+    tickets' `mode`, then flips the tickets to status="proposed" with
+    matched_game_id set. Casual and competitive pools never mix.
     """
     __tablename__ = "matchmaking_ticket" # type: ignore
     id: int = Field(primary_key=True, index=True)
@@ -22,6 +23,10 @@ class MatchmakingTicket(SQLModel, table=True):
     # "next hour", "today") but stores concrete timestamps.
     window_start: datetime
     window_end: datetime
+    # Which pool the user wants to land in. 'casual' vs 'competitive' — the
+    # matcher groups separately per mode so a casual queuer never gets paired
+    # with a competitive queuer. Ranking is awarded only for 'competitive'.
+    mode: str = Field(default="competitive", max_length=20)
     status: str = Field(default="waiting", max_length=20)  # waiting, matched, cancelled, expired
     matched_game_id: int | None = Field(foreign_key="game.id", default=None)
     created_at: datetime = Field(

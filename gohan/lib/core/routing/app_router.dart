@@ -13,9 +13,16 @@ import '../../features/home/screens/home_screen.dart';
 import '../../features/matchmaking/screens/matchmaking_screen.dart';
 import '../../features/profile/screens/complete_profile_screen.dart';
 import '../../features/profile/screens/profile_screen.dart';
+import '../../features/profile/screens/public_profile_screen.dart';
 import '../providers/core_providers.dart';
+import 'scaffold_with_nav.dart';
 
 /// Auth-aware router.
+///
+/// The 5 main sections (home, games, matchmaking, chats, profile) live inside
+/// a [StatefulShellRoute] so they share a persistent bottom navigation bar and
+/// each keeps its own navigation stack. Detail screens and forms are declared
+/// as top-level routes so they push full-screen over the shell.
 ///
 /// Redirect logic is session-based:
 ///   - loading           → splash (`/`)
@@ -48,8 +55,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/', builder: (_, _) => const _SplashScreen()),
       GoRoute(path: '/login', builder: (_, _) => const LoginScreen()),
       GoRoute(path: '/register', builder: (_, _) => const RegisterScreen()),
-      GoRoute(path: '/home', builder: (_, _) => const HomeScreen()),
-      GoRoute(path: '/games', builder: (_, _) => const GamesFeedScreen()),
+      GoRoute(
+        path: '/complete-profile',
+        builder: (_, _) => const CompleteProfileScreen(),
+      ),
       GoRoute(
         path: '/games/new',
         builder: (_, _) => const CreateGameScreen(),
@@ -61,20 +70,58 @@ final routerProvider = Provider<GoRouter>((ref) {
         ),
       ),
       GoRoute(
-        path: '/matchmaking',
-        builder: (_, _) => const MatchmakingScreen(),
-      ),
-      GoRoute(
-        path: '/complete-profile',
-        builder: (_, _) => const CompleteProfileScreen(),
-      ),
-      GoRoute(path: '/profile', builder: (_, _) => const ProfileScreen()),
-      GoRoute(path: '/chats', builder: (_, _) => const ChatListScreen()),
-      GoRoute(
         path: '/chats/:id',
         builder: (_, state) => ChatScreen(
           chatId: int.parse(state.pathParameters['id']!),
         ),
+      ),
+      GoRoute(
+        path: '/players/:id',
+        builder: (_, state) => PublicProfileScreen(
+          playerId: int.parse(state.pathParameters['id']!),
+        ),
+      ),
+      StatefulShellRoute.indexedStack(
+        builder: (_, _, shell) => ScaffoldWithNav(shell: shell),
+        branches: [
+          StatefulShellBranch(
+            routes: [
+              GoRoute(path: '/home', builder: (_, _) => const HomeScreen()),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/games',
+                builder: (_, _) => const GamesFeedScreen(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/matchmaking',
+                builder: (_, _) => const MatchmakingScreen(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/chats',
+                builder: (_, _) => const ChatListScreen(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/profile',
+                builder: (_, _) => const ProfileScreen(),
+              ),
+            ],
+          ),
+        ],
       ),
     ],
   );

@@ -5,7 +5,7 @@ from asyncpg.pool import PoolConnectionProxy
 from pydantic import BaseModel
 
 from apps.games.models import GeneralModel
-from apps.games.exceptions.exceptions import DatbaseException
+from apps.common.exceptions.exceptions import DatabaseException
 
 
 class GameResultConfirmationDDO(BaseModel):
@@ -39,7 +39,7 @@ class GameResultConfirmationModel(GeneralModel):
                 results = await connection.fetch(query, game_id)
                 return [_row_to_ddo(r) for r in results]
             except Exception as e:
-                raise DatbaseException(message=f"Database error: {e}")
+                raise DatabaseException(message=f"Database error: {e}")
 
     async def upsert_confirmation(
         self,
@@ -67,4 +67,4 @@ class GameResultConfirmationModel(GeneralModel):
                 )
                 return _row_to_ddo(result)
             except Exception as e:
-                raise DatbaseException(message=f"Database error: {e}")
+                raise DatabaseException(message=f"Database error: {e}")

@@ -1,33 +1,18 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../sports/providers/sports_providers.dart';
 import '../data/game.dart';
 import 'game_mode_badge.dart';
 import 'game_players_pill.dart';
 import 'game_schedule_text.dart';
 import 'game_status_chip.dart';
 
-class GameInfoCard extends ConsumerWidget {
+class GameInfoCard extends StatelessWidget {
   const GameInfoCard({super.key, required this.game});
 
   final Game game;
 
-  String _sportName(WidgetRef ref) {
-    return ref.watch(sportsListProvider).maybeWhen(
-      data: (sports) {
-        try {
-          return sports.firstWhere((s) => s.id == game.sportId).name;
-        } on StateError {
-          return 'Deporte #${game.sportId}';
-        }
-      },
-      orElse: () => '...',
-    );
-  }
-
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -51,7 +36,7 @@ class GameInfoCard extends ConsumerWidget {
                 GameModeBadge(mode: game.mode),
                 const SizedBox(width: 8),
                 Text(
-                  _sportName(ref) +
+                  (game.sportName ?? 'Deporte') +
                       (game.level != null ? ' · ${game.level}' : ''),
                   style: Theme.of(context).textTheme.bodyMedium,
                 ),

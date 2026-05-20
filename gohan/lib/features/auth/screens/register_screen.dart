@@ -8,6 +8,7 @@ import '../../../core/providers/core_providers.dart';
 import '../../../core/widgets/primary_submit_button.dart';
 import '../data/auth_models.dart';
 import '../providers/auth_providers.dart';
+import '../widgets/auth_header.dart';
 import '../widgets/email_field.dart';
 import '../widgets/password_field.dart';
 import '../widgets/username_field.dart';
@@ -83,6 +84,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
+                  const AuthHeader(
+                    subtitle: 'Creá tu cuenta y empezá a jugar.',
+                  ),
                   UsernameField(controller: _usernameCtrl),
                   const SizedBox(height: 12),
                   EmailField(controller: _emailCtrl),

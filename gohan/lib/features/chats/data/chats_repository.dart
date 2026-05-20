@@ -64,4 +64,17 @@ class ChatsRepository {
     );
     return ChatMessage.fromJson(res.data!);
   }
+
+  /// Moves the user's read cursor to the latest message in [chatId].
+  Future<void> markRead(int chatId) async {
+    await _dio.post('/api/chats/$chatId/read/');
+  }
+
+  /// Total unread messages across all the user's chats — feeds the nav badge.
+  Future<int> unreadTotal() async {
+    final res = await _dio.get<Map<String, dynamic>>(
+      '/api/chats/unread-count/',
+    );
+    return (res.data?['count'] as int?) ?? 0;
+  }
 }

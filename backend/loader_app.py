@@ -5,7 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from apps.games.exceptions.exceptions import AppException
+from apps.common.exceptions.exceptions import AppException
 from apps.matchmaking.service.matcher import Matcher
 from load_database import database_object
 from apps.games.namespaces.routes import router as games_router

@@ -30,6 +30,7 @@ class MatchmakingTicket {
   final double originLon;
   final DateTime windowStart;
   final DateTime windowEnd;
+  final String mode; // casual | competitive
   final TicketStatus status;
   final int? matchedGameId;
   final DateTime createdAt;
@@ -44,6 +45,7 @@ class MatchmakingTicket {
     required this.originLon,
     required this.windowStart,
     required this.windowEnd,
+    required this.mode,
     required this.status,
     required this.matchedGameId,
     required this.createdAt,
@@ -60,6 +62,7 @@ class MatchmakingTicket {
         originLon: (json['origin_lon'] as num).toDouble(),
         windowStart: DateTime.parse(json['window_start'] as String),
         windowEnd: DateTime.parse(json['window_end'] as String),
+        mode: json['mode'] as String,
         status: TicketStatus.fromString(json['status'] as String),
         matchedGameId: json['matched_game_id'] as int?,
         createdAt: DateTime.parse(json['created_at'] as String),

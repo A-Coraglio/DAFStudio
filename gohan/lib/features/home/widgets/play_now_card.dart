@@ -35,7 +35,7 @@ class PlayNowCard extends ConsumerWidget {
         title: Text(copy.title),
         subtitle: Text(copy.subtitle),
         trailing: const Icon(Icons.chevron_right),
-        onTap: () => context.push('/matchmaking'),
+        onTap: () => context.go('/matchmaking'),
       ),
     );
   }

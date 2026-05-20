@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../sports/providers/sports_providers.dart';
 import '../data/game.dart';
+import 'game_distance_text.dart';
 import 'game_mode_badge.dart';
 import 'game_players_pill.dart';
 import 'game_schedule_text.dart';
 
-class GameCard extends ConsumerWidget {
+class GameCard extends StatelessWidget {
   const GameCard({
     super.key,
     required this.game,
@@ -17,21 +16,8 @@ class GameCard extends ConsumerWidget {
   final Game game;
   final VoidCallback onTap;
 
-  String _sportName(WidgetRef ref) {
-    return ref.watch(sportsListProvider).maybeWhen(
-      data: (sports) {
-        try {
-          return sports.firstWhere((s) => s.id == game.sportId).name;
-        } on StateError {
-          return 'Deporte #${game.sportId}';
-        }
-      },
-      orElse: () => '...',
-    );
-  }
-
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     return Card(
       child: InkWell(
         onTap: onTap,
@@ -57,19 +43,23 @@ class GameCard extends ConsumerWidget {
               ),
               const SizedBox(height: 4),
               Text(
-                _sportName(ref) +
+                (game.sportName ?? 'Deporte') +
                     (game.level != null ? ' · ${game.level}' : ''),
                 style: Theme.of(context).textTheme.bodySmall,
               ),
               const SizedBox(height: 10),
-              Row(
+              Wrap(
+                spacing: 16,
+                runSpacing: 6,
+                crossAxisAlignment: WrapCrossAlignment.center,
                 children: [
                   GameScheduleText(scheduledAt: game.scheduledAt),
-                  const SizedBox(width: 16),
                   GamePlayersPill(
                     current: game.currentPlayers,
                     max: game.maxPlayers,
                   ),
+                  if (game.distanceKm != null)
+                    GameDistanceText(distanceKm: game.distanceKm!),
                 ],
               ),
             ],

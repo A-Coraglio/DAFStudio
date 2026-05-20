@@ -25,7 +25,7 @@ from apps.players.exceptions.exceptions import PlayerNotFoundException
 # stabilizes an established ranking.
 _ELO_K_FACTOR = 32
 # Modes whose result updates player rankings. Casual is intentionally excluded.
-_RANKED_MODES = ("competitive", "matchmaking")
+_RANKED_MODES = ("competitive",)
 
 
 class AppService:
@@ -37,6 +37,8 @@ class AppService:
             id=game.id,
             name=game.name,
             sport_id=game.sport_id,
+            sport_name=game.sport_name,
+            distance_km=game.distance_km,
             organizer_id=game.organizer_id,
             court_id=game.court_id,
             max_players=game.max_players,

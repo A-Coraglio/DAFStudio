@@ -13,3 +13,10 @@ final profileRepositoryProvider = Provider<ProfileRepository>((ref) {
 final myProfileProvider = FutureProvider<PlayerProfile>((ref) async {
   return ref.read(profileRepositoryProvider).getMyProfile();
 });
+
+/// Public profile of an arbitrary player by id. Backs the `/players/:id`
+/// screen reached by tapping a player in a game's roster.
+final playerProfileProvider =
+    FutureProvider.family<PlayerProfile, int>((ref, playerId) async {
+  return ref.read(profileRepositoryProvider).getPlayer(playerId);
+});

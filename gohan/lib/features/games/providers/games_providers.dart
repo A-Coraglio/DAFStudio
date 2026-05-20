@@ -1,6 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/providers/core_providers.dart';
+import '../../../core/providers/location_provider.dart';
+import '../../../core/storage/mode_prefs.dart';
 import '../../sports/providers/sports_providers.dart';
 import '../data/game.dart';
 import '../data/game_player.dart';
@@ -10,19 +12,81 @@ final gamesRepositoryProvider = Provider<GamesRepository>((ref) {
   return GamesRepository(ref.read(apiClientProvider));
 });
 
-/// User-selected mode filter for the feed. Null means "todos".
-final feedModeFilterProvider = StateProvider<String?>((ref) => null);
+/// User-selected mode filter for the feed. Null means "todos". Persisted to
+/// SharedPreferences so the user's last choice survives restarts — a repeat
+/// competitive player sets it once and keeps the filter forever.
+class FeedModeFilterNotifier extends Notifier<String?> {
+  @override
+  String? build() {
+    _load();
+    return null;
+  }
+
+  Future<void> _load() async {
+    final value = await ModePrefs.readFeedFilter();
+    if (value != null) state = value;
+  }
+
+  Future<void> set(String? value) async {
+    state = value;
+    await ModePrefs.writeFeedFilter(value);
+  }
+}
+
+final feedModeFilterProvider =
+    NotifierProvider<FeedModeFilterNotifier, String?>(
+  FeedModeFilterNotifier.new,
+);
 
 /// The games feed — reacts automatically to the active sport and the mode
 /// filter. Only shows `status == 'open'` (joinable) games.
 final feedGamesProvider = FutureProvider<List<Game>>((ref) async {
   final sportId = ref.watch(activeSportIdProvider);
   final mode = ref.watch(feedModeFilterProvider);
+  // Location is best-effort: when available it's passed so the feed shows
+  // distances and sorts nearest-first. No radius → nothing is filtered out.
+  final location = await ref.watch(currentLocationProvider.future);
   return ref.read(gamesRepositoryProvider).list(
         sportId: sportId,
         mode: mode,
         status: 'open',
+        nearLat: location?.lat,
+        nearLon: location?.lon,
       );
+});
+
+/// Date-range filter for the feed. Frontend-only — the backend list endpoint
+/// has no date param yet, so [filteredFeedGamesProvider] applies it on the
+/// already-fetched list.
+enum FeedDateFilter { all, today, week }
+
+final feedDateFilterProvider =
+    StateProvider<FeedDateFilter>((_) => FeedDateFilter.all);
+
+/// The feed after applying the date filter on top of [feedGamesProvider].
+/// Games without a `scheduledAt` only appear under `FeedDateFilter.all` —
+/// they can't be placed on a day.
+final filteredFeedGamesProvider = FutureProvider<List<Game>>((ref) async {
+  final games = await ref.watch(feedGamesProvider.future);
+  final filter = ref.watch(feedDateFilterProvider);
+  if (filter == FeedDateFilter.all) return games;
+
+  final now = DateTime.now();
+  final weekEnd = now.add(const Duration(days: 7));
+  bool matches(Game g) {
+    final at = g.scheduledAt;
+    if (at == null) return false;
+    return switch (filter) {
+      FeedDateFilter.today =>
+        at.year == now.year && at.month == now.month && at.day == now.day,
+      FeedDateFilter.week =>
+        at.isAfter(now.subtract(const Duration(days: 1))) &&
+            at.isBefore(weekEnd),
+      FeedDateFilter.all => true,
+    };
+  }
+
+  return games.where(matches).toList();
 });
 
 /// Details for a single game, keyed by id. Invalidated after join/leave so

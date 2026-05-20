@@ -18,11 +18,7 @@ class ChatScreen extends ConsumerWidget {
     final title = chatsAsync.maybeWhen(
       data: (chats) {
         for (final c in chats) {
-          if (c.id == chatId) {
-            return c.isGameChat
-                ? 'Partido #${c.gameId}'
-                : (c.name ?? 'Chat #${c.id}');
-          }
+          if (c.id == chatId) return c.displayTitle;
         }
         return 'Chat #$chatId';
       },
@@ -31,6 +27,9 @@ class ChatScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(title: Text(title)),
       body: chatsAsync.when(
+        // Keep the panel mounted while myChatsProvider reloads (e.g. after
+        // marking the chat read) instead of flashing a spinner.
+        skipLoadingOnReload: true,
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (err, _) => ErrorView(
           message: err.toString(),

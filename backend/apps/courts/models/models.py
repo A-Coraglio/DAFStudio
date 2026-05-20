@@ -1,7 +1,7 @@
 from apps.courts.models import GeneralModel
 from apps.courts.models.ddo import CourtDDO
 from apps.courts.exceptions.exceptions import CourtNotFoundException
-from apps.games.exceptions.exceptions import DatbaseException
+from apps.common.exceptions.exceptions import DatabaseException
 from typing import cast
 from asyncpg.pool import PoolConnectionProxy
 
@@ -82,7 +82,7 @@ class CourtModel(GeneralModel):
                 results = await connection.fetch(query, *params)
                 return [_row_to_ddo(r) for r in results]
             except Exception as e:
-                raise DatbaseException(message=f"Database error: {e}")
+                raise DatabaseException(message=f"Database error: {e}")
 
     async def get_court_by_id(
         self, court_id: int, current_user_id: int
@@ -106,7 +106,7 @@ class CourtModel(GeneralModel):
             except CourtNotFoundException:
                 raise
             except Exception as e:
-                raise DatbaseException(message=f"Database error: {e}")
+                raise DatabaseException(message=f"Database error: {e}")
 
     async def get_court_raw(self, court_id: int) -> CourtDDO | None:
         """Reads a court bypassing visibility rules — used internally when the
@@ -118,7 +118,7 @@ class CourtModel(GeneralModel):
                 result = await connection.fetchrow(query, court_id)
                 return _row_to_ddo(result) if result else None
             except Exception as e:
-                raise DatbaseException(message=f"Database error: {e}")
+                raise DatabaseException(message=f"Database error: {e}")
 
     async def create_private_court(
         self,
@@ -143,7 +143,7 @@ class CourtModel(GeneralModel):
                 )
                 return _row_to_ddo(result)
             except Exception as e:
-                raise DatbaseException(message=f"Database error: {e}")
+                raise DatabaseException(message=f"Database error: {e}")
 
     async def create_club_court(
         self,
@@ -168,7 +168,7 @@ class CourtModel(GeneralModel):
                 )
                 return _row_to_ddo(result)
             except Exception as e:
-                raise DatbaseException(message=f"Database error: {e}")
+                raise DatabaseException(message=f"Database error: {e}")
 
     async def update_private_court(
         self,
@@ -211,7 +211,7 @@ class CourtModel(GeneralModel):
                 result = await connection.fetchrow(query, *values)
                 return _row_to_ddo(result) if result else None
             except Exception as e:
-                raise DatbaseException(message=f"Database error: {e}")
+                raise DatabaseException(message=f"Database error: {e}")
 
     async def delete_court(self, court_id: int) -> int | None:
         async with self.get_db_connection() as connection:
@@ -221,4 +221,4 @@ class CourtModel(GeneralModel):
                 result = await connection.fetchrow(query, court_id)
                 return result["id"] if result else None
             except Exception as e:
-                raise DatbaseException(message=f"Database error: {e}")
+                raise DatabaseException(message=f"Database error: {e}")

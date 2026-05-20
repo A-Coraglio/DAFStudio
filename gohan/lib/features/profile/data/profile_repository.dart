@@ -12,6 +12,13 @@ class ProfileRepository {
     return PlayerProfile.fromJson(res.data!);
   }
 
+  /// Public profile of any player by id — backs the `/players/:id` screen.
+  Future<PlayerProfile> getPlayer(int playerId) async {
+    final res =
+        await _dio.get<Map<String, dynamic>>('/api/players/$playerId/');
+    return PlayerProfile.fromJson(res.data!);
+  }
+
   Future<PlayerProfile> updateMyProfile(UpdatePlayerRequest req) async {
     final res = await _dio.put<Map<String, dynamic>>(
       '/api/players/me/',

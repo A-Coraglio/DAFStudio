@@ -5,7 +5,7 @@ from asyncpg.pool import PoolConnectionProxy
 from apps.sport_modes.models import GeneralModel
 from apps.sport_modes.models.ddo import SportModeDDO
 from apps.sport_modes.exceptions.exceptions import SportModeNotFoundException
-from apps.games.exceptions.exceptions import DatbaseException
+from apps.common.exceptions.exceptions import DatabaseException
 
 
 def _row_to_ddo(row) -> SportModeDDO:
@@ -28,7 +28,7 @@ class SportModeModel(GeneralModel):
                 results = await connection.fetch(query)
                 return [_row_to_ddo(r) for r in results]
             except Exception as e:
-                raise DatbaseException(message=f"Database error: {e}")
+                raise DatabaseException(message=f"Database error: {e}")
 
     async def list_for_sport(self, sport_id: int) -> list[SportModeDDO]:
         async with self.get_db_connection() as connection:
@@ -41,7 +41,7 @@ class SportModeModel(GeneralModel):
                 results = await connection.fetch(query, sport_id)
                 return [_row_to_ddo(r) for r in results]
             except Exception as e:
-                raise DatbaseException(message=f"Database error: {e}")
+                raise DatabaseException(message=f"Database error: {e}")
 
     async def get_by_id(self, mode_id: int) -> SportModeDDO:
         async with self.get_db_connection() as connection:
@@ -57,7 +57,7 @@ class SportModeModel(GeneralModel):
             except SportModeNotFoundException:
                 raise
             except Exception as e:
-                raise DatbaseException(message=f"Database error: {e}")
+                raise DatabaseException(message=f"Database error: {e}")
 
     async def create(
         self, sport_id: int, name: str, max_players_per_team: int
@@ -75,4 +75,4 @@ class SportModeModel(GeneralModel):
                 )
                 return _row_to_ddo(result)
             except Exception as e:
-                raise DatbaseException(message=f"Database error: {e}")
+                raise DatabaseException(message=f"Database error: {e}")

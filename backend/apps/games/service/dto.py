@@ -2,14 +2,14 @@ from datetime import datetime
 from pydantic import BaseModel, Field
 
 
-GAME_MODES = ("casual", "competitive", "matchmaking")
+GAME_MODES = ("casual", "competitive")
 
 
 class GameCreateInputDTO(BaseModel):
     name: str = Field(description="Game name / title")
     sport_id: int = Field(description="The sport id")
     max_players: int = Field(description="Max players allowed")
-    mode: str = Field(default="casual", description="casual, competitive or matchmaking")
+    mode: str = Field(default="casual", description="casual or competitive")
     court_id: int | None = Field(default=None)
     level: str | None = Field(default=None)
     scheduled_at: datetime | None = Field(default=None)
@@ -28,6 +28,8 @@ class GamesOutputDTO(BaseModel):
     id: int
     name: str
     sport_id: int
+    sport_name: str | None = None
+    distance_km: float | None = None
     organizer_id: int
     court_id: int | None = None
     max_players: int

@@ -30,13 +30,20 @@ class GameActionButton extends ConsumerStatefulWidget {
 class _GameActionButtonState extends ConsumerState<GameActionButton> {
   bool _loading = false;
 
-  Future<void> _run(Future<void> Function() action) async {
+  Future<void> _run(
+    Future<void> Function() action,
+    String successMessage,
+  ) async {
     setState(() => _loading = true);
     try {
       await action();
       ref.invalidate(gameByIdProvider(widget.game.id));
       ref.invalidate(gamePlayersProvider(widget.game.id));
       ref.invalidate(feedGamesProvider);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(successMessage)),
+      );
     } on DioException catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -81,8 +88,16 @@ class _GameActionButtonState extends ConsumerState<GameActionButton> {
     if (game.status == 'pending_acceptance') {
       return ('Esperando aceptación', null);
     }
-    if (iAmIn) return ('Salir del partido', () => _run(() => repo.leave(game.id)));
+    if (iAmIn) {
+      return (
+        'Salir del partido',
+        () => _run(() => repo.leave(game.id), 'Saliste del partido'),
+      );
+    }
     if (game.isFull) return ('Completo', null);
-    return ('Unirme', () => _run(() => repo.join(game.id)));
+    return (
+      'Unirme',
+      () => _run(() => repo.join(game.id), 'Te uniste al partido'),
+    );
   }
 }

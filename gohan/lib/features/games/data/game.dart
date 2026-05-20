@@ -3,12 +3,18 @@ class Game {
   final int id;
   final String name;
   final int sportId;
+  /// Sport display name, joined server-side. Null only on the create/join/
+  /// leave POST responses (no JOIN there); the feed and detail always set it.
+  final String? sportName;
+  /// Km to the game's court from the user. Set by the feed when location is
+  /// available; null otherwise (no location, or game without a geo court).
+  final double? distanceKm;
   final int organizerId;
   final int? courtId;
   final int maxPlayers;
   final int currentPlayers;
   final String? level;
-  final String mode;      // casual | competitive | matchmaking
+  final String mode;      // casual | competitive
   final String status;    // open | full | finished | cancelled | pending_acceptance
   final DateTime? scheduledAt;
   final int? resultHome;
@@ -19,6 +25,8 @@ class Game {
     required this.id,
     required this.name,
     required this.sportId,
+    required this.sportName,
+    required this.distanceKm,
     required this.organizerId,
     required this.courtId,
     required this.maxPlayers,
@@ -36,6 +44,8 @@ class Game {
         id: json['id'] as int,
         name: json['name'] as String,
         sportId: json['sport_id'] as int,
+        sportName: json['sport_name'] as String?,
+        distanceKm: (json['distance_km'] as num?)?.toDouble(),
         organizerId: json['organizer_id'] as int,
         courtId: json['court_id'] as int?,
         maxPlayers: json['max_players'] as int,

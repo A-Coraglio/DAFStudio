@@ -3,7 +3,7 @@ from apps.users.models import GeneralModel
 from typing import cast
 from asyncpg.pool import PoolConnectionProxy
 
-from apps.games.exceptions.exceptions import DatbaseException
+from apps.common.exceptions.exceptions import DatabaseException
 
 
 def _row_to_ddo(row) -> UserDDO:
@@ -27,7 +27,7 @@ class UserModel(GeneralModel):
                 result = await connection.fetchrow(query, email)
                 return _row_to_ddo(result) if result else None
             except Exception as e:
-                raise DatbaseException(message=f"Database error: {e}")
+                raise DatabaseException(message=f"Database error: {e}")
 
     async def get_user_by_id(self, user_id: int) -> UserDDO | None:
         async with self.get_db_connection() as connection:
@@ -37,7 +37,7 @@ class UserModel(GeneralModel):
                 result = await connection.fetchrow(query, user_id)
                 return _row_to_ddo(result) if result else None
             except Exception as e:
-                raise DatbaseException(message=f"Database error: {e}")
+                raise DatabaseException(message=f"Database error: {e}")
 
     async def create_user(self, username: str, email: str, password_hash: str) -> UserDDO:
         async with self.get_db_connection() as connection:
@@ -50,7 +50,7 @@ class UserModel(GeneralModel):
                 result = await connection.fetchrow(query, username, email, password_hash)
                 return _row_to_ddo(result)
             except Exception as e:
-                raise DatbaseException(message=f"Database error: {e}")
+                raise DatabaseException(message=f"Database error: {e}")
 
     async def update_user(
         self,
@@ -90,7 +90,7 @@ class UserModel(GeneralModel):
                 result = await connection.fetchrow(query, *values)
                 return _row_to_ddo(result) if result else None
             except Exception as e:
-                raise DatbaseException(message=f"Database error: {e}")
+                raise DatabaseException(message=f"Database error: {e}")
 
     async def delete_user(self, user_id: int) -> int | None:
         async with self.get_db_connection() as connection:
@@ -100,4 +100,4 @@ class UserModel(GeneralModel):
                 result = await connection.fetchrow(query, user_id)
                 return result["id"] if result else None
             except Exception as e:
-                raise DatbaseException(message=f"Database error: {e}")
+                raise DatabaseException(message=f"Database error: {e}")

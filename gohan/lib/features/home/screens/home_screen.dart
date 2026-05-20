@@ -51,13 +51,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        heroTag: 'profileFab',
-        tooltip: 'Perfil',
-        onPressed: () => context.push('/profile'),
-        child: const Icon(Icons.person),
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.startFloat,
     );
   }
 }

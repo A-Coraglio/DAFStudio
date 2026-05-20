@@ -41,6 +41,19 @@ async def create_chat(
 
 
 @router.get(
+    "/chats/unread-count/",
+    responses={
+        200: {"description": "Total unread messages across the user's chats"},
+        401: {"description": "Unauthorized"},
+    },
+)
+async def get_unread_count(current_user_id: int = Depends(get_current_user_id)):
+    # Declared before /chats/{chat_id}/ so "unread-count" isn't parsed as an id.
+    total = await AppService().unread_total(current_user_id=current_user_id)
+    return {"count": total}
+
+
+@router.get(
     "/chats/{chat_id}/",
     responses={
         200: {"model": ChatOutputDTO, "description": "Chat metadata"},
@@ -98,6 +111,25 @@ async def post_message(
     return await AppService().post_message(
         chat_id=chat_id, data=body, current_user_id=current_user_id
     )
+
+
+@router.post(
+    "/chats/{chat_id}/read/",
+    responses={
+        200: {"description": "Read cursor moved to the latest message"},
+        401: {"description": "Unauthorized"},
+        403: {"description": "Not a participant"},
+        404: {"description": "Chat not found"},
+    },
+)
+async def mark_chat_read(
+    chat_id: int,
+    current_user_id: int = Depends(get_current_user_id),
+):
+    await AppService().mark_chat_read(
+        chat_id=chat_id, current_user_id=current_user_id
+    )
+    return {"ok": True}
 
 
 @router.get(

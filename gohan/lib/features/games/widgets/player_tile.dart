@@ -2,21 +2,25 @@ import 'package:flutter/material.dart';
 
 import '../data/game_player.dart';
 
-/// Single-row view of a participant for the players list.
+/// Single-row view of a participant for the players list. When [onTap] is
+/// set the row becomes a link to the player's public profile.
 class PlayerTile extends StatelessWidget {
   const PlayerTile({
     super.key,
     required this.player,
     this.isMe = false,
+    this.onTap,
   });
 
   final GamePlayer player;
   final bool isMe;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     return ListTile(
+      onTap: onTap,
       leading: CircleAvatar(
         backgroundColor: isMe ? scheme.primary : scheme.surfaceContainerHigh,
         foregroundColor: isMe ? scheme.onPrimary : scheme.onSurface,
@@ -30,6 +34,7 @@ class PlayerTile extends StatelessWidget {
       ),
       subtitle: Text('${player.rankingPoints} pts'
           '${player.level != null ? ' · ${player.level}' : ''}'),
+      trailing: onTap == null ? null : const Icon(Icons.chevron_right),
     );
   }
 

@@ -11,6 +11,10 @@ class QueueInputDTO(BaseModel):
     origin_lon: float
     window_start: datetime
     window_end: datetime
+    mode: str = Field(
+        default="competitive",
+        description="Pool the user wants to join: 'casual' or 'competitive'",
+    )
 
 
 class TicketOutputDTO(BaseModel):
@@ -22,6 +26,7 @@ class TicketOutputDTO(BaseModel):
     origin_lon: float
     window_start: str
     window_end: str
+    mode: str
     status: str
     matched_game_id: int | None = None
     created_at: str

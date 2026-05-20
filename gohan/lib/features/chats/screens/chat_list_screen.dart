@@ -4,6 +4,9 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/widgets/error_view.dart';
 import '../providers/chats_providers.dart';
+import '../widgets/chat_list_empty_state.dart';
+import '../widgets/chat_list_skeleton.dart';
+import '../widgets/chat_list_tile.dart';
 
 /// Standalone screen listing every chat the user can see (general + game-linked).
 /// Game-linked chats still show here — tapping them lands on the same
@@ -17,28 +20,29 @@ class ChatListScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(title: const Text('Chats')),
       body: chatsAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
+        // Don't flash the skeleton when the list silently reloads after a
+        // chat is marked read.
+        skipLoadingOnReload: true,
+        loading: () => const ChatListSkeleton(),
         error: (err, _) => ErrorView(
           message: err.toString(),
           onRetry: () => ref.invalidate(myChatsProvider),
         ),
         data: (chats) => chats.isEmpty
-            ? const Center(child: Text('Todavía no tenés chats.'))
-            : ListView.separated(
-                itemCount: chats.length,
-                separatorBuilder: (_, _) => const Divider(height: 1),
-                itemBuilder: (_, i) {
-                  final c = chats[i];
-                  final title = c.isGameChat
-                      ? 'Partido #${c.gameId}'
-                      : (c.name ?? 'Chat #${c.id}');
-                  return ListTile(
-                    leading: Icon(c.isGameChat ? Icons.sports : Icons.chat),
-                    title: Text(title),
-                    subtitle: Text(c.isGameChat ? 'Chat del partido' : 'General'),
-                    onTap: () => context.push('/chats/${c.id}'),
-                  );
+            ? const ChatListEmptyState()
+            : RefreshIndicator(
+                onRefresh: () async {
+                  ref.invalidate(myChatsProvider);
+                  await ref.read(myChatsProvider.future);
                 },
+                child: ListView.separated(
+                  itemCount: chats.length,
+                  separatorBuilder: (_, _) => const Divider(height: 1),
+                  itemBuilder: (_, i) => ChatListTile(
+                    chat: chats[i],
+                    onTap: () => context.push('/chats/${chats[i].id}'),
+                  ),
+                ),
               ),
       ),
     );

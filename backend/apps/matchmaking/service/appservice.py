@@ -36,6 +36,7 @@ class AppService:
             # client can display exactly what was chosen. Do NOT stamp UTC.
             window_start=ticket.window_start.isoformat(),
             window_end=ticket.window_end.isoformat(),
+            mode=ticket.mode,
             status=ticket.status,
             matched_game_id=ticket.matched_game_id,
             created_at=iso_utc(ticket.created_at),
@@ -55,6 +56,10 @@ class AppService:
         if existing is not None:
             raise AlreadyInQueueException()
 
+        if data.mode not in ("casual", "competitive"):
+            raise InvalidTicketStateException(
+                message="mode must be 'casual' or 'competitive'", error_code=400,
+            )
         ticket = await MatchmakingTicketModel().create_ticket(
             user_id=current_user_id,
             sport_id=data.sport_id,
@@ -63,6 +68,7 @@ class AppService:
             origin_lon=data.origin_lon,
             window_start=data.window_start,
             window_end=data.window_end,
+            mode=data.mode,
         )
         # Opportunistically run the matcher so a small queue matches instantly
         # without waiting for the cron. Cheap when the queue is small.
@@ -136,7 +142,7 @@ class AppService:
             return None, None
         group_size = 2 * max(1, sport.max_players_per_team)
         waiting = await MatchmakingTicketModel().list_waiting_for_sport(
-            sport_id=ticket.sport_id
+            sport_id=ticket.sport_id, mode=ticket.mode,
         )
         depth = len(waiting)
         if depth >= group_size:

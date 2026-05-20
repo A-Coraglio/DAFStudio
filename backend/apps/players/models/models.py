@@ -1,7 +1,7 @@
 from apps.players.models import GeneralModel
 from apps.players.models.ddo import PlayerDDO
 from apps.players.exceptions.exceptions import PlayerNotFoundException
-from apps.games.exceptions.exceptions import DatbaseException
+from apps.common.exceptions.exceptions import DatabaseException
 from typing import cast
 from asyncpg.pool import PoolConnectionProxy
 
@@ -36,7 +36,7 @@ class PlayerModel(GeneralModel):
             except PlayerNotFoundException:
                 raise
             except Exception as e:
-                raise DatbaseException(message=f"Database error: {e}")
+                raise DatabaseException(message=f"Database error: {e}")
 
     async def get_player_by_user_id(self, user_id: int) -> PlayerDDO | None:
         async with self.get_db_connection() as connection:
@@ -46,7 +46,7 @@ class PlayerModel(GeneralModel):
                 result = await connection.fetchrow(query, user_id)
                 return _row_to_ddo(result) if result else None
             except Exception as e:
-                raise DatbaseException(message=f"Database error: {e}")
+                raise DatabaseException(message=f"Database error: {e}")
 
     async def list_players_by_user_ids(
         self, user_ids: list[int]
@@ -63,7 +63,7 @@ class PlayerModel(GeneralModel):
                 results = await connection.fetch(query, user_ids)
                 return [_row_to_ddo(r) for r in results]
             except Exception as e:
-                raise DatbaseException(message=f"Database error: {e}")
+                raise DatabaseException(message=f"Database error: {e}")
 
     async def list_players_by_ids(
         self, player_ids: list[int]
@@ -80,7 +80,7 @@ class PlayerModel(GeneralModel):
                 results = await connection.fetch(query, player_ids)
                 return [_row_to_ddo(r) for r in results]
             except Exception as e:
-                raise DatbaseException(message=f"Database error: {e}")
+                raise DatabaseException(message=f"Database error: {e}")
 
     async def create_player(
         self,
@@ -103,7 +103,7 @@ class PlayerModel(GeneralModel):
                 )
                 return _row_to_ddo(result)
             except Exception as e:
-                raise DatbaseException(message=f"Database error: {e}")
+                raise DatabaseException(message=f"Database error: {e}")
 
     async def update_player(
         self,
@@ -140,7 +140,7 @@ class PlayerModel(GeneralModel):
                 result = await connection.fetchrow(query, *values)
                 return _row_to_ddo(result) if result else None
             except Exception as e:
-                raise DatbaseException(message=f"Database error: {e}")
+                raise DatabaseException(message=f"Database error: {e}")
 
     async def set_avatar_path(
         self, player_id: int, avatar_path: str | None
@@ -155,7 +155,7 @@ class PlayerModel(GeneralModel):
                 result = await connection.fetchrow(query, avatar_path, player_id)
                 return _row_to_ddo(result) if result else None
             except Exception as e:
-                raise DatbaseException(message=f"Database error: {e}")
+                raise DatabaseException(message=f"Database error: {e}")
 
     async def adjust_ranking_points(
         self, player_id: int, delta: int
@@ -172,4 +172,4 @@ class PlayerModel(GeneralModel):
                 result = await connection.fetchrow(query, delta, player_id)
                 return _row_to_ddo(result) if result else None
             except Exception as e:
-                raise DatbaseException(message=f"Database error: {e}")
+                raise DatabaseException(message=f"Database error: {e}")

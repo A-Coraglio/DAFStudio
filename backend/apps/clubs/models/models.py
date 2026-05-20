@@ -1,7 +1,7 @@
 from apps.clubs.models import GeneralModel
 from apps.clubs.models.ddo import ClubDDO
 from apps.clubs.exceptions.exceptions import ClubNotFoundException
-from apps.games.exceptions.exceptions import DatbaseException
+from apps.common.exceptions.exceptions import DatabaseException
 from typing import cast
 from asyncpg.pool import PoolConnectionProxy
 
@@ -35,7 +35,7 @@ class ClubModel(GeneralModel):
                 results = await connection.fetch(query, *params)
                 return [_row_to_ddo(r) for r in results]
             except Exception as e:
-                raise DatbaseException(message=f"Database error: {e}")
+                raise DatabaseException(message=f"Database error: {e}")
 
     async def get_club_by_id(self, club_id: int) -> ClubDDO:
         async with self.get_db_connection() as connection:
@@ -51,7 +51,7 @@ class ClubModel(GeneralModel):
             except ClubNotFoundException:
                 raise
             except Exception as e:
-                raise DatbaseException(message=f"Database error: {e}")
+                raise DatabaseException(message=f"Database error: {e}")
 
     async def create_club(
         self,
@@ -74,7 +74,7 @@ class ClubModel(GeneralModel):
                 )
                 return _row_to_ddo(result)
             except Exception as e:
-                raise DatbaseException(message=f"Database error: {e}")
+                raise DatabaseException(message=f"Database error: {e}")
 
     async def update_club(
         self,
@@ -111,7 +111,7 @@ class ClubModel(GeneralModel):
                 result = await connection.fetchrow(query, *values)
                 return _row_to_ddo(result) if result else None
             except Exception as e:
-                raise DatbaseException(message=f"Database error: {e}")
+                raise DatabaseException(message=f"Database error: {e}")
 
     async def delete_club(self, club_id: int) -> int | None:
         async with self.get_db_connection() as connection:
@@ -121,4 +121,4 @@ class ClubModel(GeneralModel):
                 result = await connection.fetchrow(query, club_id)
                 return result["id"] if result else None
             except Exception as e:
-                raise DatbaseException(message=f"Database error: {e}")
+                raise DatabaseException(message=f"Database error: {e}")

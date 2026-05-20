@@ -3,7 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/http/api_client.dart';
+import '../../../core/providers/location_provider.dart';
+import '../../../core/storage/mode_prefs.dart';
 import '../../../core/widgets/primary_submit_button.dart';
+import '../../games/widgets/game_mode_picker.dart';
 import '../../profile/providers/profile_providers.dart';
 import '../../sports/providers/sports_providers.dart';
 import '../../sports/widgets/sport_dropdown_field.dart';
@@ -24,6 +27,7 @@ class _QueueFormState extends ConsumerState<QueueForm> {
   int? _sportId;
   double _radiusKm = 5;
   TimeWindow _window = TimeWindow.now;
+  String _mode = 'competitive';
   bool _loading = false;
 
   @override
@@ -31,6 +35,12 @@ class _QueueFormState extends ConsumerState<QueueForm> {
     super.initState();
     _sportId = ref.read(activeSportIdProvider) ??
         ref.read(myProfileProvider).valueOrNull?.favoriteSportId;
+    // Restore the last matchmaking mode the user picked so repeat queuers
+    // don't have to re-choose on every session.
+    ModePrefs.readLastMatchmakingMode().then((m) {
+      if (!mounted || m == null) return;
+      setState(() => _mode = m);
+    });
   }
 
   Future<void> _submit() async {
@@ -44,16 +54,21 @@ class _QueueFormState extends ConsumerState<QueueForm> {
     setState(() => _loading = true);
     try {
       final (start, end) = _window.toRange();
+      // Anchor the search at the device's location; fall back to the city
+      // default when it's unavailable so matchmaking still works.
+      final location = await ref.read(currentLocationProvider.future);
       await ref.read(matchmakingRepositoryProvider).queue(
             QueueRequest(
               sportId: _sportId!,
               maxRadiusKm: _radiusKm,
-              originLat: defaultOriginLat,
-              originLon: defaultOriginLon,
+              originLat: location?.lat ?? defaultOriginLat,
+              originLon: location?.lon ?? defaultOriginLon,
               windowStart: start,
               windowEnd: end,
+              mode: _mode,
             ),
           );
+      await ModePrefs.writeLastMatchmakingMode(_mode);
       ref.invalidate(matchmakingStatusStreamProvider);
     } on DioException catch (e) {
       if (!mounted) return;
@@ -84,6 +99,13 @@ class _QueueFormState extends ConsumerState<QueueForm> {
           value: _sportId,
           onChanged: (v) => setState(() => _sportId = v),
           label: 'Deporte',
+        ),
+        const SizedBox(height: 20),
+        Text('Modo', style: Theme.of(context).textTheme.labelLarge),
+        const SizedBox(height: 8),
+        GameModePicker(
+          value: _mode,
+          onChanged: (m) => setState(() => _mode = m),
         ),
         const SizedBox(height: 20),
         RadiusSlider(

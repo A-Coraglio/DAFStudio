@@ -1,4 +1,4 @@
-from apps.games.exceptions.exceptions import NotFoundException
+from apps.common.exceptions.exceptions import NotFoundException
 
 
 class SportNotFoundException(NotFoundException):

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/http/api_client.dart';
+import '../../../core/storage/mode_prefs.dart';
 import '../../../core/widgets/primary_submit_button.dart';
 import '../../courts/widgets/court_picker_field.dart';
 import '../../sports/data/sport_model.dart';
@@ -41,6 +42,11 @@ class _CreateGameScreenState extends ConsumerState<CreateGameScreen> {
     super.initState();
     // Default the sport to the home's active sport when set.
     _sportId = ref.read(activeSportIdProvider);
+    // Restore the last mode the user picked when creating a game.
+    ModePrefs.readLastCreateMode().then((m) {
+      if (!mounted || m == null) return;
+      setState(() => _mode = m);
+    });
   }
 
   @override
@@ -87,6 +93,7 @@ class _CreateGameScreenState extends ConsumerState<CreateGameScreen> {
               scheduledAt: _scheduledAt,
             ),
           );
+      await ModePrefs.writeLastCreateMode(_mode);
       ref.invalidate(feedGamesProvider);
       if (!mounted) return;
       context.go('/games/${game.id}');

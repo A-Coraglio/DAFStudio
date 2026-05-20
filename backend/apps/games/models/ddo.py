@@ -16,3 +16,13 @@ class GameDDO(BaseModel):
     result_home: int | None = Field(default=None)
     result_away: int | None = Field(default=None)
     created_at: datetime = Field(description="Creation date")
+    sport_name: str | None = Field(
+        default=None,
+        description="Sport display name — populated by list/get queries that "
+        "JOIN the sports table; None on INSERT/UPDATE ... RETURNING rows.",
+    )
+    distance_km: float | None = Field(
+        default=None,
+        description="Distance from the caller's point to the game's court — "
+        "populated by list_games when near_lat/near_lon are passed.",
+    )

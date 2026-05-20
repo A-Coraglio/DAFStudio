@@ -1,4 +1,4 @@
-from apps.games.exceptions.exceptions import AppException, NotFoundException
+from apps.common.exceptions.exceptions import AppException, NotFoundException
 
 
 class CourtNotFoundException(NotFoundException):

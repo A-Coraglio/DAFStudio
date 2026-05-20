@@ -32,3 +32,13 @@ final chatMessagesStreamProvider = StreamProvider.autoDispose
     await Future.delayed(const Duration(seconds: 3));
   }
 });
+
+/// Total unread messages, polled every 15s. Backs the Chats tab badge in the
+/// bottom navigation; the always-mounted nav shell keeps it alive.
+final unreadTotalProvider = StreamProvider<int>((ref) async* {
+  final repo = ref.read(chatsRepositoryProvider);
+  while (true) {
+    yield await repo.unreadTotal();
+    await Future.delayed(const Duration(seconds: 15));
+  }
+});

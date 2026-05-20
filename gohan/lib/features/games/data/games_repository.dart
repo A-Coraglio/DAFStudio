@@ -20,6 +20,9 @@ class GamesRepository {
     int? organizerId,
     DateTime? scheduledAfter,
     DateTime? scheduledBefore,
+    double? nearLat,
+    double? nearLon,
+    double? radiusKm,
   }) async {
     final res = await _dio.get<List<dynamic>>(
       '/api/games/',
@@ -33,6 +36,10 @@ class GamesRepository {
           'scheduled_after': scheduledAfter.toIso8601String(),
         if (scheduledBefore != null)
           'scheduled_before': scheduledBefore.toIso8601String(),
+        // near_lat/near_lon alone → distance only; with radius_km → filter.
+        if (nearLat != null) 'near_lat': nearLat,
+        if (nearLon != null) 'near_lon': nearLon,
+        if (radiusKm != null) 'radius_km': radiusKm,
       },
     );
     return (res.data ?? const [])

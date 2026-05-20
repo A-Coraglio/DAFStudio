@@ -6,7 +6,7 @@ from asyncpg.pool import PoolConnectionProxy
 from apps.matchmaking.models import GeneralModel
 from apps.matchmaking.models.ddo import MatchmakingTicketDDO
 from apps.matchmaking.exceptions.exceptions import TicketNotFoundException
-from apps.games.exceptions.exceptions import DatbaseException
+from apps.common.exceptions.exceptions import DatabaseException
 
 
 # States considered "active" — a user with a ticket in any of these is
@@ -25,6 +25,7 @@ def _row_to_ddo(row) -> MatchmakingTicketDDO:
         origin_lon=row["origin_lon"],
         window_start=row["window_start"],
         window_end=row["window_end"],
+        mode=row["mode"],
         status=row["status"],
         matched_game_id=row["matched_game_id"],
         created_at=row["created_at"],
@@ -49,7 +50,7 @@ class MatchmakingTicketModel(GeneralModel):
             except TicketNotFoundException:
                 raise
             except Exception as e:
-                raise DatbaseException(message=f"Database error: {e}")
+                raise DatabaseException(message=f"Database error: {e}")
 
     async def get_active_ticket_for_user(
         self, user_id: int
@@ -67,24 +68,26 @@ class MatchmakingTicketModel(GeneralModel):
                 )
                 return _row_to_ddo(result) if result else None
             except Exception as e:
-                raise DatbaseException(message=f"Database error: {e}")
+                raise DatabaseException(message=f"Database error: {e}")
 
     async def list_waiting_for_sport(
-        self, sport_id: int
+        self, sport_id: int, mode: str
     ) -> list[MatchmakingTicketDDO]:
+        """Waiting tickets for a given (sport, mode) pool. The matcher groups
+        per-pool so casual and competitive queuers never share a group."""
         async with self.get_db_connection() as connection:
             connection: PoolConnectionProxy = cast(PoolConnectionProxy, connection)
             query = (
                 f"SELECT * FROM {self.__table_name__} "
-                "WHERE sport_id = $1 AND status = 'waiting' "
+                "WHERE sport_id = $1 AND mode = $2 AND status = 'waiting' "
                 "AND window_end > now() "
                 "ORDER BY created_at ASC"
             )
             try:
-                results = await connection.fetch(query, sport_id)
+                results = await connection.fetch(query, sport_id, mode)
                 return [_row_to_ddo(r) for r in results]
             except Exception as e:
-                raise DatbaseException(message=f"Database error: {e}")
+                raise DatabaseException(message=f"Database error: {e}")
 
     async def list_by_game(
         self, matched_game_id: int
@@ -99,7 +102,7 @@ class MatchmakingTicketModel(GeneralModel):
                 results = await connection.fetch(query, matched_game_id)
                 return [_row_to_ddo(r) for r in results]
             except Exception as e:
-                raise DatbaseException(message=f"Database error: {e}")
+                raise DatabaseException(message=f"Database error: {e}")
 
     async def create_ticket(
         self,
@@ -110,23 +113,24 @@ class MatchmakingTicketModel(GeneralModel):
         origin_lon: float,
         window_start: datetime,
         window_end: datetime,
+        mode: str,
     ) -> MatchmakingTicketDDO:
         async with self.get_db_connection() as connection:
             connection: PoolConnectionProxy = cast(PoolConnectionProxy, connection)
             query = (
                 f"INSERT INTO {self.__table_name__} "
                 "(user_id, sport_id, max_radius_km, origin_lat, origin_lon, "
-                " window_start, window_end, status) "
-                "VALUES ($1, $2, $3, $4, $5, $6, $7, 'waiting') RETURNING *"
+                " window_start, window_end, mode, status) "
+                "VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'waiting') RETURNING *"
             )
             try:
                 result = await connection.fetchrow(
                     query, user_id, sport_id, max_radius_km,
-                    origin_lat, origin_lon, window_start, window_end,
+                    origin_lat, origin_lon, window_start, window_end, mode,
                 )
                 return _row_to_ddo(result)
             except Exception as e:
-                raise DatbaseException(message=f"Database error: {e}")
+                raise DatabaseException(message=f"Database error: {e}")
 
     async def set_status(
         self,
@@ -153,7 +157,7 @@ class MatchmakingTicketModel(GeneralModel):
                 result = await connection.fetchrow(query, *values)
                 return _row_to_ddo(result) if result else None
             except Exception as e:
-                raise DatbaseException(message=f"Database error: {e}")
+                raise DatabaseException(message=f"Database error: {e}")
 
     async def set_proposed(
         self,
@@ -180,7 +184,7 @@ class MatchmakingTicketModel(GeneralModel):
                 result = await connection.fetchrow(query, matched_game_id, ticket_id)
                 return _row_to_ddo(result) if result else None
             except Exception as e:
-                raise DatbaseException(message=f"Database error: {e}")
+                raise DatabaseException(message=f"Database error: {e}")
 
     async def list_stale_game_ids(self, timeout_seconds: int) -> list[int]:
         """Distinct matched_game_ids whose acceptance phase timed out.
@@ -199,7 +203,7 @@ class MatchmakingTicketModel(GeneralModel):
                 results = await connection.fetch(query, str(timeout_seconds))
                 return [r["matched_game_id"] for r in results]
             except Exception as e:
-                raise DatbaseException(message=f"Database error: {e}")
+                raise DatabaseException(message=f"Database error: {e}")
 
     async def expire_group(self, matched_game_id: int) -> int:
         """Collapse a timed-out group: tickets that never accepted become
@@ -224,7 +228,7 @@ class MatchmakingTicketModel(GeneralModel):
                 results = await connection.fetch(query, matched_game_id)
                 return len(results)
             except Exception as e:
-                raise DatbaseException(message=f"Database error: {e}")
+                raise DatabaseException(message=f"Database error: {e}")
 
     async def reopen_group(self, matched_game_id: int) -> int:
         """Called when the acceptance phase of a proposed match collapses —
@@ -241,4 +245,4 @@ class MatchmakingTicketModel(GeneralModel):
                 results = await connection.fetch(query, matched_game_id)
                 return len(results)
             except Exception as e:
-                raise DatbaseException(message=f"Database error: {e}")
+                raise DatabaseException(message=f"Database error: {e}")

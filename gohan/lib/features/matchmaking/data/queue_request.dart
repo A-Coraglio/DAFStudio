@@ -7,6 +7,7 @@ class QueueRequest {
   final double originLon;
   final DateTime windowStart;
   final DateTime windowEnd;
+  final String mode; // casual | competitive
 
   const QueueRequest({
     required this.sportId,
@@ -15,6 +16,7 @@ class QueueRequest {
     required this.originLon,
     required this.windowStart,
     required this.windowEnd,
+    required this.mode,
   });
 
   Map<String, dynamic> toJson() => {
@@ -24,5 +26,6 @@ class QueueRequest {
         'origin_lon': originLon,
         'window_start': windowStart.toIso8601String(),
         'window_end': windowEnd.toIso8601String(),
+        'mode': mode,
       };
 }

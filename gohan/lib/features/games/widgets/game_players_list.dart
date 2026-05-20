@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../profile/providers/profile_providers.dart';
 import '../providers/games_providers.dart';
@@ -39,6 +40,8 @@ class GamePlayersList extends ConsumerWidget {
                 PlayerTile(
                   player: players[i],
                   isMe: players[i].playerId == myPlayerId,
+                  onTap: () =>
+                      context.push('/players/${players[i].playerId}'),
                 ),
               ],
             ],

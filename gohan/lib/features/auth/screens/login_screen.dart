@@ -8,6 +8,7 @@ import '../../../core/providers/core_providers.dart';
 import '../../../core/widgets/primary_submit_button.dart';
 import '../data/auth_models.dart';
 import '../providers/auth_providers.dart';
+import '../widgets/auth_header.dart';
 import '../widgets/email_field.dart';
 import '../widgets/password_field.dart';
 
@@ -72,6 +73,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
+                  const AuthHeader(
+                    subtitle:
+                        'Encontrá con quién jugar, en cualquier deporte.',
+                  ),
                   EmailField(
                     controller: _emailCtrl,
                     onSubmitted: (_) => _passFocus.requestFocus(),

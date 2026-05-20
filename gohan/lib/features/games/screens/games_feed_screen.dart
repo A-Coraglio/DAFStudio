@@ -6,7 +6,9 @@ import '../../../core/widgets/error_view.dart';
 import '../../sports/providers/sports_providers.dart';
 import '../../sports/widgets/sport_selector_button.dart';
 import '../providers/games_providers.dart';
+import '../widgets/date_filter_chips.dart';
 import '../widgets/feed_empty_state.dart';
+import '../widgets/feed_skeleton.dart';
 import '../widgets/game_card.dart';
 import '../widgets/mode_filter_chips.dart';
 
@@ -20,26 +22,30 @@ class GamesFeedScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final gamesAsync = ref.watch(feedGamesProvider);
+    final gamesAsync = ref.watch(filteredFeedGamesProvider);
     final hasActiveSport = ref.watch(activeSportIdProvider) != null;
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Explorar partidos'),
         actions: const [SportSelectorButton()],
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(56),
+        bottom: const PreferredSize(
+          preferredSize: Size.fromHeight(104),
           child: Padding(
-            padding: const EdgeInsets.only(bottom: 12),
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: ModeFilterChips(),
+            padding: EdgeInsets.only(bottom: 8),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SizedBox(height: 44, child: ModeFilterChips()),
+                SizedBox(height: 8),
+                SizedBox(height: 44, child: DateFilterChips()),
+              ],
             ),
           ),
         ),
       ),
       body: gamesAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
+        loading: () => const FeedSkeleton(),
         error: (err, _) => ErrorView(
           message: err.toString(),
           onRetry: () => ref.invalidate(feedGamesProvider),

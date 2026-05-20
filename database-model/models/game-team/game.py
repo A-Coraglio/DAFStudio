@@ -12,8 +12,9 @@ class Game(SQLModel, table=True):
     court_id: int | None = Field(foreign_key="court.id", default=None)
     max_players: int
     level: str | None = Field(max_length=20, default=None)
-    # "casual" = social, no ranking points. "competitive"
-    # points. "matchmaking" = auto-created by the matchmaker, awards points.
+    # "casual" = social, no ranking points. "competitive" = awards ELO.
+    # Matchmaking-created games carry the mode their tickets requested — the
+    # mechanism of creation (manual vs queue) is no longer encoded here.
     mode: str = Field(default="casual", max_length=20)
     status: str = Field(default="open")  # open, full, finished, cancelled
     scheduled_at: datetime | None = Field(default=None)

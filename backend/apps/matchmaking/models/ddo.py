@@ -30,6 +30,7 @@ class MatchmakingTicketDDO(BaseModel):
     origin_lon: float
     window_start: datetime = Field(description="Earliest play time")
     window_end: datetime = Field(description="Latest play time")
+    mode: str = Field(default="competitive", description="casual or competitive")
     status: str = Field(default="waiting")
     matched_game_id: int | None = Field(default=None)
     created_at: datetime

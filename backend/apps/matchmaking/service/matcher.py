@@ -117,12 +117,20 @@ def _centroid(tickets: list[MatchmakingTicketDDO]) -> tuple[float, float]:
     return lat, lon
 
 
-def _group_name(sport: SportDDO, group: list[_TicketCtx]) -> str:
-    return f"Matchmaking {sport.name} · {len(group)} jugadores"
+_MODE_LABELS = {"casual": "Casual", "competitive": "Competitivo"}
+
+
+def _group_name(sport: SportDDO, group: list[_TicketCtx], mode: str) -> str:
+    label = _MODE_LABELS.get(mode, mode)
+    return f"Matchmaking {label} · {sport.name} · {len(group)} jugadores"
 
 
 class Matcher:
     """Stateless runner — one pass over all sports."""
+
+    # Pools the matcher iterates over. Each (sport, mode) is independent — a
+    # casual queuer never shares a group with a competitive one.
+    _MODES = ("casual", "competitive")
 
     async def run(self) -> int:
         # Clean up timed-out proposals first so the expired tickets don't
@@ -131,7 +139,8 @@ class Matcher:
         sports = await SportModel().list_sports()
         total = 0
         for sport in sports:
-            total += await self._match_sport(sport)
+            for mode in self._MODES:
+                total += await self._match_pool(sport, mode)
         return total
 
     async def expire_stale(self) -> int:
@@ -145,10 +154,10 @@ class Matcher:
             await MatchmakingTicketModel().expire_group(matched_game_id=game_id)
         return len(game_ids)
 
-    async def _match_sport(self, sport: SportDDO) -> int:
+    async def _match_pool(self, sport: SportDDO, mode: str) -> int:
         group_size = 2 * max(1, sport.max_players_per_team)
         tickets = await MatchmakingTicketModel().list_waiting_for_sport(
-            sport_id=sport.id
+            sport_id=sport.id, mode=mode,
         )
         if len(tickets) < group_size:
             return 0
@@ -174,11 +183,11 @@ class Matcher:
 
         groups = _form_groups(ctxs, group_size)
         for group in groups:
-            await self._finalize_group(sport, group)
+            await self._finalize_group(sport, group, mode)
         return len(groups)
 
     async def _finalize_group(
-        self, sport: SportDDO, group: list[_TicketCtx]
+        self, sport: SportDDO, group: list[_TicketCtx], mode: str,
     ) -> None:
         tickets = [c.ticket for c in group]
         centroid_lat, centroid_lon = _centroid(tickets)
@@ -199,11 +208,11 @@ class Matcher:
         organizer_id = tickets[0].user_id
         earliest_start = max(t.window_start for t in tickets)
         game = await GamesModel().create_game(
-            name=_group_name(sport, group),
+            name=_group_name(sport, group, mode),
             sport_id=sport.id,
             max_players=len(tickets),
             organizer_id=organizer_id,
-            mode="matchmaking",
+            mode=mode,
             level=None,
             court_id=venue.id if venue else None,
             scheduled_at=earliest_start,

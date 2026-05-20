@@ -5,7 +5,7 @@ from asyncpg.pool import PoolConnectionProxy
 
 from apps.games.models import GeneralModel
 from apps.games.models.ddo import GameDDO
-from apps.games.exceptions.exceptions import DatbaseException, NotFoundException
+from apps.common.exceptions.exceptions import DatabaseException, NotFoundException
 
 
 def _row_to_ddo(row) -> GameDDO:
@@ -23,6 +23,11 @@ def _row_to_ddo(row) -> GameDDO:
         result_home=row["result_home"],
         result_away=row["result_away"],
         created_at=row["created_at"],
+        # Present only on queries that JOIN sports; .get() keeps the
+        # INSERT/UPDATE ... RETURNING * callers working unchanged.
+        sport_name=row.get("sport_name"),
+        # Present only when list_games is called with a near point.
+        distance_km=row.get("distance_km"),
     )
 
 
@@ -86,33 +91,48 @@ class GamesModel(GeneralModel):
                 params.append(scheduled_before); idx += 1
 
             order_clause = "ORDER BY COALESCE(g.scheduled_at, g.created_at)"
+            select_distance = ""
 
-            if near_lat is not None and near_lon is not None and radius_km is not None:
+            # With a near point, expose `distance_km` to each game's court and
+            # order by it. A radius (when given) additionally filters anything
+            # beyond it; without a radius nothing is filtered — the feed still
+            # shows courtless games (null distance, sorted last).
+            if near_lat is not None and near_lon is not None:
                 distance_expr = _haversine_sql("c", idx, idx + 1)
-                where_clauses.append(
-                    f"c.lat IS NOT NULL AND c.lon IS NOT NULL "
-                    f"AND {distance_expr} <= ${idx + 2}"
-                )
-                order_clause = f"ORDER BY {distance_expr}"
-                params.extend([near_lat, near_lon, radius_km])
-                idx += 3
+                params.extend([near_lat, near_lon])
+                idx += 2
+                select_distance = f", {distance_expr} AS distance_km"
+                order_clause = "ORDER BY distance_km ASC NULLS LAST"
+                if radius_km is not None:
+                    where_clauses.append(
+                        f"c.lat IS NOT NULL AND c.lon IS NOT NULL "
+                        f"AND {distance_expr} <= ${idx}"
+                    )
+                    params.append(radius_km)
+                    idx += 1
 
             where_sql = f"WHERE {' AND '.join(where_clauses)}" if where_clauses else ""
             query = (
-                f"SELECT g.* FROM {self.__table_name__} g "
+                f"SELECT g.*, s.name AS sport_name{select_distance} "
+                f"FROM {self.__table_name__} g "
                 f"LEFT JOIN court c ON c.id = g.court_id "
+                f"LEFT JOIN sports s ON s.id = g.sport_id "
                 f"{where_sql} {order_clause}"
             )
             try:
                 results = await connection.fetch(query, *params)
                 return [_row_to_ddo(r) for r in results]
             except Exception as e:
-                raise DatbaseException(message=f"Database error: {e}")
+                raise DatabaseException(message=f"Database error: {e}")
 
     async def get_game_by_id(self, game_id: int) -> GameDDO:
         async with self.get_db_connection() as connection:
             connection: PoolConnectionProxy = cast(PoolConnectionProxy, connection)
-            query = f"SELECT * FROM {self.__table_name__} WHERE id = $1"
+            query = (
+                f"SELECT g.*, s.name AS sport_name FROM {self.__table_name__} g "
+                f"LEFT JOIN sports s ON s.id = g.sport_id "
+                f"WHERE g.id = $1"
+            )
             try:
                 result = await connection.fetchrow(query, game_id)
                 if result is None:
@@ -123,7 +143,7 @@ class GamesModel(GeneralModel):
             except NotFoundException:
                 raise
             except Exception as e:
-                raise DatbaseException(message=f"Database error: {e}")
+                raise DatabaseException(message=f"Database error: {e}")
 
     async def create_game(
         self,
@@ -150,7 +170,7 @@ class GamesModel(GeneralModel):
                 )
                 return _row_to_ddo(result)
             except Exception as e:
-                raise DatbaseException(message=f"Database error: {e}")
+                raise DatabaseException(message=f"Database error: {e}")
 
     async def update_game(
         self,
@@ -193,7 +213,7 @@ class GamesModel(GeneralModel):
                 result = await connection.fetchrow(query, *values)
                 return _row_to_ddo(result) if result else None
             except Exception as e:
-                raise DatbaseException(message=f"Database error: {e}")
+                raise DatabaseException(message=f"Database error: {e}")
 
     async def set_result(
         self,
@@ -213,7 +233,7 @@ class GamesModel(GeneralModel):
                 result = await connection.fetchrow(query, result_home, result_away, game_id)
                 return _row_to_ddo(result) if result else None
             except Exception as e:
-                raise DatbaseException(message=f"Database error: {e}")
+                raise DatabaseException(message=f"Database error: {e}")
 
     async def delete_game(self, game_id: int) -> int:
         async with self.get_db_connection() as connection:
@@ -229,4 +249,4 @@ class GamesModel(GeneralModel):
             except NotFoundException:
                 raise
             except Exception as e:
-                raise DatbaseException(message=f"Database error: {e}")
+                raise DatabaseException(message=f"Database error: {e}")

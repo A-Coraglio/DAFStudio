@@ -12,7 +12,6 @@ class GameModeBadge extends StatelessWidget {
     final (label, color) = switch (mode) {
       'casual' => ('Casual', scheme.tertiaryContainer),
       'competitive' => ('Competitivo', scheme.primaryContainer),
-      'matchmaking' => ('Matchmaking', scheme.secondaryContainer),
       _ => (mode, scheme.surfaceContainerHighest),
     };
     return Container(

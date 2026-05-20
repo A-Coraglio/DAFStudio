@@ -13,6 +13,12 @@ class ChatOutputDTO(BaseModel):
     game_id: int | None = None
     name: str | None = None
     created_at: str
+    # Enriched fields — set by the chat list endpoint, defaults on single-chat
+    # responses (get_chat / create / ensure_chat_for_game).
+    game_name: str | None = None
+    last_message: str | None = None
+    last_message_at: str | None = None
+    unread_count: int = 0
 
 
 class MessageCreateInputDTO(BaseModel):

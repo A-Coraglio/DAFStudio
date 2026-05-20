@@ -7,6 +7,11 @@ class ChatDDO(BaseModel):
     game_id: int | None = Field(default=None)
     name: str | None = Field(default=None)
     created_at: datetime
+    # Populated only by list_for_user (JOIN + LATERAL); defaults elsewhere.
+    game_name: str | None = Field(default=None)
+    last_message: str | None = Field(default=None)
+    last_message_at: datetime | None = Field(default=None)
+    unread_count: int = Field(default=0)
 
 
 class ChatMessageDDO(BaseModel):
