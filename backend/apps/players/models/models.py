@@ -65,6 +65,57 @@ class PlayerModel(GeneralModel):
             except Exception as e:
                 raise DatabaseException(message=f"Database error: {e}")
 
+    async def search_players(
+        self,
+        query: str | None = None,
+        sport_id: int | None = None,
+        level: str | None = None,
+        exclude_user_id: int | None = None,
+        limit: int = 30,
+        offset: int = 0,
+    ) -> list[PlayerDDO]:
+        """Discovery feed: list players matching optional filters, ordered by
+        ranking so "interesting" players surface first. `query` matches a
+        case-insensitive substring against first_name OR last_name."""
+        async with self.get_db_connection() as connection:
+            connection: PoolConnectionProxy = cast(PoolConnectionProxy, connection)
+
+            where_clauses: list[str] = []
+            params: list = []
+            idx = 1
+
+            if query is not None and query.strip():
+                where_clauses.append(
+                    f"(first_name ILIKE ${idx} OR last_name ILIKE ${idx})"
+                )
+                params.append(f"%{query.strip()}%"); idx += 1
+            if sport_id is not None:
+                where_clauses.append(f"favorite_sport_id = ${idx}")
+                params.append(sport_id); idx += 1
+            if level is not None:
+                where_clauses.append(f"level = ${idx}")
+                params.append(level); idx += 1
+            if exclude_user_id is not None:
+                where_clauses.append(f"user_id <> ${idx}")
+                params.append(exclude_user_id); idx += 1
+
+            where_sql = (
+                f"WHERE {' AND '.join(where_clauses)}" if where_clauses else ""
+            )
+            # ORDER ranking DESC, then by id so the order is stable across
+            # pages when many players share the bootstrap 0 ranking.
+            params.extend([limit, offset])
+            query_sql = (
+                f"SELECT * FROM {self.__table_name__} {where_sql} "
+                f"ORDER BY ranking_points DESC, id ASC "
+                f"LIMIT ${idx} OFFSET ${idx + 1}"
+            )
+            try:
+                results = await connection.fetch(query_sql, *params)
+                return [_row_to_ddo(r) for r in results]
+            except Exception as e:
+                raise DatabaseException(message=f"Database error: {e}")
+
     async def list_players_by_ids(
         self, player_ids: list[int]
     ) -> list[PlayerDDO]:

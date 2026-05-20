@@ -215,6 +215,67 @@ class GamesModel(GeneralModel):
             except Exception as e:
                 raise DatabaseException(message=f"Database error: {e}")
 
+    async def list_games_for_player(
+        self,
+        player_id: int,
+        status: str | None = None,
+        mode: str | None = None,
+        limit: int = 30,
+        offset: int = 0,
+    ) -> list[GameDDO]:
+        """All games a player participated in (via game_player). Newest first
+        by scheduled_at then created_at so future/recent games surface first."""
+        async with self.get_db_connection() as connection:
+            connection: PoolConnectionProxy = cast(PoolConnectionProxy, connection)
+
+            where_clauses = ["gp.player_id = $1"]
+            params: list = [player_id]
+            idx = 2
+            if status is not None:
+                where_clauses.append(f"g.status = ${idx}")
+                params.append(status); idx += 1
+            if mode is not None:
+                where_clauses.append(f"g.mode = ${idx}")
+                params.append(mode); idx += 1
+
+            params.extend([limit, offset])
+            query = (
+                f"SELECT g.*, s.name AS sport_name "
+                f"FROM {self.__table_name__} g "
+                f"INNER JOIN game_player gp ON gp.game_id = g.id "
+                f"LEFT JOIN sports s ON s.id = g.sport_id "
+                f"WHERE {' AND '.join(where_clauses)} "
+                f"ORDER BY COALESCE(g.scheduled_at, g.created_at) DESC "
+                f"LIMIT ${idx} OFFSET ${idx + 1}"
+            )
+            try:
+                results = await connection.fetch(query, *params)
+                return [_row_to_ddo(r) for r in results]
+            except Exception as e:
+                raise DatabaseException(message=f"Database error: {e}")
+
+    async def list_pending_settlement(
+        self, grace_hours: int
+    ) -> list[GameDDO]:
+        """Games whose `scheduled_at` is more than `grace_hours` in the past
+        and that are still in a reportable state (open / full). These are the
+        candidates for the auto-settle job: either everyone forgot to report,
+        or some reported and consensus stalled."""
+        async with self.get_db_connection() as connection:
+            connection: PoolConnectionProxy = cast(PoolConnectionProxy, connection)
+            query = (
+                f"SELECT g.*, s.name AS sport_name FROM {self.__table_name__} g "
+                f"LEFT JOIN sports s ON s.id = g.sport_id "
+                f"WHERE g.status IN ('open', 'full') "
+                f"AND g.scheduled_at IS NOT NULL "
+                f"AND g.scheduled_at < (now() - ($1 || ' hours')::interval)"
+            )
+            try:
+                results = await connection.fetch(query, str(grace_hours))
+                return [_row_to_ddo(r) for r in results]
+            except Exception as e:
+                raise DatabaseException(message=f"Database error: {e}")
+
     async def set_result(
         self,
         game_id: int,
@@ -231,6 +292,23 @@ class GamesModel(GeneralModel):
             )
             try:
                 result = await connection.fetchrow(query, result_home, result_away, game_id)
+                return _row_to_ddo(result) if result else None
+            except Exception as e:
+                raise DatabaseException(message=f"Database error: {e}")
+
+    async def finish_without_result(self, game_id: int) -> GameDDO | None:
+        """Closes a game as 'finished' without a score. Used when the
+        auto-settle job runs and either nobody reported or the votes had no
+        clear majority. ELO is not applied for these games."""
+        async with self.get_db_connection() as connection:
+            connection: PoolConnectionProxy = cast(PoolConnectionProxy, connection)
+            query = (
+                f"UPDATE {self.__table_name__} "
+                "SET status = 'finished' "
+                "WHERE id = $1 RETURNING *"
+            )
+            try:
+                result = await connection.fetchrow(query, game_id)
                 return _row_to_ddo(result) if result else None
             except Exception as e:
                 raise DatabaseException(message=f"Database error: {e}")

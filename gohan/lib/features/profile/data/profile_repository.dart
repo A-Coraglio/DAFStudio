@@ -1,6 +1,8 @@
 import 'package:dio/dio.dart';
 
+import '../../games/data/game.dart';
 import 'player_profile.dart';
+import 'player_stats.dart';
 
 class ProfileRepository {
   ProfileRepository(this._dio);
@@ -17,6 +19,58 @@ class ProfileRepository {
     final res =
         await _dio.get<Map<String, dynamic>>('/api/players/$playerId/');
     return PlayerProfile.fromJson(res.data!);
+  }
+
+  /// Personal history feed. Each Game is enriched with `outcome` + `teamSide`.
+  Future<List<Game>> getMyGames({
+    String? status,
+    String? mode,
+    int limit = 30,
+    int offset = 0,
+  }) async {
+    final res = await _dio.get<List<dynamic>>(
+      '/api/players/me/games/',
+      queryParameters: {
+        if (status != null) 'status': status,
+        if (mode != null) 'mode': mode,
+        'limit': limit,
+        'offset': offset,
+      },
+    );
+    return (res.data ?? const [])
+        .cast<Map<String, dynamic>>()
+        .map(Game.fromJson)
+        .toList(growable: false);
+  }
+
+  Future<PlayerStats> getMyStats() async {
+    final res =
+        await _dio.get<Map<String, dynamic>>('/api/players/me/stats/');
+    return PlayerStats.fromJson(res.data!);
+  }
+
+  /// Discovery feed. Backend excludes the caller from the results.
+  Future<List<PlayerProfile>> searchPlayers({
+    String? query,
+    int? sportId,
+    String? level,
+    int limit = 30,
+    int offset = 0,
+  }) async {
+    final res = await _dio.get<List<dynamic>>(
+      '/api/players/',
+      queryParameters: {
+        if (query != null && query.isNotEmpty) 'query': query,
+        if (sportId != null) 'sport_id': sportId,
+        if (level != null) 'level': level,
+        'limit': limit,
+        'offset': offset,
+      },
+    );
+    return (res.data ?? const [])
+        .cast<Map<String, dynamic>>()
+        .map(PlayerProfile.fromJson)
+        .toList(growable: false);
   }
 
   Future<PlayerProfile> updateMyProfile(UpdatePlayerRequest req) async {

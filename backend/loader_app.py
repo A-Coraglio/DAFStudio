@@ -6,6 +6,7 @@ from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apps.common.exceptions.exceptions import AppException
+from apps.games.service.appservice import AppService as GamesAppService
 from apps.matchmaking.service.matcher import Matcher
 from load_database import database_object
 from apps.games.namespaces.routes import router as games_router
@@ -26,6 +27,11 @@ from traceback import format_exc
 # 20s is a middle-ground between responsiveness and query load.
 MATCHER_INTERVAL_SECONDS = 20
 
+# Interval (seconds) at which the result auto-settle job runs. Closes games
+# whose scheduled_at is well in the past and that nobody (or not enough
+# people) finished reporting. Not time-sensitive — every 15 minutes is fine.
+SETTLE_INTERVAL_SECONDS = 15 * 60
+
 
 async def _run_matcher_job() -> None:
     try:
@@ -33,6 +39,15 @@ async def _run_matcher_job() -> None:
     except Exception:
         # Never let a matcher failure crash the scheduler; log and continue.
         print("[matcher cron] run failed:\n" + format_exc())
+
+
+async def _run_settle_job() -> None:
+    try:
+        stats = await GamesAppService().settle_pending_results()
+        if stats.get("checked"):
+            print(f"[settle cron] {stats}")
+    except Exception:
+        print("[settle cron] run failed:\n" + format_exc())
 
 
 @asynccontextmanager
@@ -44,6 +59,14 @@ async def lifespan(app: FastAPI):
         "interval",
         seconds=MATCHER_INTERVAL_SECONDS,
         id="matchmaker",
+        max_instances=1,
+        coalesce=True,
+    )
+    scheduler.add_job(
+        _run_settle_job,
+        "interval",
+        seconds=SETTLE_INTERVAL_SECONDS,
+        id="result_settler",
         max_instances=1,
         coalesce=True,
     )

@@ -12,6 +12,8 @@ import '../../features/games/screens/games_feed_screen.dart';
 import '../../features/home/screens/home_screen.dart';
 import '../../features/matchmaking/screens/matchmaking_screen.dart';
 import '../../features/profile/screens/complete_profile_screen.dart';
+import '../../features/profile/screens/my_games_screen.dart';
+import '../../features/profile/screens/players_discovery_screen.dart';
 import '../../features/profile/screens/profile_screen.dart';
 import '../../features/profile/screens/public_profile_screen.dart';
 import '../providers/core_providers.dart';
@@ -74,6 +76,14 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (_, state) => ChatScreen(
           chatId: int.parse(state.pathParameters['id']!),
         ),
+      ),
+      GoRoute(
+        path: '/players',
+        builder: (_, _) => const PlayersDiscoveryScreen(),
+      ),
+      GoRoute(
+        path: '/my-games',
+        builder: (_, _) => const MyGamesScreen(),
       ),
       GoRoute(
         path: '/players/:id',

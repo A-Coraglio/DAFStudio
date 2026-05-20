@@ -41,6 +41,11 @@ class GamesOutputDTO(BaseModel):
     result_home: int | None = None
     result_away: int | None = None
     created_at: str
+    # Result-reporting progress: how many of the participants have already
+    # submitted a confirmation. Only populated on the detail endpoint
+    # (games_getter); list_games leaves these null to avoid N+1 queries.
+    confirmations_count: int | None = None
+    confirmations_total: int | None = None
 
 
 class JoinGameInputDTO(BaseModel):

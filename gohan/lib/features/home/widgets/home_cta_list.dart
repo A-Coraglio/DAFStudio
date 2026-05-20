@@ -28,6 +28,12 @@ class HomeCtaList extends StatelessWidget {
           onTap: () => context.push('/games/new'),
         ),
         HomeCard(
+          icon: Icons.person_search_outlined,
+          title: 'Buscar jugadores',
+          subtitle: 'Encontrá gente para jugar por nombre, deporte o nivel',
+          onTap: () => context.push('/players'),
+        ),
+        HomeCard(
           icon: Icons.chat_bubble_outline,
           title: 'Chats',
           subtitle: 'Conversaciones generales y de tus partidos',

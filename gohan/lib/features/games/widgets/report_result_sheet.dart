@@ -42,6 +42,8 @@ class _ReportResultSheetState extends ConsumerState<ReportResultSheet> {
           );
       ref.invalidate(gameByIdProvider(widget.gameId));
       ref.invalidate(myProfileProvider); // ranking may have changed
+      ref.invalidate(myStatsProvider); // W/L/D may have changed
+      ref.invalidate(myGamesProvider(null)); // history list outcomes refresh
       if (!mounted) return;
       Navigator.of(context).pop();
       ScaffoldMessenger.of(context).showSnackBar(

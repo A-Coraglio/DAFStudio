@@ -7,6 +7,7 @@ import '../widgets/game_action_button.dart';
 import '../widgets/game_chat_app_bar_action.dart';
 import '../widgets/game_info_card.dart';
 import '../widgets/game_players_list.dart';
+import '../widgets/report_progress_hint.dart';
 import '../widgets/report_result_button.dart';
 
 class GameDetailScreen extends ConsumerWidget {
@@ -53,6 +54,7 @@ class GameDetailScreen extends ConsumerWidget {
                 players: playersAsync.valueOrNull ?? const [],
               ),
               const SizedBox(height: 8),
+              ReportProgressHint(game: game),
               ReportResultButton(
                 game: game,
                 players: playersAsync.valueOrNull ?? const [],

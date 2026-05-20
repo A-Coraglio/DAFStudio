@@ -1,4 +1,6 @@
+from collections import Counter
 from datetime import datetime
+from traceback import format_exc
 
 from apps.games.service.iso_utils import iso_utc
 from apps.games.service.dto import (
@@ -26,12 +28,20 @@ from apps.players.exceptions.exceptions import PlayerNotFoundException
 _ELO_K_FACTOR = 32
 # Modes whose result updates player rankings. Casual is intentionally excluded.
 _RANKED_MODES = ("competitive",)
+# Hours after `scheduled_at` before the auto-settle job is allowed to close
+# a game. Generous (24h) so players who report from home that night still
+# count; shorter would surprise users mid-dispute.
+_SETTLE_GRACE_HOURS = 24
 
 
 class AppService:
 
     def _to_output_dto(
-        self, game: GameDDO, current_players: int = 0
+        self,
+        game: GameDDO,
+        current_players: int = 0,
+        confirmations_count: int | None = None,
+        confirmations_total: int | None = None,
     ) -> GamesOutputDTO:
         return GamesOutputDTO(
             id=game.id,
@@ -52,11 +62,30 @@ class AppService:
             result_home=game.result_home,
             result_away=game.result_away,
             created_at=iso_utc(game.created_at),
+            confirmations_count=confirmations_count,
+            confirmations_total=confirmations_total,
         )
 
     async def _game_to_dto_with_count(self, game: GameDDO) -> GamesOutputDTO:
         count = await GamePlayerModel().count_players(game_id=game.id)
         return self._to_output_dto(game, current_players=count)
+
+    async def _game_to_dto_with_confirmations(
+        self, game: GameDDO
+    ) -> GamesOutputDTO:
+        """Detail-screen variant: also reports how many of the participants
+        have submitted a result confirmation, so the UI can render "2/4
+        jugadores reportaron" without an extra request."""
+        participants = await GamePlayerModel().list_players(game_id=game.id)
+        confirmations = await GameResultConfirmationModel().list_confirmations(
+            game_id=game.id
+        )
+        return self._to_output_dto(
+            game,
+            current_players=len(participants),
+            confirmations_count=len(confirmations),
+            confirmations_total=len(participants),
+        )
 
     async def games_lister(
         self,
@@ -93,7 +122,7 @@ class AppService:
 
     async def games_getter(self, game_id: int) -> GamesOutputDTO:
         result: GameDDO = await GamesModel().get_game_by_id(game_id=game_id)
-        return await self._game_to_dto_with_count(result)
+        return await self._game_to_dto_with_confirmations(result)
 
     async def games_creator(
         self, data: GameCreateInputDTO, organizer_id: int
@@ -341,3 +370,61 @@ class AppService:
             await PlayerModel().adjust_ranking_points(
                 player_id=gp.player_id, delta=-delta
             )
+
+    # -------- auto-settle --------
+
+    async def settle_pending_results(self) -> dict[str, int]:
+        """Closes games whose scheduled_at is more than `_SETTLE_GRACE_HOURS`
+        in the past and that are still open/full. Three outcomes per game:
+
+          * no confirmations    → finished WITHOUT result, no ELO.
+          * clear majority      → that score wins (set_result + _apply_elo).
+          * tied / no majority  → finished WITHOUT result, no ELO.
+
+        Called by the scheduler in loader_app. Returns a small summary so
+        ops can grep logs and see what the job did.
+        """
+        candidates = await GamesModel().list_pending_settlement(
+            grace_hours=_SETTLE_GRACE_HOURS
+        )
+        stats = {"checked": len(candidates), "finalized": 0, "no_result": 0}
+        for game in candidates:
+            try:
+                outcome = await self._settle_one(game)
+            except Exception:
+                # One bad game shouldn't poison the whole sweep — log and
+                # move on. Next run will pick it up again.
+                print(
+                    f"[settle] failed for game {game.id}:\n" + format_exc()
+                )
+                continue
+            stats[outcome] = stats.get(outcome, 0) + 1
+        return stats
+
+    async def _settle_one(self, game: GameDDO) -> str:
+        confirmations = await GameResultConfirmationModel().list_confirmations(
+            game_id=game.id
+        )
+        if not confirmations:
+            await GamesModel().finish_without_result(game_id=game.id)
+            return "no_result"
+
+        # Tally votes per (home, away) score pair. Counter.most_common gives
+        # us the leader; we check the runner-up to detect ties.
+        votes = Counter(
+            (c.reported_home, c.reported_away) for c in confirmations
+        )
+        ranked = votes.most_common()
+        top_score, top_count = ranked[0]
+        if len(ranked) > 1 and ranked[1][1] == top_count:
+            # Tied vote — can't pick a winner fairly. Close without result.
+            await GamesModel().finish_without_result(game_id=game.id)
+            return "no_result"
+
+        finalized = await GamesModel().set_result(
+            game_id=game.id,
+            result_home=top_score[0],
+            result_away=top_score[1],
+        )
+        await self._apply_elo(finalized or game)
+        return "finalized"

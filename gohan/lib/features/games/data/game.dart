@@ -20,6 +20,16 @@ class Game {
   final int? resultHome;
   final int? resultAway;
   final DateTime createdAt;
+  /// How many participants have already reported a score. Only populated on
+  /// the detail endpoint; list/feed responses leave it null.
+  final int? confirmationsCount;
+  final int? confirmationsTotal;
+  /// Present only on /players/me/games/ — outcome of the game from the
+  /// calling user's perspective. Values: won / lost / draw / pending.
+  final String? outcome;
+  /// Present only on /players/me/games/ — which side the user was on.
+  /// Values: home / away / null (unsplittable game).
+  final String? teamSide;
 
   const Game({
     required this.id,
@@ -38,6 +48,10 @@ class Game {
     required this.resultHome,
     required this.resultAway,
     required this.createdAt,
+    this.confirmationsCount,
+    this.confirmationsTotal,
+    this.outcome,
+    this.teamSide,
   });
 
   factory Game.fromJson(Map<String, dynamic> json) => Game(
@@ -57,6 +71,10 @@ class Game {
         resultHome: json['result_home'] as int?,
         resultAway: json['result_away'] as int?,
         createdAt: _parseIso(json['created_at'])!,
+        confirmationsCount: json['confirmations_count'] as int?,
+        confirmationsTotal: json['confirmations_total'] as int?,
+        outcome: json['outcome'] as String?,
+        teamSide: json['team_side'] as String?,
       );
 
   static DateTime? _parseIso(Object? v) =>
