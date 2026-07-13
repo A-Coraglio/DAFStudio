@@ -26,16 +26,16 @@ class Court {
   });
 
   factory Court.fromJson(Map<String, dynamic> json) => Court(
-        id: json['id'] as int,
-        clubId: json['club_id'] as int?,
-        ownerId: json['owner_id'] as int?,
-        sportId: json['sport_id'] as int,
-        name: json['name'] as String,
-        pricePerHour: (json['price_per_hour'] as num).toDouble(),
-        isIndoor: json['is_indoor'] as bool,
-        lat: (json['lat'] as num?)?.toDouble(),
-        lon: (json['lon'] as num?)?.toDouble(),
-      );
+    id: json['id'] as int,
+    clubId: json['club_id'] as int?,
+    ownerId: json['owner_id'] as int?,
+    sportId: json['sport_id'] as int,
+    name: json['name'] as String,
+    pricePerHour: (json['price_per_hour'] as num).toDouble(),
+    isIndoor: json['is_indoor'] as bool,
+    lat: (json['lat'] as num?)?.toDouble(),
+    lon: (json['lon'] as num?)?.toDouble(),
+  );
 
   bool get isPrivate => ownerId != null;
 }

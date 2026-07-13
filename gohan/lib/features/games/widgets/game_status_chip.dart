@@ -13,7 +13,10 @@ class GameStatusChip extends StatelessWidget {
       'full' => ('Lleno', scheme.tertiaryContainer),
       'finished' => ('Finalizado', scheme.surfaceContainerHighest),
       'cancelled' => ('Cancelado', scheme.errorContainer),
-      'pending_acceptance' => ('Esperando aceptación', scheme.secondaryContainer),
+      'pending_acceptance' => (
+        'Esperando aceptación',
+        scheme.secondaryContainer,
+      ),
       _ => (status, scheme.surfaceContainerHighest),
     };
     return Container(
@@ -22,10 +25,7 @@ class GameStatusChip extends StatelessWidget {
         color: color,
         borderRadius: BorderRadius.circular(999),
       ),
-      child: Text(
-        label,
-        style: Theme.of(context).textTheme.labelMedium,
-      ),
+      child: Text(label, style: Theme.of(context).textTheme.labelMedium),
     );
   }
 }

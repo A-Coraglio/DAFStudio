@@ -32,8 +32,7 @@ class EditProfileSheet extends ConsumerStatefulWidget {
 
 class _EditProfileSheetState extends ConsumerState<EditProfileSheet> {
   final _formKey = GlobalKey<FormState>();
-  late final _firstCtrl =
-      TextEditingController(text: widget.profile.firstName);
+  late final _firstCtrl = TextEditingController(text: widget.profile.firstName);
   late final _lastCtrl = TextEditingController(text: widget.profile.lastName);
   late String? _level = widget.profile.level;
   late int? _sportId = widget.profile.favoriteSportId;
@@ -50,7 +49,9 @@ class _EditProfileSheetState extends ConsumerState<EditProfileSheet> {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _loading = true);
     try {
-      await ref.read(profileRepositoryProvider).updateMyProfile(
+      await ref
+          .read(profileRepositoryProvider)
+          .updateMyProfile(
             UpdatePlayerRequest(
               firstName: _firstCtrl.text.trim(),
               lastName: _lastCtrl.text.trim(),
@@ -61,14 +62,14 @@ class _EditProfileSheetState extends ConsumerState<EditProfileSheet> {
       ref.invalidate(myProfileProvider);
       if (!mounted) return;
       Navigator.of(context).pop();
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Perfil actualizado')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Perfil actualizado')));
     } on DioException catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(dioErrorMessage(e))),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(dioErrorMessage(e))));
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -84,8 +85,10 @@ class _EditProfileSheetState extends ConsumerState<EditProfileSheet> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text('Editar perfil',
-                style: Theme.of(context).textTheme.titleLarge),
+            Text(
+              'Editar perfil',
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
             const SizedBox(height: 20),
             NameField(controller: _firstCtrl, label: 'Nombre'),
             const SizedBox(height: 12),

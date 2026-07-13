@@ -17,8 +17,10 @@ class PasswordField extends StatefulWidget {
   final ValueChanged<String>? onSubmitted;
   final int? minLength;
   final String label;
+
   /// True on register — tells password managers to offer a generated one.
   final bool isNew;
+
   /// When set, this field must match the other controller ("repetir
   /// contraseña"); the length rule is skipped.
   final TextEditingController? matchWith;

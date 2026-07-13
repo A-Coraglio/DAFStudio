@@ -25,10 +25,7 @@ class _AcceptanceCountdownState extends State<AcceptanceCountdown> {
   @override
   void initState() {
     super.initState();
-    _timer = Timer.periodic(
-      const Duration(seconds: 1),
-      (_) => setState(() {}),
-    );
+    _timer = Timer.periodic(const Duration(seconds: 1), (_) => setState(() {}));
   }
 
   @override
@@ -45,18 +42,20 @@ class _AcceptanceCountdownState extends State<AcceptanceCountdown> {
 
   @override
   Widget build(BuildContext context) {
-    final elapsed =
-        DateTime.now().toUtc().difference(widget.since.toUtc()).inSeconds;
+    final elapsed = DateTime.now()
+        .toUtc()
+        .difference(widget.since.toUtc())
+        .inSeconds;
     final remaining = (widget.seconds - elapsed).clamp(0, widget.seconds);
     final low = remaining <= 60;
     return Text(
       _format(remaining),
       style: Theme.of(context).textTheme.displayLarge?.copyWith(
-            color: low
-                ? Theme.of(context).colorScheme.error
-                : Theme.of(context).colorScheme.primary,
-            fontWeight: FontWeight.bold,
-          ),
+        color: low
+            ? Theme.of(context).colorScheme.error
+            : Theme.of(context).colorScheme.primary,
+        fontWeight: FontWeight.bold,
+      ),
     );
   }
 }

@@ -33,7 +33,8 @@ class _QueueFormState extends ConsumerState<QueueForm> {
   @override
   void initState() {
     super.initState();
-    _sportId = ref.read(activeSportIdProvider) ??
+    _sportId =
+        ref.read(activeSportIdProvider) ??
         ref.read(myProfileProvider).valueOrNull?.favoriteSportId;
     // Restore the last matchmaking mode the user picked so repeat queuers
     // don't have to re-choose on every session.
@@ -45,9 +46,9 @@ class _QueueFormState extends ConsumerState<QueueForm> {
 
   Future<void> _submit() async {
     if (_sportId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Elegí un deporte primero')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Elegí un deporte primero')));
       return;
     }
 
@@ -57,7 +58,9 @@ class _QueueFormState extends ConsumerState<QueueForm> {
       // Anchor the search at the device's location; fall back to the city
       // default when it's unavailable so matchmaking still works.
       final location = await ref.read(currentLocationProvider.future);
-      await ref.read(matchmakingRepositoryProvider).queue(
+      await ref
+          .read(matchmakingRepositoryProvider)
+          .queue(
             QueueRequest(
               sportId: _sportId!,
               maxRadiusKm: _radiusKm,
@@ -72,9 +75,9 @@ class _QueueFormState extends ConsumerState<QueueForm> {
       ref.invalidate(matchmakingStatusStreamProvider);
     } on DioException catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(dioErrorMessage(e))),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(dioErrorMessage(e))));
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -92,10 +95,7 @@ class _QueueFormState extends ConsumerState<QueueForm> {
     return ListView(
       padding: const EdgeInsets.all(20),
       children: [
-        Text(
-          'Jugar ya',
-          style: Theme.of(context).textTheme.headlineSmall,
-        ),
+        Text('Jugar ya', style: Theme.of(context).textTheme.headlineSmall),
         const SizedBox(height: 4),
         Text(
           'Te emparejamos con gente de nivel similar cerca tuyo.',

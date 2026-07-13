@@ -42,14 +42,14 @@ class _GameActionButtonState extends ConsumerState<GameActionButton> {
       ref.invalidate(gamePlayersProvider(widget.game.id));
       ref.invalidate(feedGamesProvider);
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(successMessage)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(successMessage)));
     } on DioException catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(dioErrorMessage(e))),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(dioErrorMessage(e))));
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -61,7 +61,8 @@ class _GameActionButtonState extends ConsumerState<GameActionButton> {
     final repo = ref.read(gamesRepositoryProvider);
     final game = widget.game;
     final iAmIn =
-        myPlayerId != null && widget.players.any((p) => p.playerId == myPlayerId);
+        myPlayerId != null &&
+        widget.players.any((p) => p.playerId == myPlayerId);
 
     final (label, onPressed) = _resolve(game, iAmIn, repo);
     return SizedBox(
@@ -79,11 +80,7 @@ class _GameActionButtonState extends ConsumerState<GameActionButton> {
     );
   }
 
-  (String, VoidCallback?) _resolve(
-    Game game,
-    bool iAmIn,
-    dynamic repo,
-  ) {
+  (String, VoidCallback?) _resolve(Game game, bool iAmIn, dynamic repo) {
     if (game.status == 'finished') return ('Finalizado', null);
     if (game.status == 'cancelled') return ('Cancelado', null);
     if (game.status == 'pending_acceptance') {
@@ -105,9 +102,27 @@ class _GameActionButtonState extends ConsumerState<GameActionButton> {
       );
     }
     if (game.isFull) return ('Completo', null);
-    return (
-      'Unirme',
-      () => _run(() => repo.join(game.id), 'Te uniste al partido'),
-    );
+    return ('Unirme', () => _join(game, repo));
+  }
+
+  /// El nivel del partido es el ranking del organizador ±[kLevelRange].
+  /// Estar fuera del rango no bloquea — solo avisa antes de unirse.
+  Future<void> _join(Game game, dynamic repo) async {
+    final anchor = game.organizerRankingPoints;
+    final mine = ref.read(myProfileProvider).valueOrNull?.rankingPoints;
+    if (anchor != null && mine != null && (mine - anchor).abs() > kLevelRange) {
+      final above = mine > anchor;
+      final ok = await showConfirmDialog(
+        context,
+        title: 'Nivel distinto al del partido',
+        message:
+            'Este partido es de nivel ~$anchor pts (±$kLevelRange) y vos '
+            'tenés $mine — estás por ${above ? 'encima' : 'debajo'} del '
+            'rango. ¿Unirte igual?',
+        confirmLabel: 'Unirme igual',
+      );
+      if (!ok) return;
+    }
+    await _run(() => repo.join(game.id), 'Te uniste al partido');
   }
 }

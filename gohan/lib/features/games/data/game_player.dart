@@ -22,21 +22,21 @@ class GamePlayer {
   });
 
   factory GamePlayer.fromJson(Map<String, dynamic> json) => GamePlayer(
-        gameId: json['game_id'] as int,
-        playerId: json['player_id'] as int,
-        teamId: json['team_id'] as int?,
-        createdAt: DateTime.parse(json['created_at'] as String),
-        firstName: json['first_name'] as String?,
-        lastName: json['last_name'] as String?,
-        level: json['level'] as String?,
-        rankingPoints: (json['ranking_points'] as int?) ?? 0,
-      );
+    gameId: json['game_id'] as int,
+    playerId: json['player_id'] as int,
+    teamId: json['team_id'] as int?,
+    createdAt: DateTime.parse(json['created_at'] as String),
+    firstName: json['first_name'] as String?,
+    lastName: json['last_name'] as String?,
+    level: json['level'] as String?,
+    rankingPoints: (json['ranking_points'] as int?) ?? 0,
+  );
 
   String get displayName {
-    final name = [firstName, lastName]
-        .where((s) => s != null && s.isNotEmpty)
-        .join(' ')
-        .trim();
+    final name = [
+      firstName,
+      lastName,
+    ].where((s) => s != null && s.isNotEmpty).join(' ').trim();
     return name.isEmpty ? 'Jugador #$playerId' : name;
   }
 }

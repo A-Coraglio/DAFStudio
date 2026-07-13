@@ -20,6 +20,8 @@ class ChatMessageDDO(BaseModel):
     user_id: int
     content: str
     created_at: datetime
+    # Set when the author edits the message; None = never edited.
+    updated_at: datetime | None = None
     # Enriched by list_for_chat's JOINs; None on INSERT ... RETURNING rows.
     author_name: str | None = None
     author_player_id: int | None = None

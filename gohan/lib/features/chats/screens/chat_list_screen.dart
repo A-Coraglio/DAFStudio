@@ -26,9 +26,11 @@ class _ChatListScreenState extends ConsumerState<ChatListScreen> {
     final q = _query.trim().toLowerCase();
     if (q.isEmpty) return chats;
     return chats
-        .where((c) =>
-            c.displayTitle.toLowerCase().contains(q) ||
-            (c.lastMessage?.toLowerCase().contains(q) ?? false))
+        .where(
+          (c) =>
+              c.displayTitle.toLowerCase().contains(q) ||
+              (c.lastMessage?.toLowerCase().contains(q) ?? false),
+        )
         .toList();
   }
 
@@ -72,7 +74,8 @@ class _ChatListScreenState extends ConsumerState<ChatListScreen> {
                           separatorBuilder: (_, _) => const Divider(height: 1),
                           itemBuilder: (_, i) => ChatListTile(
                             chat: visible[i],
-                            onTap: () => context.push('/chats/${visible[i].id}'),
+                            onTap: () =>
+                                context.push('/chats/${visible[i].id}'),
                           ),
                         ),
                       ),

@@ -20,8 +20,7 @@ class GoogleSignInButton extends ConsumerStatefulWidget {
   final bool disabled;
 
   @override
-  ConsumerState<GoogleSignInButton> createState() =>
-      _GoogleSignInButtonState();
+  ConsumerState<GoogleSignInButton> createState() => _GoogleSignInButtonState();
 }
 
 class _GoogleSignInButtonState extends ConsumerState<GoogleSignInButton> {
@@ -68,7 +67,8 @@ class _GoogleSignInButtonState extends ConsumerState<GoogleSignInButton> {
         onPressed: disabled ? null : _onPressed,
         icon: _busy
             ? const SizedBox(
-                width: 18, height: 18,
+                width: 18,
+                height: 18,
                 child: CircularProgressIndicator(strokeWidth: 2),
               )
             : SvgPicture.asset('assets/google_g.svg', width: 18, height: 18),

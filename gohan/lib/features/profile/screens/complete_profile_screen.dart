@@ -24,8 +24,7 @@ class CompleteProfileScreen extends ConsumerStatefulWidget {
       _CompleteProfileScreenState();
 }
 
-class _CompleteProfileScreenState
-    extends ConsumerState<CompleteProfileScreen> {
+class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
   final _nameFormKey = GlobalKey<FormState>();
   final _firstNameCtrl = TextEditingController();
   final _lastNameCtrl = TextEditingController();
@@ -60,7 +59,9 @@ class _CompleteProfileScreenState
   Future<void> _submit() async {
     setState(() => _loading = true);
     try {
-      await ref.read(profileRepositoryProvider).updateMyProfile(
+      await ref
+          .read(profileRepositoryProvider)
+          .updateMyProfile(
             UpdatePlayerRequest(
               firstName: _firstNameCtrl.text.trim(),
               lastName: _lastNameCtrl.text.trim(),
@@ -73,9 +74,9 @@ class _CompleteProfileScreenState
       context.go('/home');
     } on DioException catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(dioErrorMessage(e))),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(dioErrorMessage(e))));
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -106,26 +107,26 @@ class _CompleteProfileScreenState
                 const SizedBox(height: 24),
                 switch (_step) {
                   0 => OnboardingNameStep(
-                      formKey: _nameFormKey,
-                      firstNameCtrl: _firstNameCtrl,
-                      lastNameCtrl: _lastNameCtrl,
-                      onContinue: _nextFromName,
-                    ),
+                    formKey: _nameFormKey,
+                    firstNameCtrl: _firstNameCtrl,
+                    lastNameCtrl: _lastNameCtrl,
+                    onContinue: _nextFromName,
+                  ),
                   1 => OnboardingSportStep(
-                      sportId: _sportId,
-                      onChanged: (v) => setState(() => _sportId = v),
-                      onSubmit: _nextFromSport,
-                      loading: false,
-                    ),
+                    sportId: _sportId,
+                    onChanged: (v) => setState(() => _sportId = v),
+                    onSubmit: _nextFromSport,
+                    loading: false,
+                  ),
                   2 => OnboardingLevelStep(
-                      level: _level,
-                      onChanged: (v) => setState(() => _level = v),
-                      onContinue: () => setState(() => _step = 3),
-                    ),
+                    level: _level,
+                    onChanged: (v) => setState(() => _level = v),
+                    onContinue: () => setState(() => _step = 3),
+                  ),
                   _ => OnboardingAvatarStep(
-                      onSubmit: _submit,
-                      loading: _loading,
-                    ),
+                    onSubmit: _submit,
+                    loading: _loading,
+                  ),
                 },
               ],
             ),

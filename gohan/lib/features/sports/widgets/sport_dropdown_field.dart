@@ -31,10 +31,10 @@ class SportDropdownField extends ConsumerWidget {
         initialValue: value,
         decoration: InputDecoration(labelText: label),
         items: sports
-            .map((Sport s) => DropdownMenuItem<int>(
-                  value: s.id,
-                  child: Text(s.name),
-                ))
+            .map(
+              (Sport s) =>
+                  DropdownMenuItem<int>(value: s.id, child: Text(s.name)),
+            )
             .toList(),
         onChanged: onChanged,
         validator: (v) => v == null ? 'Elegí un deporte' : null,

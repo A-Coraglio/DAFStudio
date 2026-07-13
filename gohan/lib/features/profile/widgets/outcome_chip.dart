@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/theme/app_colors.dart';
+
 /// Color-coded chip for a player's result on a specific game. Used in the
 /// "Mis partidos" list. Values match the backend `MyGameOutputDTO.outcome`:
-/// won / lost / draw / pending.
+/// won / lost / draw / pending. Colors come from the AppColors tokens so
+/// they hold contrast in both light and dark mode.
 class OutcomeChip extends StatelessWidget {
   const OutcomeChip({super.key, required this.outcome});
 
@@ -11,30 +14,17 @@ class OutcomeChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    late final Color bg;
-    late final Color fg;
-    late final String label;
-    switch (outcome) {
-      case 'won':
-        bg = Colors.green.withValues(alpha: 0.15);
-        fg = Colors.green.shade800;
-        label = 'Ganado';
-        break;
-      case 'lost':
-        bg = Colors.red.withValues(alpha: 0.15);
-        fg = Colors.red.shade800;
-        label = 'Perdido';
-        break;
-      case 'draw':
-        bg = Colors.amber.withValues(alpha: 0.20);
-        fg = Colors.amber.shade900;
-        label = 'Empate';
-        break;
-      default:
-        bg = scheme.surfaceContainerHighest;
-        fg = scheme.onSurfaceVariant;
-        label = 'Pendiente';
-    }
+    final colors = Theme.of(context).extension<AppColors>()!;
+    final (bg, fg, label) = switch (outcome) {
+      'won' => (colors.winContainer, colors.onWinContainer, 'Ganado'),
+      'lost' => (colors.loseContainer, colors.onLoseContainer, 'Perdido'),
+      'draw' => (colors.drawContainer, colors.onDrawContainer, 'Empate'),
+      _ => (
+        scheme.surfaceContainerHighest,
+        scheme.onSurfaceVariant,
+        'Pendiente',
+      ),
+    };
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(

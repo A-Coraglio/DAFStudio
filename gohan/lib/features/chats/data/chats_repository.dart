@@ -65,6 +65,25 @@ class ChatsRepository {
     return ChatMessage.fromJson(res.data!);
   }
 
+  /// Edits an own message. Backend rejects with 403 if the caller isn't
+  /// the author.
+  Future<ChatMessage> updateMessage(
+    int chatId,
+    int messageId,
+    String content,
+  ) async {
+    final res = await _dio.patch<Map<String, dynamic>>(
+      '/api/chats/$chatId/messages/$messageId/',
+      data: {'content': content},
+    );
+    return ChatMessage.fromJson(res.data!);
+  }
+
+  /// Deletes an own message (hard delete).
+  Future<void> deleteMessage(int chatId, int messageId) async {
+    await _dio.delete('/api/chats/$chatId/messages/$messageId/');
+  }
+
   /// Moves the user's read cursor to the latest message in [chatId].
   Future<void> markRead(int chatId) async {
     await _dio.post('/api/chats/$chatId/read/');

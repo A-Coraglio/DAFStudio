@@ -37,6 +37,9 @@ class GamesOutputDTO(BaseModel):
     # null elsewhere (the detail screen derives it from the roster).
     is_joined: bool | None = None
     organizer_id: int
+    # Ranking of the organizer — the game's implicit skill anchor. The UI
+    # warns joiners whose ranking falls outside ±500 of this value.
+    organizer_ranking_points: int | None = None
     court_id: int | None = None
     max_players: int
     current_players: int = 0

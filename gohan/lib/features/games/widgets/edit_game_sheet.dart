@@ -32,8 +32,9 @@ class EditGameSheet extends ConsumerStatefulWidget {
 class _EditGameSheetState extends ConsumerState<EditGameSheet> {
   final _formKey = GlobalKey<FormState>();
   late final _nameCtrl = TextEditingController(text: widget.game.name);
-  late final _maxCtrl =
-      TextEditingController(text: '${widget.game.maxPlayers}');
+  late final _maxCtrl = TextEditingController(
+    text: '${widget.game.maxPlayers}',
+  );
   late String? _level = widget.game.level;
   late DateTime? _at = widget.game.scheduledAt;
   bool _loading = false;
@@ -49,7 +50,9 @@ class _EditGameSheetState extends ConsumerState<EditGameSheet> {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _loading = true);
     try {
-      await ref.read(gamesRepositoryProvider).update(
+      await ref
+          .read(gamesRepositoryProvider)
+          .update(
             widget.game.id,
             name: _nameCtrl.text.trim(),
             maxPlayers: int.parse(_maxCtrl.text.trim()),
@@ -60,14 +63,14 @@ class _EditGameSheetState extends ConsumerState<EditGameSheet> {
       ref.invalidate(feedGamesProvider);
       if (!mounted) return;
       Navigator.of(context).pop();
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Partido actualizado')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Partido actualizado')));
     } on DioException catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(dioErrorMessage(e))),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(dioErrorMessage(e))));
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -83,8 +86,10 @@ class _EditGameSheetState extends ConsumerState<EditGameSheet> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text('Editar partido',
-                style: Theme.of(context).textTheme.titleLarge),
+            Text(
+              'Editar partido',
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
             const SizedBox(height: 20),
             GameNameField(controller: _nameCtrl),
             const SizedBox(height: 12),

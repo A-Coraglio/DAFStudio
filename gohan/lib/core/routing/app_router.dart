@@ -61,30 +61,22 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/complete-profile',
         builder: (_, _) => const CompleteProfileScreen(),
       ),
-      GoRoute(
-        path: '/games/new',
-        builder: (_, _) => const CreateGameScreen(),
-      ),
+      GoRoute(path: '/games/new', builder: (_, _) => const CreateGameScreen()),
       GoRoute(
         path: '/games/:id',
-        builder: (_, state) => GameDetailScreen(
-          gameId: int.parse(state.pathParameters['id']!),
-        ),
+        builder: (_, state) =>
+            GameDetailScreen(gameId: int.parse(state.pathParameters['id']!)),
       ),
       GoRoute(
         path: '/chats/:id',
-        builder: (_, state) => ChatScreen(
-          chatId: int.parse(state.pathParameters['id']!),
-        ),
+        builder: (_, state) =>
+            ChatScreen(chatId: int.parse(state.pathParameters['id']!)),
       ),
       GoRoute(
         path: '/players',
         builder: (_, _) => const PlayersDiscoveryScreen(),
       ),
-      GoRoute(
-        path: '/my-games',
-        builder: (_, _) => const MyGamesScreen(),
-      ),
+      GoRoute(path: '/my-games', builder: (_, _) => const MyGamesScreen()),
       GoRoute(
         path: '/players/:id',
         builder: (_, state) => PublicProfileScreen(
@@ -142,8 +134,6 @@ class _SplashScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-      body: Center(child: CircularProgressIndicator()),
-    );
+    return const Scaffold(body: Center(child: CircularProgressIndicator()));
   }
 }

@@ -20,12 +20,13 @@ class SportSelectorButton extends ConsumerWidget {
         child: ListView(
           shrinkWrap: true,
           children: sports
-              .map((s) => ListTile(
-                    title: Text(s.name),
-                    trailing:
-                        currentId == s.id ? const Icon(Icons.check) : null,
-                    onTap: () => Navigator.pop(ctx, s),
-                  ))
+              .map(
+                (s) => ListTile(
+                  title: Text(s.name),
+                  trailing: currentId == s.id ? const Icon(Icons.check) : null,
+                  onTap: () => Navigator.pop(ctx, s),
+                ),
+              )
               .toList(),
         ),
       ),
@@ -44,9 +45,9 @@ class SportSelectorButton extends ConsumerWidget {
         final active = activeSportId == null
             ? null
             : sports.cast<Sport?>().firstWhere(
-                  (s) => s?.id == activeSportId,
-                  orElse: () => null,
-                );
+                (s) => s?.id == activeSportId,
+                orElse: () => null,
+              );
         return TextButton.icon(
           onPressed: () => _pick(context, ref, sports, activeSportId),
           icon: const Icon(Icons.sports),

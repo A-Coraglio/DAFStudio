@@ -35,8 +35,8 @@ class FeedModeFilterNotifier extends Notifier<String?> {
 
 final feedModeFilterProvider =
     NotifierProvider<FeedModeFilterNotifier, String?>(
-  FeedModeFilterNotifier.new,
-);
+      FeedModeFilterNotifier.new,
+    );
 
 /// The games feed — reacts automatically to the active sport and the mode
 /// filter. Only shows `status == 'open'` (joinable) games.
@@ -46,7 +46,9 @@ final feedGamesProvider = FutureProvider<List<Game>>((ref) async {
   // Location is best-effort: when available it's passed so the feed shows
   // distances and sorts nearest-first. No radius → nothing is filtered out.
   final location = await ref.watch(currentLocationProvider.future);
-  return ref.read(gamesRepositoryProvider).list(
+  return ref
+      .read(gamesRepositoryProvider)
+      .list(
         sportId: sportId,
         mode: mode,
         status: 'open',
@@ -60,8 +62,9 @@ final feedGamesProvider = FutureProvider<List<Game>>((ref) async {
 /// already-fetched list.
 enum FeedDateFilter { all, today, week }
 
-final feedDateFilterProvider =
-    StateProvider<FeedDateFilter>((_) => FeedDateFilter.all);
+final feedDateFilterProvider = StateProvider<FeedDateFilter>(
+  (_) => FeedDateFilter.all,
+);
 
 /// The feed after applying the date filter on top of [feedGamesProvider].
 /// Games without a `scheduledAt` only appear under `FeedDateFilter.all` —
@@ -97,7 +100,9 @@ final gameByIdProvider = FutureProvider.family<Game, int>((ref, id) async {
 
 /// Enriched players list for a game. Invalidated alongside gameByIdProvider
 /// on join/leave so the roster stays in sync.
-final gamePlayersProvider =
-    FutureProvider.family<List<GamePlayer>, int>((ref, id) async {
+final gamePlayersProvider = FutureProvider.family<List<GamePlayer>, int>((
+  ref,
+  id,
+) async {
   return ref.read(gamesRepositoryProvider).listPlayers(id);
 });

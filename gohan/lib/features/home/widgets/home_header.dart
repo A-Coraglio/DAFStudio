@@ -21,9 +21,10 @@ class HomeHeader extends ConsumerWidget {
   }
 
   String _initials(PlayerProfile p) {
-    final parts = [p.firstName, p.lastName]
-        .where((s) => s != null && s.isNotEmpty)
-        .map((s) => s![0].toUpperCase());
+    final parts = [
+      p.firstName,
+      p.lastName,
+    ].where((s) => s != null && s.isNotEmpty).map((s) => s![0].toUpperCase());
     return parts.isEmpty ? '?' : parts.join();
   }
 
@@ -49,7 +50,7 @@ class HomeHeader extends ConsumerWidget {
                 profile == null
                     ? '${_greeting()} 👋'
                     : '${_greeting()}, ${profile.firstName} 👋',
-                style: Theme.of(context).textTheme.titleLarge,
+                style: Theme.of(context).textTheme.headlineSmall,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),

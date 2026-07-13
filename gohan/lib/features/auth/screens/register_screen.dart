@@ -8,6 +8,7 @@ import '../../../core/providers/core_providers.dart';
 import '../../../core/widgets/primary_submit_button.dart';
 import '../data/auth_models.dart';
 import '../providers/auth_providers.dart';
+import '../widgets/auth_background.dart';
 import '../widgets/auth_header.dart';
 import '../widgets/auth_or_divider.dart';
 import '../widgets/email_field.dart';
@@ -74,54 +75,61 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Crear cuenta')),
-      body: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 420),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Form(
-              key: _formKey,
-              child: AutofillGroup(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const AuthHeader(
-                      subtitle: 'Creá tu cuenta y empezá a jugar.',
-                    ),
-                    UsernameField(controller: _usernameCtrl),
-                    const SizedBox(height: 12),
-                    EmailField(controller: _emailCtrl),
-                    const SizedBox(height: 12),
-                    PasswordField(
-                      controller: _passCtrl,
-                      minLength: 6,
-                      isNew: true,
-                    ),
-                    const SizedBox(height: 12),
-                    PasswordField(
-                      controller: _pass2Ctrl,
-                      label: 'Repetir contraseña',
-                      isNew: true,
-                      matchWith: _passCtrl,
-                      onSubmitted: (_) => _loading ? null : _submit(),
-                    ),
-                    const SizedBox(height: 20),
-                    PrimarySubmitButton(
-                      label: 'Crear cuenta',
-                      onPressed: _submit,
-                      loading: _loading,
-                    ),
-                    const SizedBox(height: 12),
-                    const AuthOrDivider(),
-                    const SizedBox(height: 12),
-                    GoogleSignInButton(disabled: _loading),
-                    const SizedBox(height: 12),
-                    TextButton(
-                      onPressed: _loading ? null : () => context.go('/login'),
-                      child: const Text('Ya tengo cuenta'),
-                    ),
-                  ],
+      extendBodyBehindAppBar: true,
+      appBar: AppBar(
+        title: const Text('Crear cuenta'),
+        backgroundColor: Colors.transparent,
+      ),
+      body: AuthBackground(
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 420),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Form(
+                key: _formKey,
+                child: AutofillGroup(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const AuthHeader(
+                        subtitle:
+                            'Encontrá con quién jugar, en cualquier deporte.',
+                      ),
+                      UsernameField(controller: _usernameCtrl),
+                      const SizedBox(height: 12),
+                      EmailField(controller: _emailCtrl),
+                      const SizedBox(height: 12),
+                      PasswordField(
+                        controller: _passCtrl,
+                        minLength: 6,
+                        isNew: true,
+                      ),
+                      const SizedBox(height: 12),
+                      PasswordField(
+                        controller: _pass2Ctrl,
+                        label: 'Repetir contraseña',
+                        isNew: true,
+                        matchWith: _passCtrl,
+                        onSubmitted: (_) => _loading ? null : _submit(),
+                      ),
+                      const SizedBox(height: 20),
+                      PrimarySubmitButton(
+                        label: 'Crear cuenta',
+                        onPressed: _submit,
+                        loading: _loading,
+                      ),
+                      const SizedBox(height: 12),
+                      const AuthOrDivider(),
+                      const SizedBox(height: 12),
+                      GoogleSignInButton(disabled: _loading),
+                      const SizedBox(height: 12),
+                      TextButton(
+                        onPressed: _loading ? null : () => context.go('/login'),
+                        child: const Text('Ya tengo cuenta'),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),

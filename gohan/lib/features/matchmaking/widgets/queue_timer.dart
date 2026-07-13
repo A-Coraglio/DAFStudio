@@ -18,10 +18,7 @@ class _QueueTimerState extends State<QueueTimer> {
   @override
   void initState() {
     super.initState();
-    _timer = Timer.periodic(
-      const Duration(seconds: 1),
-      (_) => setState(() {}),
-    );
+    _timer = Timer.periodic(const Duration(seconds: 1), (_) => setState(() {}));
   }
 
   @override

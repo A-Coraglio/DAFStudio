@@ -3,6 +3,7 @@ class Chat {
   final int? gameId;
   final String? name;
   final DateTime createdAt;
+
   /// Enriched fields from the chat list endpoint — null on single-chat
   /// responses (getById / createGeneral / ensureForGame).
   final String? gameName;
@@ -22,18 +23,18 @@ class Chat {
   });
 
   factory Chat.fromJson(Map<String, dynamic> json) => Chat(
-        id: json['id'] as int,
-        gameId: json['game_id'] as int?,
-        name: json['name'] as String?,
-        createdAt: DateTime.parse(json['created_at'] as String),
-        gameName: json['game_name'] as String?,
-        lastMessage: json['last_message'] as String?,
-        lastMessageAt: switch (json['last_message_at']) {
-          final String s => DateTime.parse(s),
-          _ => null,
-        },
-        unreadCount: (json['unread_count'] as int?) ?? 0,
-      );
+    id: json['id'] as int,
+    gameId: json['game_id'] as int?,
+    name: json['name'] as String?,
+    createdAt: DateTime.parse(json['created_at'] as String),
+    gameName: json['game_name'] as String?,
+    lastMessage: json['last_message'] as String?,
+    lastMessageAt: switch (json['last_message_at']) {
+      final String s => DateTime.parse(s),
+      _ => null,
+    },
+    unreadCount: (json['unread_count'] as int?) ?? 0,
+  );
 
   bool get isGameChat => gameId != null;
 
@@ -50,6 +51,10 @@ class ChatMessage {
   final int userId;
   final String content;
   final DateTime createdAt;
+
+  /// Set once the author edited the message — the bubble shows "editado".
+  final DateTime? updatedAt;
+
   /// Author display name (real name, or username as fallback) and their
   /// player id for linking to the public profile.
   final String? authorName;
@@ -61,17 +66,22 @@ class ChatMessage {
     required this.userId,
     required this.content,
     required this.createdAt,
+    this.updatedAt,
     this.authorName,
     this.authorPlayerId,
   });
 
   factory ChatMessage.fromJson(Map<String, dynamic> json) => ChatMessage(
-        id: json['id'] as int,
-        chatId: json['chat_id'] as int,
-        userId: json['user_id'] as int,
-        content: json['content'] as String,
-        createdAt: DateTime.parse(json['created_at'] as String),
-        authorName: json['author_name'] as String?,
-        authorPlayerId: json['author_player_id'] as int?,
-      );
+    id: json['id'] as int,
+    chatId: json['chat_id'] as int,
+    userId: json['user_id'] as int,
+    content: json['content'] as String,
+    createdAt: DateTime.parse(json['created_at'] as String),
+    updatedAt: switch (json['updated_at']) {
+      final String s => DateTime.parse(s),
+      _ => null,
+    },
+    authorName: json['author_name'] as String?,
+    authorPlayerId: json['author_player_id'] as int?,
+  );
 }

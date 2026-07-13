@@ -22,19 +22,20 @@ class ThemeModeNotifier extends StateNotifier<ThemeMode> {
   }
 
   static ThemeMode _fromString(String? v) => switch (v) {
-        'light' => ThemeMode.light,
-        'dark' => ThemeMode.dark,
-        _ => ThemeMode.system,
-      };
+    'light' => ThemeMode.light,
+    'dark' => ThemeMode.dark,
+    _ => ThemeMode.system,
+  };
 
   static String _toString(ThemeMode mode) => switch (mode) {
-        ThemeMode.light => 'light',
-        ThemeMode.dark => 'dark',
-        ThemeMode.system => 'system',
-      };
+    ThemeMode.light => 'light',
+    ThemeMode.dark => 'dark',
+    ThemeMode.system => 'system',
+  };
 }
 
-final themeModeProvider =
-    StateNotifierProvider<ThemeModeNotifier, ThemeMode>((ref) {
+final themeModeProvider = StateNotifierProvider<ThemeModeNotifier, ThemeMode>((
+  ref,
+) {
   return ThemeModeNotifier();
 });

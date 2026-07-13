@@ -22,9 +22,9 @@ class LoginResponse {
   const LoginResponse({required this.accessToken, required this.tokenType});
 
   factory LoginResponse.fromJson(Map<String, dynamic> json) => LoginResponse(
-        accessToken: json['access_token'] as String,
-        tokenType: (json['token_type'] as String?) ?? 'bearer',
-      );
+    accessToken: json['access_token'] as String,
+    tokenType: (json['token_type'] as String?) ?? 'bearer',
+  );
 }
 
 /// Input for `POST /api/auth/register/`.
@@ -44,10 +44,10 @@ class RegisterRequest {
   });
 
   Map<String, dynamic> toJson() => {
-        'username': username,
-        'email': email,
-        'password': password,
-      };
+    'username': username,
+    'email': email,
+    'password': password,
+  };
 }
 
 /// What the backend returns for a user (public shape, no password).
@@ -62,8 +62,8 @@ class UserAccount {
   });
 
   factory UserAccount.fromJson(Map<String, dynamic> json) => UserAccount(
-        id: json['id'] as int,
-        username: json['username'] as String,
-        email: json['email'] as String,
-      );
+    id: json['id'] as int,
+    username: json['username'] as String,
+    email: json['email'] as String,
+  );
 }

@@ -24,11 +24,14 @@ class GameDateTimePicker extends StatelessWidget {
     if (!context.mounted) return;
     final time = await showTimePicker(
       context: context,
-      initialTime:
-          TimeOfDay.fromDateTime(value ?? now.add(const Duration(hours: 1))),
+      initialTime: TimeOfDay.fromDateTime(
+        value ?? now.add(const Duration(hours: 1)),
+      ),
     );
     if (time == null) return;
-    onChanged(DateTime(date.year, date.month, date.day, time.hour, time.minute));
+    onChanged(
+      DateTime(date.year, date.month, date.day, time.hour, time.minute),
+    );
   }
 
   @override
@@ -36,8 +39,8 @@ class GameDateTimePicker extends StatelessWidget {
     final label = value == null
         ? 'Sin fecha'
         : '${value!.day}/${value!.month}/${value!.year} '
-            '${value!.hour.toString().padLeft(2, '0')}:'
-            '${value!.minute.toString().padLeft(2, '0')}';
+              '${value!.hour.toString().padLeft(2, '0')}:'
+              '${value!.minute.toString().padLeft(2, '0')}';
     return Card(
       child: ListTile(
         leading: const Icon(Icons.schedule),

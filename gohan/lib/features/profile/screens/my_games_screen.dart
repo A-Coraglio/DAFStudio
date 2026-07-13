@@ -59,7 +59,9 @@ class _MyGamesScreenState extends ConsumerState<MyGamesScreen> {
                   return const Center(
                     child: Padding(
                       padding: EdgeInsets.all(24),
-                      child: Text('Todavía no jugaste partidos en esta categoría.'),
+                      child: Text(
+                        'Todavía no jugaste partidos en esta categoría.',
+                      ),
                     ),
                   );
                 }

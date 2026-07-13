@@ -6,6 +6,7 @@ from apps.chats.service.dto import (
     ChatOutputDTO,
     MessageCreateInputDTO,
     MessageOutputDTO,
+    MessageUpdateInputDTO,
 )
 from apps.users.service.auth_dependency import get_current_user_id
 
@@ -111,6 +112,51 @@ async def post_message(
     return await AppService().post_message(
         chat_id=chat_id, data=body, current_user_id=current_user_id
     )
+
+
+@router.patch(
+    "/chats/{chat_id}/messages/{message_id}/",
+    responses={
+        200: {"model": MessageOutputDTO, "description": "Updated message"},
+        401: {"description": "Unauthorized"},
+        403: {"description": "Not the author"},
+        404: {"description": "Chat or message not found"},
+    },
+)
+async def update_message(
+    chat_id: int,
+    message_id: int,
+    body: MessageUpdateInputDTO,
+    current_user_id: int = Depends(get_current_user_id),
+):
+    return await AppService().update_message(
+        chat_id=chat_id,
+        message_id=message_id,
+        data=body,
+        current_user_id=current_user_id,
+    )
+
+
+@router.delete(
+    "/chats/{chat_id}/messages/{message_id}/",
+    responses={
+        200: {"description": "Message deleted"},
+        401: {"description": "Unauthorized"},
+        403: {"description": "Not the author"},
+        404: {"description": "Chat or message not found"},
+    },
+)
+async def delete_message(
+    chat_id: int,
+    message_id: int,
+    current_user_id: int = Depends(get_current_user_id),
+):
+    await AppService().delete_message(
+        chat_id=chat_id,
+        message_id=message_id,
+        current_user_id=current_user_id,
+    )
+    return {"ok": True}
 
 
 @router.post(

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../../../core/format/labels.dart';
+import '../../../core/format/sport_icons.dart';
+import '../../../core/theme/app_colors.dart';
 import '../data/game.dart';
 import 'game_distance_text.dart';
 import 'game_mode_badge.dart';
@@ -8,11 +9,7 @@ import 'game_players_pill.dart';
 import 'game_schedule_text.dart';
 
 class GameCard extends StatelessWidget {
-  const GameCard({
-    super.key,
-    required this.game,
-    required this.onTap,
-  });
+  const GameCard({super.key, required this.game, required this.onTap});
 
   final Game game;
   final VoidCallback onTap;
@@ -22,53 +19,80 @@ class GameCard extends StatelessWidget {
     return Card(
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppRadius.card),
         child: Padding(
           padding: const EdgeInsets.all(14),
-          child: Column(
+          child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      game.name,
-                      style: Theme.of(context).textTheme.titleMedium,
+              // Tile squircle con el ícono del deporte — le da identidad
+              // visual a la card y hace escaneable el feed.
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.primaryContainer,
+                  borderRadius: BorderRadius.circular(AppRadius.input),
+                ),
+                child: Icon(
+                  sportIcon(game.sportName),
+                  color: Theme.of(context).colorScheme.onPrimaryContainer,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            game.name,
+                            style: Theme.of(context).textTheme.titleMedium,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        if (game.isJoined == true) ...[
+                          const _JoinedBadge(),
+                          const SizedBox(width: 6),
+                        ],
+                        GameModeBadge(mode: game.mode),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      (game.sportName ?? 'Deporte') +
+                          game.levelSuffix +
+                          (game.courtName != null
+                              ? ' · ${game.courtName}'
+                              : ''),
+                      style: Theme.of(context).textTheme.bodySmall,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                  ),
-                  const SizedBox(width: 8),
-                  if (game.isJoined == true) ...[
-                    const _JoinedBadge(),
-                    const SizedBox(width: 6),
+                    const SizedBox(height: 10),
+                    Wrap(
+                      spacing: 16,
+                      runSpacing: 6,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      children: [
+                        GameScheduleText(
+                          scheduledAt: game.scheduledAt,
+                          bold: true,
+                        ),
+                        GamePlayersPill(
+                          current: game.currentPlayers,
+                          max: game.maxPlayers,
+                        ),
+                        if (game.distanceKm != null)
+                          GameDistanceText(distanceKm: game.distanceKm!),
+                      ],
+                    ),
                   ],
-                  GameModeBadge(mode: game.mode),
-                ],
-              ),
-              const SizedBox(height: 4),
-              Text(
-                (game.sportName ?? 'Deporte') +
-                    (game.level != null ? ' · ${levelLabel(game.level)}' : '') +
-                    (game.courtName != null ? ' · ${game.courtName}' : ''),
-                style: Theme.of(context).textTheme.bodySmall,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-              const SizedBox(height: 10),
-              Wrap(
-                spacing: 16,
-                runSpacing: 6,
-                crossAxisAlignment: WrapCrossAlignment.center,
-                children: [
-                  GameScheduleText(scheduledAt: game.scheduledAt),
-                  GamePlayersPill(
-                    current: game.currentPlayers,
-                    max: game.maxPlayers,
-                  ),
-                  if (game.distanceKm != null)
-                    GameDistanceText(distanceKm: game.distanceKm!),
-                ],
+                ),
               ),
             ],
           ),
@@ -98,9 +122,9 @@ class _JoinedBadge extends StatelessWidget {
           const SizedBox(width: 3),
           Text(
             'Anotado',
-            style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                  color: scheme.onPrimaryContainer,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.labelSmall?.copyWith(color: scheme.onPrimaryContainer),
           ),
         ],
       ),

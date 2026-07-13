@@ -75,7 +75,7 @@ class _EmptyStrip extends StatelessWidget {
       child: ListTile(
         leading: const Icon(Icons.explore_off_outlined),
         title: const Text('No hay partidos abiertos cerca'),
-        subtitle: const Text('Creá el primero y esperá rivales'),
+        subtitle: const Text('Creá el primero e invitá gente'),
         onTap: () => context.push('/games/new'),
       ),
     );

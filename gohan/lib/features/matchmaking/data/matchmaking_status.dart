@@ -25,8 +25,7 @@ class MatchmakingStatus {
       ticket: t == null
           ? null
           : MatchmakingTicket.fromJson(t as Map<String, dynamic>),
-      proposedGame:
-          g == null ? null : Game.fromJson(g as Map<String, dynamic>),
+      proposedGame: g == null ? null : Game.fromJson(g as Map<String, dynamic>),
       estimatedWaitSeconds: json['estimated_wait_seconds'] as int?,
       queueDepth: json['queue_depth'] as int?,
     );

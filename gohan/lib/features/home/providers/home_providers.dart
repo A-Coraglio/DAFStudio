@@ -15,7 +15,6 @@ final nextGameProvider = FutureProvider<Game?>((ref) async {
     if (at == null) return false;
     if (g.status != 'open' && g.status != 'full') return false;
     return at.isAfter(cutoff);
-  }).toList()
-    ..sort((a, b) => a.scheduledAt!.compareTo(b.scheduledAt!));
+  }).toList()..sort((a, b) => a.scheduledAt!.compareTo(b.scheduledAt!));
   return upcoming.isEmpty ? null : upcoming.first;
 });

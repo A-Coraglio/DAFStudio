@@ -8,6 +8,7 @@ import '../../../core/providers/core_providers.dart';
 import '../../../core/widgets/primary_submit_button.dart';
 import '../data/auth_models.dart';
 import '../providers/auth_providers.dart';
+import '../widgets/auth_background.dart';
 import '../widgets/auth_header.dart';
 import '../widgets/auth_or_divider.dart';
 import '../widgets/email_field.dart';
@@ -66,50 +67,56 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Ingresar')),
-      body: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 420),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Form(
-              key: _formKey,
-              child: AutofillGroup(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const AuthHeader(
-                      subtitle:
-                          'Encontrá con quién jugar, en cualquier deporte.',
-                    ),
-                    EmailField(
-                      controller: _emailCtrl,
-                      onSubmitted: (_) => _passFocus.requestFocus(),
-                    ),
-                    const SizedBox(height: 12),
-                    PasswordField(
-                      controller: _passCtrl,
-                      focusNode: _passFocus,
-                      onSubmitted: (_) => _loading ? null : _submit(),
-                    ),
-                    const SizedBox(height: 20),
-                    PrimarySubmitButton(
-                      label: 'Ingresar',
-                      onPressed: _submit,
-                      loading: _loading,
-                    ),
-                    const SizedBox(height: 12),
-                    const AuthOrDivider(),
-                    const SizedBox(height: 12),
-                    GoogleSignInButton(disabled: _loading),
-                    const SizedBox(height: 12),
-                    TextButton(
-                      onPressed: _loading
-                          ? null
-                          : () => context.go('/register'),
-                      child: const Text('Crear cuenta'),
-                    ),
-                  ],
+      extendBodyBehindAppBar: true,
+      appBar: AppBar(
+        title: const Text('Ingresar'),
+        backgroundColor: Colors.transparent,
+      ),
+      body: AuthBackground(
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 420),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Form(
+                key: _formKey,
+                child: AutofillGroup(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const AuthHeader(
+                        subtitle:
+                            'Encontrá con quién jugar, en cualquier deporte.',
+                      ),
+                      EmailField(
+                        controller: _emailCtrl,
+                        onSubmitted: (_) => _passFocus.requestFocus(),
+                      ),
+                      const SizedBox(height: 12),
+                      PasswordField(
+                        controller: _passCtrl,
+                        focusNode: _passFocus,
+                        onSubmitted: (_) => _loading ? null : _submit(),
+                      ),
+                      const SizedBox(height: 20),
+                      PrimarySubmitButton(
+                        label: 'Ingresar',
+                        onPressed: _submit,
+                        loading: _loading,
+                      ),
+                      const SizedBox(height: 12),
+                      const AuthOrDivider(),
+                      const SizedBox(height: 12),
+                      GoogleSignInButton(disabled: _loading),
+                      const SizedBox(height: 12),
+                      TextButton(
+                        onPressed: _loading
+                            ? null
+                            : () => context.go('/register'),
+                        child: const Text('Crear cuenta'),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),

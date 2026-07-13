@@ -18,13 +18,13 @@ class PlayerStats {
   });
 
   factory PlayerStats.fromJson(Map<String, dynamic> json) => PlayerStats(
-        rankingPoints: json['ranking_points'] as int,
-        totalPlayed: json['total_played'] as int,
-        wins: json['wins'] as int,
-        losses: json['losses'] as int,
-        draws: json['draws'] as int,
-        casualPlayed: json['casual_played'] as int,
-      );
+    rankingPoints: json['ranking_points'] as int,
+    totalPlayed: json['total_played'] as int,
+    wins: json['wins'] as int,
+    losses: json['losses'] as int,
+    draws: json['draws'] as int,
+    casualPlayed: json['casual_played'] as int,
+  );
 
   double? get winRate {
     if (totalPlayed == 0) return null;

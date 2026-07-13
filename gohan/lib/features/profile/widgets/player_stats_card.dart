@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/theme/app_colors.dart';
 import '../providers/profile_providers.dart';
 
 /// Compact W/L/D + ranking strip shown above the user's profile actions.
@@ -17,20 +18,33 @@ class PlayerStatsCard extends ConsumerWidget {
       error: (_, _) => const SizedBox.shrink(),
       data: (stats) {
         final theme = Theme.of(context);
+        final colors = theme.extension<AppColors>()!;
         return Card(
           child: Padding(
             padding: const EdgeInsets.all(16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Tu desempeño', style: theme.textTheme.titleMedium),
+                Text('Tus números', style: theme.textTheme.titleMedium),
                 const SizedBox(height: 12),
                 Row(
                   children: [
                     _Metric(label: 'Jugados', value: '${stats.totalPlayed}'),
-                    _Metric(label: 'Ganados', value: '${stats.wins}'),
-                    _Metric(label: 'Empatados', value: '${stats.draws}'),
-                    _Metric(label: 'Perdidos', value: '${stats.losses}'),
+                    _Metric(
+                      label: 'Ganados',
+                      value: '${stats.wins}',
+                      color: colors.win,
+                    ),
+                    _Metric(
+                      label: 'Empatados',
+                      value: '${stats.draws}',
+                      color: colors.draw,
+                    ),
+                    _Metric(
+                      label: 'Perdidos',
+                      value: '${stats.losses}',
+                      color: colors.lose,
+                    ),
                   ],
                 ),
                 if (stats.totalPlayed > 0) ...[
@@ -63,10 +77,11 @@ class PlayerStatsCard extends ConsumerWidget {
 }
 
 class _Metric extends StatelessWidget {
-  const _Metric({required this.label, required this.value});
+  const _Metric({required this.label, required this.value, this.color});
 
   final String label;
   final String value;
+  final Color? color;
 
   @override
   Widget build(BuildContext context) {
@@ -74,7 +89,14 @@ class _Metric extends StatelessWidget {
     return Expanded(
       child: Column(
         children: [
-          Text(value, style: theme.textTheme.titleLarge),
+          Text(
+            value,
+            // Tabular figures: los números "scoreboard" alinean parejo.
+            style: theme.textTheme.titleLarge?.copyWith(
+              color: color,
+              fontFeatures: const [FontFeature.tabularFigures()],
+            ),
+          ),
           Text(label, style: theme.textTheme.labelSmall),
         ],
       ),
@@ -87,6 +109,9 @@ class _StatsSkeleton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => const Card(
-        child: SizedBox(height: 110, child: Center(child: CircularProgressIndicator(strokeWidth: 2))),
-      );
+    child: SizedBox(
+      height: 110,
+      child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
+    ),
+  );
 }

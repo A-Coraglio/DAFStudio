@@ -3,23 +3,29 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/format/dates.dart';
 import '../../../core/http/api_client.dart';
 import '../../../core/storage/mode_prefs.dart';
 import '../../../core/widgets/primary_submit_button.dart';
-import '../../courts/widgets/court_picker_field.dart';
+import '../../courts/data/court.dart';
+import '../../courts/screens/court_picker_screen.dart';
+import '../../profile/providers/profile_providers.dart';
 import '../../sports/data/sport_model.dart';
 import '../../sports/providers/sports_providers.dart';
-import '../../sports/widgets/sport_dropdown_field.dart';
+import '../../sports/widgets/sport_appbar_selector.dart';
 import '../data/create_game_request.dart';
+import '../data/sport_player_options.dart';
 import '../providers/games_providers.dart';
+import '../widgets/court_picker_tile.dart';
 import '../widgets/game_datetime_picker.dart';
-import '../widgets/game_level_picker.dart';
 import '../widgets/game_mode_picker.dart';
-import '../../../core/format/dates.dart';
-import '../widgets/game_name_field.dart';
-import '../widgets/max_players_field.dart';
+import '../widgets/level_anchor_hint.dart';
+import '../widgets/player_count_chips.dart';
 import '../widgets/quick_date_chips.dart';
 
+/// Crear partido, sin fricción: el deporte se elige arriba a la derecha
+/// (ícono), el nombre se autogenera, el nivel sale del ranking del creador
+/// y la cantidad de jugadores ofrece solo los valores válidos del deporte.
 class CreateGameScreen extends ConsumerStatefulWidget {
   const CreateGameScreen({super.key});
 
@@ -29,96 +35,94 @@ class CreateGameScreen extends ConsumerStatefulWidget {
 
 class _CreateGameScreenState extends ConsumerState<CreateGameScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _scrollCtrl = ScrollController();
-  final _nameCtrl = TextEditingController();
-  final _maxPlayersCtrl = TextEditingController(text: '4');
 
   int? _sportId;
-  int? _courtId;
+  int _maxPlayers = 4;
   String _mode = 'casual';
-  String? _level;
   DateTime? _scheduledAt;
+  Court? _court;
   bool _loading = false;
 
   @override
   void initState() {
     super.initState();
-    // Default the sport to the home's active sport when set.
     _sportId = ref.read(activeSportIdProvider);
-    // Restore the last mode the user picked when creating a game.
+    // El default de jugadores depende del deporte inicial.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final s = _sport();
+      if (s != null && mounted) {
+        setState(() => _maxPlayers = playerCountOptions(s).standard);
+      }
+    });
     ModePrefs.readLastCreateMode().then((m) {
       if (!mounted || m == null) return;
       setState(() => _mode = m);
     });
   }
 
-  @override
-  void dispose() {
-    _scrollCtrl.dispose();
-    _nameCtrl.dispose();
-    _maxPlayersCtrl.dispose();
-    super.dispose();
-  }
-
-  /// "Fútbol 5 — vie 21 18:00": used as the game name when the user leaves
-  /// the field empty. Null until a sport is picked.
-  String? _suggestedName() {
+  Sport? _sport() {
     final sports = ref.read(sportsListProvider).valueOrNull ?? const <Sport>[];
     for (final s in sports) {
-      if (s.id == _sportId) {
-        return _scheduledAt == null
-            ? 'Partido de ${s.name}'
-            : '${s.name} — ${formatSchedule(_scheduledAt)}';
-      }
+      if (s.id == _sportId) return s;
     }
     return null;
   }
 
-  void _onSportChanged(int? id) {
+  /// "Fútbol 5 — vie 21 18:00" — el nombre ya no se pide: se autogenera.
+  String _generatedName() {
+    final s = _sport();
+    if (s == null) return 'Partido';
+    return _scheduledAt == null
+        ? 'Partido de ${s.name}'
+        : '${s.name} — ${formatSchedule(_scheduledAt)}';
+  }
+
+  void _onSportChanged(Sport sport) {
     setState(() {
-      _sportId = id;
-      _courtId = null; // reset; courts are sport-specific
-      _syncDefaultMaxPlayers(id);
+      _sportId = sport.id;
+      _court = null; // reset; las canchas son por deporte
+      _maxPlayers = playerCountOptions(sport).standard;
     });
   }
 
-  void _syncDefaultMaxPlayers(int? sportId) {
-    if (sportId == null) return;
-    final sports = ref.read(sportsListProvider).valueOrNull ?? const <Sport>[];
-    for (final s in sports) {
-      if (s.id == sportId) {
-        _maxPlayersCtrl.text = (s.maxPlayersPerTeam * 2).toString();
-        return;
-      }
+  Future<void> _pickCourt() async {
+    final selection = await CourtPickerScreen.push(
+      context,
+      sportId: _sportId,
+      sportName: _sport()?.name,
+      day: _scheduledAt ?? DateTime.now(),
+    );
+    if (selection != null && mounted) {
+      setState(() => _court = selection.court);
     }
   }
 
   Future<void> _submit() async {
     FocusScope.of(context).unfocus();
-    if (!_formKey.currentState!.validate()) {
-      // The offending fields live at the top of the form.
-      _scrollCtrl.animateTo(
-        0,
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeOut,
+    if (!_formKey.currentState!.validate()) return;
+    if (_sportId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Elegí un deporte (arriba a la derecha).'),
+        ),
       );
       return;
     }
-    if (_sportId == null) return;
-    final name = _nameCtrl.text.trim().isEmpty
-        ? _suggestedName()!
-        : _nameCtrl.text.trim();
 
     setState(() => _loading = true);
     try {
-      final game = await ref.read(gamesRepositoryProvider).create(
+      final game = await ref
+          .read(gamesRepositoryProvider)
+          .create(
             CreateGameRequest(
-              name: name,
+              name: _generatedName(),
               sportId: _sportId!,
-              maxPlayers: int.parse(_maxPlayersCtrl.text.trim()),
+              maxPlayers: _maxPlayers,
               mode: _mode,
-              courtId: _courtId,
-              level: _level,
+              courtId: _court?.id,
+              // El nivel ya no se elige: el ancla es el ranking del creador,
+              // que el backend expone como organizer_ranking_points.
+              level: null,
               scheduledAt: _scheduledAt,
             ),
           );
@@ -128,9 +132,9 @@ class _CreateGameScreenState extends ConsumerState<CreateGameScreen> {
       context.go('/games/${game.id}');
     } on DioException catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(dioErrorMessage(e))),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(dioErrorMessage(e))));
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -138,42 +142,40 @@ class _CreateGameScreenState extends ConsumerState<CreateGameScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final sport = _sport();
+    final counts = sport == null
+        ? (options: const [2, 4], standard: 4)
+        : playerCountOptions(sport);
+    final myPoints =
+        ref.watch(myProfileProvider).valueOrNull?.rankingPoints ?? 0;
     return Scaffold(
-      appBar: AppBar(title: const Text('Crear partido')),
+      appBar: AppBar(
+        title: const Text('Crear partido'),
+        actions: [
+          SportAppBarSelector(value: _sportId, onChanged: _onSportChanged),
+        ],
+      ),
       body: Form(
         key: _formKey,
         child: ListView(
-          controller: _scrollCtrl,
           padding: const EdgeInsets.all(16),
           children: [
-            GameNameField(controller: _nameCtrl, suggestion: _suggestedName()),
-            const SizedBox(height: 12),
-            SportDropdownField(
-              value: _sportId,
-              onChanged: _onSportChanged,
-              label: 'Deporte',
-            ),
-            const SizedBox(height: 12),
             Text('Modo', style: Theme.of(context).textTheme.labelLarge),
             const SizedBox(height: 8),
             GameModePicker(
               value: _mode,
               onChanged: (m) => setState(() => _mode = m),
             ),
-            const SizedBox(height: 12),
-            MaxPlayersField(controller: _maxPlayersCtrl),
-            const SizedBox(height: 12),
-            GameLevelPicker(
-              value: _level,
-              onChanged: (v) => setState(() => _level = v),
+            const SizedBox(height: 16),
+            PlayerCountChips(
+              key: ValueKey(_sportId),
+              options: counts.options,
+              value: _maxPlayers,
+              onChanged: (n) => setState(() => _maxPlayers = n),
             ),
-            const SizedBox(height: 12),
-            CourtPickerField(
-              sportId: _sportId,
-              value: _courtId,
-              onChanged: (v) => setState(() => _courtId = v),
-            ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 16),
+            Text('Cuándo', style: Theme.of(context).textTheme.labelLarge),
+            const SizedBox(height: 8),
             SizedBox(
               height: 40,
               child: QuickDateChips(
@@ -186,6 +188,12 @@ class _CreateGameScreenState extends ConsumerState<CreateGameScreen> {
               value: _scheduledAt,
               onChanged: (v) => setState(() => _scheduledAt = v),
             ),
+            const SizedBox(height: 16),
+            Text('Dónde', style: Theme.of(context).textTheme.labelLarge),
+            const SizedBox(height: 8),
+            CourtPickerTile(court: _court, onTap: _pickCourt),
+            const SizedBox(height: 16),
+            LevelAnchorHint(points: myPoints),
             const SizedBox(height: 24),
             PrimarySubmitButton(
               label: 'Crear partido',

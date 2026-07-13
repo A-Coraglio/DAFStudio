@@ -18,9 +18,9 @@ const defaultOriginLon = -58.3816;
 /// screen leaves the tree.
 final matchmakingStatusStreamProvider =
     StreamProvider.autoDispose<MatchmakingStatus>((ref) async* {
-  final repo = ref.read(matchmakingRepositoryProvider);
-  while (true) {
-    yield await repo.status();
-    await Future.delayed(const Duration(seconds: 3));
-  }
-});
+      final repo = ref.read(matchmakingRepositoryProvider);
+      while (true) {
+        yield await repo.status();
+        await Future.delayed(const Duration(seconds: 3));
+      }
+    });

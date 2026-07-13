@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/theme/app_colors.dart';
+
 /// Compact grid of the four main actions. Replaces the old full-width CTA
 /// cards — Chats lives in the bottom nav, so it's not repeated here.
+/// "Jugar ya" flashes the energy accent: same treatment as the active tab
+/// and the competitive badge.
 class QuickActionsRow extends StatelessWidget {
   const QuickActionsRow({super.key});
 
@@ -13,6 +17,7 @@ class QuickActionsRow extends StatelessWidget {
         _QuickAction(
           icon: Icons.bolt,
           label: 'Jugar ya',
+          emphasized: true,
           onTap: () => context.go('/matchmaking'),
         ),
         _QuickAction(
@@ -40,15 +45,20 @@ class _QuickAction extends StatelessWidget {
     required this.icon,
     required this.label,
     required this.onTap,
+    this.emphasized = false,
   });
 
   final IconData icon;
   final String label;
   final VoidCallback onTap;
+  final bool emphasized;
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final colors = Theme.of(context).extension<AppColors>()!;
+    final bg = emphasized ? colors.accent : scheme.secondaryContainer;
+    final fg = emphasized ? colors.onAccent : scheme.onSecondaryContainer;
     return Expanded(
       child: InkWell(
         onTap: onTap,
@@ -57,10 +67,14 @@ class _QuickAction extends StatelessWidget {
           padding: const EdgeInsets.symmetric(vertical: 8),
           child: Column(
             children: [
-              CircleAvatar(
-                radius: 24,
-                backgroundColor: scheme.secondaryContainer,
-                child: Icon(icon, color: scheme.onSecondaryContainer),
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: bg,
+                  borderRadius: BorderRadius.circular(AppRadius.tile),
+                ),
+                child: Icon(icon, color: fg),
               ),
               const SizedBox(height: 6),
               Text(label, style: Theme.of(context).textTheme.labelMedium),

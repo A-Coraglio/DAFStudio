@@ -37,11 +37,15 @@ class _ChatPanelState extends ConsumerState<ChatPanel> {
     final topId = messages.first.id; // stream yields newest-first
     if (topId == _lastMarkedId) return;
     _lastMarkedId = topId;
-    ref.read(chatsRepositoryProvider).markRead(widget.chatId).then((_) {
-      if (!mounted) return;
-      ref.invalidate(myChatsProvider);
-      ref.invalidate(unreadTotalProvider);
-    }).catchError((_) {});
+    ref
+        .read(chatsRepositoryProvider)
+        .markRead(widget.chatId)
+        .then((_) {
+          if (!mounted) return;
+          ref.invalidate(myChatsProvider);
+          ref.invalidate(unreadTotalProvider);
+        })
+        .catchError((_) {});
   }
 
   void _scrollToBottom() {
@@ -65,11 +69,14 @@ class _ChatPanelState extends ConsumerState<ChatPanel> {
 
     final items = <Widget>[];
     for (var i = 0; i < messages.length; i++) {
-      items.add(MessageBubble(
-        message: messages[i],
-        mine: messages[i].userId == myUserId,
-      ));
-      final lastOfDay = i == messages.length - 1 ||
+      items.add(
+        MessageBubble(
+          message: messages[i],
+          mine: messages[i].userId == myUserId,
+        ),
+      );
+      final lastOfDay =
+          i == messages.length - 1 ||
           !sameDay(messages[i].createdAt, messages[i + 1].createdAt);
       if (lastOfDay) {
         items.add(ChatDaySeparator(day: messages[i].createdAt));
@@ -80,12 +87,10 @@ class _ChatPanelState extends ConsumerState<ChatPanel> {
 
   @override
   Widget build(BuildContext context) {
-    final messagesAsync =
-        ref.watch(chatMessagesStreamProvider(widget.chatId));
-    final myUserId = ref.watch(myProfileProvider).maybeWhen(
-          data: (p) => p.userId,
-          orElse: () => null,
-        );
+    final messagesAsync = ref.watch(chatMessagesStreamProvider(widget.chatId));
+    final myUserId = ref
+        .watch(myProfileProvider)
+        .maybeWhen(data: (p) => p.userId, orElse: () => null);
     messagesAsync.whenData(_maybeMarkRead);
 
     return Column(

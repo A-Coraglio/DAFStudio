@@ -23,12 +23,12 @@ class CreateGameRequest {
   });
 
   Map<String, dynamic> toJson() => {
-        'name': name,
-        'sport_id': sportId,
-        'max_players': maxPlayers,
-        'mode': mode,
-        if (courtId != null) 'court_id': courtId,
-        if (level != null) 'level': level,
-        if (scheduledAt != null) 'scheduled_at': scheduledAt!.toIso8601String(),
-      };
+    'name': name,
+    'sport_id': sportId,
+    'max_players': maxPlayers,
+    'mode': mode,
+    if (courtId != null) 'court_id': courtId,
+    if (level != null) 'level': level,
+    if (scheduledAt != null) 'scheduled_at': scheduledAt!.toIso8601String(),
+  };
 }

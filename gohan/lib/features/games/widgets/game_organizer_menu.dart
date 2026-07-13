@@ -32,14 +32,14 @@ class GameOrganizerMenu extends ConsumerWidget {
       ref.invalidate(gameByIdProvider(game.id));
       ref.invalidate(feedGamesProvider);
       if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Partido cancelado')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Partido cancelado')));
     } on DioException catch (e) {
       if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(dioErrorMessage(e))),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(dioErrorMessage(e))));
     }
   }
 

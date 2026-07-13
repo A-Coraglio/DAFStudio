@@ -32,10 +32,12 @@ class _PlayersDiscoveryScreenState
   void _onSearchChanged(String text) {
     _debounce?.cancel();
     _debounce = Timer(const Duration(milliseconds: 300), () {
-      setState(() => _query = _query.copyWith(
-            query: text.trim().isEmpty ? null : text.trim(),
-            clearQuery: text.trim().isEmpty,
-          ));
+      setState(
+        () => _query = _query.copyWith(
+          query: text.trim().isEmpty ? null : text.trim(),
+          clearQuery: text.trim().isEmpty,
+        ),
+      );
     });
   }
 

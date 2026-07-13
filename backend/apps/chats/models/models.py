@@ -4,7 +4,10 @@ from asyncpg.pool import PoolConnectionProxy
 
 from apps.chats.models import GeneralModel
 from apps.chats.models.ddo import ChatDDO, ChatMessageDDO
-from apps.chats.exceptions.exceptions import ChatNotFoundException
+from apps.chats.exceptions.exceptions import (
+    ChatNotFoundException,
+    MessageNotFoundException,
+)
 from apps.common.exceptions.exceptions import DatabaseException
 
 
@@ -30,6 +33,7 @@ def _row_to_message(row) -> ChatMessageDDO:
         user_id=row["user_id"],
         content=row["content"],
         created_at=row["created_at"],
+        updated_at=row.get("updated_at"),
         author_name=row.get("author_name"),
         author_player_id=row.get("author_player_id"),
     )
@@ -203,6 +207,60 @@ class ChatMessageModel(GeneralModel):
             try:
                 row = await connection.fetchrow(query, chat_id, user_id, content)
                 return _row_to_message(row)
+            except Exception as e:
+                raise DatabaseException(message=f"Database error: {e}")
+
+    async def get_message(self, message_id: int) -> ChatMessageDDO:
+        async with self.get_db_connection() as connection:
+            connection: PoolConnectionProxy = cast(PoolConnectionProxy, connection)
+            query = f"SELECT * FROM {self.__table_name__} WHERE id = $1"
+            try:
+                row = await connection.fetchrow(query, message_id)
+                if row is None:
+                    raise MessageNotFoundException()
+                return _row_to_message(row)
+            except MessageNotFoundException:
+                raise
+            except Exception as e:
+                raise DatabaseException(message=f"Database error: {e}")
+
+    async def update_message(
+        self, message_id: int, content: str
+    ) -> ChatMessageDDO:
+        async with self.get_db_connection() as connection:
+            connection: PoolConnectionProxy = cast(PoolConnectionProxy, connection)
+            query = (
+                f"UPDATE {self.__table_name__} "
+                "SET content = $2, updated_at = NOW() "
+                "WHERE id = $1 RETURNING *"
+            )
+            try:
+                row = await connection.fetchrow(query, message_id, content)
+                if row is None:
+                    raise MessageNotFoundException()
+                return _row_to_message(row)
+            except MessageNotFoundException:
+                raise
+            except Exception as e:
+                raise DatabaseException(message=f"Database error: {e}")
+
+    async def delete_message(self, message_id: int, chat_id: int) -> None:
+        """Hard delete. chat_read_state cursors pointing at the deleted row
+        are re-pointed to the previous message first (same transaction) so
+        the FK holds and older messages stay counted as read."""
+        async with self.get_db_connection() as connection:
+            connection: PoolConnectionProxy = cast(PoolConnectionProxy, connection)
+            repoint = (
+                "UPDATE chat_read_state SET last_read_message_id = ( "
+                f"    SELECT MAX(id) FROM {self.__table_name__} "
+                "     WHERE chat_id = $2 AND id < $1 "
+                ") WHERE last_read_message_id = $1"
+            )
+            delete = f"DELETE FROM {self.__table_name__} WHERE id = $1"
+            try:
+                async with connection.transaction():
+                    await connection.execute(repoint, message_id, chat_id)
+                    await connection.execute(delete, message_id)
             except Exception as e:
                 raise DatabaseException(message=f"Database error: {e}")
 

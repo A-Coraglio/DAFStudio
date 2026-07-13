@@ -35,11 +35,9 @@ class _ReportResultSheetState extends ConsumerState<ReportResultSheet> {
   Future<void> _submit() async {
     setState(() => _loading = true);
     try {
-      await ref.read(gamesRepositoryProvider).reportResult(
-            widget.gameId,
-            home: _home,
-            away: _away,
-          );
+      await ref
+          .read(gamesRepositoryProvider)
+          .reportResult(widget.gameId, home: _home, away: _away);
       ref.invalidate(gameByIdProvider(widget.gameId));
       ref.invalidate(myProfileProvider); // ranking may have changed
       ref.invalidate(myStatsProvider); // W/L/D may have changed
@@ -53,9 +51,9 @@ class _ReportResultSheetState extends ConsumerState<ReportResultSheet> {
       );
     } on DioException catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(dioErrorMessage(e))),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(dioErrorMessage(e))));
     } finally {
       if (mounted) setState(() => _loading = false);
     }

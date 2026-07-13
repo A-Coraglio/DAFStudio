@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/http/api_client.dart';
+import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/confirm_dialog.dart';
 import '../../games/data/game.dart';
 import '../../games/widgets/game_info_card.dart';
@@ -14,11 +15,7 @@ import 'acceptance_countdown.dart';
 /// `proposed`. After the user hits accept, the ticket becomes `accepted`
 /// and we keep showing this panel (but greyed) until the group is complete.
 class MatchFoundPanel extends ConsumerStatefulWidget {
-  const MatchFoundPanel({
-    super.key,
-    required this.ticket,
-    required this.game,
-  });
+  const MatchFoundPanel({super.key, required this.ticket, required this.game});
 
   final MatchmakingTicket ticket;
   final Game? game;
@@ -37,9 +34,9 @@ class _MatchFoundPanelState extends ConsumerState<MatchFoundPanel> {
       ref.invalidate(matchmakingStatusStreamProvider);
     } on DioException catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(dioErrorMessage(e))),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(dioErrorMessage(e))));
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -53,9 +50,28 @@ class _MatchFoundPanelState extends ConsumerState<MatchFoundPanel> {
     return ListView(
       padding: const EdgeInsets.all(20),
       children: [
-        Text(
-          '¡Partido encontrado!',
-          style: Theme.of(context).textTheme.headlineSmall,
+        // Momento-marca número uno: bolt dorado + headline, que se celebre.
+        Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: Theme.of(context).extension<AppColors>()!.accent,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.bolt,
+                color: Theme.of(context).extension<AppColors>()!.onAccent,
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                '¡Partido encontrado!',
+                style: Theme.of(context).textTheme.headlineSmall,
+              ),
+            ),
+          ],
         ),
         const SizedBox(height: 8),
         Center(
@@ -89,9 +105,8 @@ class _MatchFoundPanelState extends ConsumerState<MatchFoundPanel> {
               : () async {
                   final ok = await showConfirmDialog(
                     context,
-                    title: 'Rechazar propuesta',
-                    message:
-                        'Rechazás este partido y salís de la cola de búsqueda.',
+                    title: '¿Rechazar este partido?',
+                    message: 'Rechazás este partido y salís de la búsqueda.',
                     confirmLabel: 'Rechazar',
                     destructive: true,
                   );

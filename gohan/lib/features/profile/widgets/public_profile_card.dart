@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/format/labels.dart';
+import '../../../core/theme/app_colors.dart';
 import '../data/player_profile.dart';
 import 'profile_avatar.dart';
 
@@ -27,29 +28,48 @@ class PublicProfileCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final accent = Theme.of(context).extension<AppColors>()!.accent;
+    final gradient = brandGradient(Theme.of(context).brightness);
     return Card(
       child: Column(
         children: [
-          Padding(
+          // Mismo tratamiento de "carnet" que el perfil propio.
+          Container(
+            width: double.infinity,
             padding: const EdgeInsets.symmetric(vertical: 20),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: gradient,
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+            ),
             child: Column(
               children: [
-                ProfileAvatar(
-                  avatarUrl: profile.avatarUrl,
-                  initials: _initials,
-                  radius: 44,
+                Container(
+                  padding: const EdgeInsets.all(3),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(color: accent, width: 3),
+                  ),
+                  child: ProfileAvatar(
+                    avatarUrl: profile.avatarUrl,
+                    initials: _initials,
+                    radius: 44,
+                  ),
                 ),
                 const SizedBox(height: 12),
                 Text(
                   profile.displayName,
-                  style: Theme.of(context).textTheme.titleLarge,
+                  style: Theme.of(
+                    context,
+                  ).textTheme.headlineSmall?.copyWith(color: Colors.white),
                 ),
               ],
             ),
           ),
-          const Divider(height: 1),
           ListTile(
-            leading: const Icon(Icons.military_tech),
+            leading: const Icon(Icons.emoji_events),
             title: const Text('Ranking'),
             trailing: Text('${profile.rankingPoints} puntos'),
           ),

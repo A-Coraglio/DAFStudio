@@ -31,6 +31,7 @@ async def list_games(
     near_lat: float | None = Query(default=None),
     near_lon: float | None = Query(default=None),
     radius_km: float | None = Query(default=None),
+    court_id: int | None = Query(default=None, description="Filter by court"),
     current_user_id: int = Depends(get_current_user_id),
 ):
     return await AppService().games_lister(
@@ -45,6 +46,7 @@ async def list_games(
         near_lon=near_lon,
         radius_km=radius_km,
         for_user_id=current_user_id,
+        court_id=court_id,
     )
 
 

@@ -32,6 +32,10 @@ def _row_to_ddo(row) -> GameDDO:
         court_lat=row.get("court_lat"),
         court_lon=row.get("court_lon"),
         is_joined=row.get("is_joined"),
+        # Ranking of the organizer's player profile — the implicit skill
+        # anchor of the game (level is derived, not chosen). JOINed queries
+        # only; INSERT/UPDATE ... RETURNING rows leave it None.
+        organizer_ranking_points=row.get("organizer_ranking_points"),
     )
 
 
@@ -63,6 +67,7 @@ class GamesModel(GeneralModel):
         near_lon: float | None = None,
         radius_km: float | None = None,
         for_user_id: int | None = None,
+        court_id: int | None = None,
     ) -> list[GameDDO]:
         """Lists games with optional filters. Geo filtering joins against the
         court table and excludes games without a resolved court."""
@@ -94,6 +99,9 @@ class GamesModel(GeneralModel):
             if scheduled_before is not None:
                 where_clauses.append(f"g.scheduled_at <= ${idx}")
                 params.append(scheduled_before); idx += 1
+            if court_id is not None:
+                where_clauses.append(f"g.court_id = ${idx}")
+                params.append(court_id); idx += 1
 
             order_clause = "ORDER BY COALESCE(g.scheduled_at, g.created_at)"
             select_distance = ""
@@ -130,11 +138,13 @@ class GamesModel(GeneralModel):
 
             where_sql = f"WHERE {' AND '.join(where_clauses)}" if where_clauses else ""
             query = (
-                f"SELECT g.*, s.name AS sport_name, c.name AS court_name"
+                f"SELECT g.*, s.name AS sport_name, c.name AS court_name, "
+                f"pl.ranking_points AS organizer_ranking_points"
                 f"{select_distance}{select_joined} "
                 f"FROM {self.__table_name__} g "
                 f"LEFT JOIN court c ON c.id = g.court_id "
                 f"LEFT JOIN sports s ON s.id = g.sport_id "
+                f"LEFT JOIN player pl ON pl.user_id = g.organizer_id "
                 f"{where_sql} {order_clause}"
             )
             try:
@@ -148,10 +158,12 @@ class GamesModel(GeneralModel):
             connection: PoolConnectionProxy = cast(PoolConnectionProxy, connection)
             query = (
                 f"SELECT g.*, s.name AS sport_name, c.name AS court_name, "
-                f"c.lat AS court_lat, c.lon AS court_lon "
+                f"c.lat AS court_lat, c.lon AS court_lon, "
+                f"pl.ranking_points AS organizer_ranking_points "
                 f"FROM {self.__table_name__} g "
                 f"LEFT JOIN court c ON c.id = g.court_id "
                 f"LEFT JOIN sports s ON s.id = g.sport_id "
+                f"LEFT JOIN player pl ON pl.user_id = g.organizer_id "
                 f"WHERE g.id = $1"
             )
             try:

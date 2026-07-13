@@ -25,17 +25,18 @@ class WaitingPanel extends ConsumerWidget {
   final int? estimatedWaitSeconds;
   final int? queueDepth;
 
-  String _sportName(WidgetRef ref) =>
-      ref.watch(sportsListProvider).maybeWhen(
-            data: (sports) {
-              try {
-                return sports.firstWhere((s) => s.id == ticket.sportId).name;
-              } on StateError {
-                return 'Deporte #${ticket.sportId}';
-              }
-            },
-            orElse: () => '...',
-          );
+  String _sportName(WidgetRef ref) => ref
+      .watch(sportsListProvider)
+      .maybeWhen(
+        data: (sports) {
+          try {
+            return sports.firstWhere((s) => s.id == ticket.sportId).name;
+          } on StateError {
+            return 'Deporte #${ticket.sportId}';
+          }
+        },
+        orElse: () => '...',
+      );
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -45,8 +46,10 @@ class WaitingPanel extends ConsumerWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           const SizedBox(height: 24),
-          Text('Buscando partido...',
-              style: Theme.of(context).textTheme.titleMedium),
+          Text(
+            'Buscando partido...',
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
           const SizedBox(height: 8),
           RadarPulse(child: QueueTimer(since: ticket.createdAt)),
           EtaHint(
@@ -89,9 +92,9 @@ class _CancelButtonState extends ConsumerState<_CancelButton> {
       ref.invalidate(matchmakingStatusStreamProvider);
     } on DioException catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(dioErrorMessage(e))),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(dioErrorMessage(e))));
     } finally {
       if (mounted) setState(() => _loading = false);
     }

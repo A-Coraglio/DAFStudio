@@ -17,8 +17,10 @@ final myChatsProvider = FutureProvider.autoDispose<List<Chat>>((ref) async {
 
 /// The chat metadata for a specific game — the panel auto-creates it on
 /// first access via `ensureForGame`.
-final chatForGameProvider =
-    FutureProvider.autoDispose.family<Chat, int>((ref, gameId) async {
+final chatForGameProvider = FutureProvider.autoDispose.family<Chat, int>((
+  ref,
+  gameId,
+) async {
   return ref.read(chatsRepositoryProvider).ensureForGame(gameId);
 });
 
@@ -26,12 +28,12 @@ final chatForGameProvider =
 /// watching it. Cheap because the query is id-indexed and capped to 50.
 final chatMessagesStreamProvider = StreamProvider.autoDispose
     .family<List<ChatMessage>, int>((ref, chatId) async* {
-  final repo = ref.read(chatsRepositoryProvider);
-  while (true) {
-    yield await repo.listMessages(chatId);
-    await Future.delayed(const Duration(seconds: 3));
-  }
-});
+      final repo = ref.read(chatsRepositoryProvider);
+      while (true) {
+        yield await repo.listMessages(chatId);
+        await Future.delayed(const Duration(seconds: 3));
+      }
+    });
 
 /// Total unread messages, polled every 15s. Backs the Chats tab badge in the
 /// bottom navigation; the always-mounted nav shell keeps it alive.

@@ -3,16 +3,16 @@
 // values never leak into the UI.
 
 String levelLabel(String? level) => switch (level) {
-      'beginner' => 'Principiante',
-      'intermediate' => 'Intermedio',
-      'advanced' => 'Avanzado',
-      null => 'Sin definir',
-      final other => other,
-    };
+  'beginner' => 'Principiante',
+  'intermediate' => 'Intermedio',
+  'advanced' => 'Avanzado',
+  null => 'Sin definir',
+  final other => other,
+};
 
 String modeLabel(String mode) => switch (mode) {
-      'casual' => 'Casual',
-      'competitive' => 'Competitivo',
-      'matchmaking' => 'Matchmaking',
-      final other => other,
-    };
+  'casual' => 'Casual',
+  'competitive' => 'Competitivo',
+  'matchmaking' => 'Matchmaking',
+  final other => other,
+};

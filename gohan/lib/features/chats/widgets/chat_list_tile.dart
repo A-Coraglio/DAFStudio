@@ -52,8 +52,8 @@ class ChatListTile extends StatelessWidget {
                   Text(
                     formatListTime(at),
                     style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                          color: hasUnread ? scheme.primary : null,
-                        ),
+                      color: hasUnread ? scheme.primary : null,
+                    ),
                   ),
                 if (hasUnread) ...[
                   const SizedBox(height: 4),

@@ -15,9 +15,11 @@ String formatSchedule(DateTime? at) {
   if (at == null) return 'Sin fecha';
   final d = at.toLocal();
   final now = DateTime.now();
-  final diff = DateTime(d.year, d.month, d.day)
-      .difference(DateTime(now.year, now.month, now.day))
-      .inDays;
+  final diff = DateTime(
+    d.year,
+    d.month,
+    d.day,
+  ).difference(DateTime(now.year, now.month, now.day)).inDays;
   if (diff == 0) return 'Hoy ${_hhmm(d)}';
   if (diff == 1) return 'Mañana ${_hhmm(d)}';
   if (diff == -1) return 'Ayer ${_hhmm(d)}';
@@ -57,9 +59,11 @@ String formatFullDate(DateTime at) {
 String formatDayLabel(DateTime at) {
   final d = at.toLocal();
   final now = DateTime.now();
-  final diff = DateTime(now.year, now.month, now.day)
-      .difference(DateTime(d.year, d.month, d.day))
-      .inDays;
+  final diff = DateTime(
+    now.year,
+    now.month,
+    now.day,
+  ).difference(DateTime(d.year, d.month, d.day)).inDays;
   if (diff == 0) return 'Hoy';
   if (diff == 1) return 'Ayer';
   return '${d.day}/${d.month}/${d.year}';
@@ -74,5 +78,7 @@ String? formatCountdown(DateTime? at) {
   if (diff.inMinutes < 1) return 'Empieza ahora';
   if (diff.inMinutes < 60) return 'Empieza en ${diff.inMinutes} min';
   if (diff.inHours < 24) return 'Empieza en ${diff.inHours} h';
-  return diff.inDays == 1 ? 'Empieza en 1 día' : 'Empieza en ${diff.inDays} días';
+  return diff.inDays == 1
+      ? 'Empieza en 1 día'
+      : 'Empieza en ${diff.inDays} días';
 }

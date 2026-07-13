@@ -14,7 +14,8 @@ Dio buildApiClient({required Future<void> Function() onUnauthorized}) {
       headers: {'Content-Type': 'application/json'},
       // Anything non-2xx raises a DioException; the caller decides what to
       // do based on err.response.statusCode.
-      validateStatus: (status) => status != null && status >= 200 && status < 300,
+      validateStatus: (status) =>
+          status != null && status >= 200 && status < 300,
     ),
   );
   dio.interceptors.add(AuthInterceptor(onUnauthorized: onUnauthorized));

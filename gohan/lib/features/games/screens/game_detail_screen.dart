@@ -54,10 +54,7 @@ class GameDetailScreen extends ConsumerWidget {
             children: [
               GameInfoCard(game: game),
               const SizedBox(height: 16),
-              Text(
-                'Jugadores',
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
+              Text('Jugadores', style: Theme.of(context).textTheme.titleMedium),
               const SizedBox(height: 8),
               GamePlayersList(gameId: gameId),
               const SizedBox(height: 20),

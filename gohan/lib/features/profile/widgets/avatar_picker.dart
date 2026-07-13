@@ -45,16 +45,15 @@ class _AvatarPickerState extends ConsumerState<AvatarPicker> {
     setState(() => _uploading = true);
     try {
       final bytes = await picked.readAsBytes();
-      await ref.read(profileRepositoryProvider).uploadAvatar(
-            bytes: bytes,
-            filename: picked.name,
-          );
+      await ref
+          .read(profileRepositoryProvider)
+          .uploadAvatar(bytes: bytes, filename: picked.name);
       ref.invalidate(myProfileProvider);
     } on DioException catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(dioErrorMessage(e))),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(dioErrorMessage(e))));
     } finally {
       if (mounted) setState(() => _uploading = false);
     }

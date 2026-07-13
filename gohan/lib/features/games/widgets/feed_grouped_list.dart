@@ -53,8 +53,8 @@ class FeedGroupedList extends StatelessWidget {
               child: Text(
                 bucket,
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
               ),
             ),
             for (final game in groups[bucket]!)

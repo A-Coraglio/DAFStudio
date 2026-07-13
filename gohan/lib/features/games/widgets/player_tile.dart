@@ -29,12 +29,12 @@ class PlayerTile extends StatelessWidget {
       ),
       title: Text(
         isMe ? '${player.displayName} (vos)' : player.displayName,
-        style: TextStyle(
-          fontWeight: isMe ? FontWeight.w600 : FontWeight.w400,
-        ),
+        style: TextStyle(fontWeight: isMe ? FontWeight.w600 : FontWeight.w400),
       ),
-      subtitle: Text('${player.rankingPoints} pts'
-          '${player.level != null ? ' · ${levelLabel(player.level)}' : ''}'),
+      subtitle: Text(
+        '${player.rankingPoints} pts'
+        '${player.level != null ? ' · ${levelLabel(player.level)}' : ''}',
+      ),
       trailing: onTap == null ? null : const Icon(Icons.chevron_right),
     );
   }

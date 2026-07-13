@@ -32,10 +32,7 @@ class CourtPickerField extends ConsumerWidget {
         initialValue: value,
         decoration: const InputDecoration(labelText: 'Cancha (opcional)'),
         items: [
-          const DropdownMenuItem<int?>(
-            value: null,
-            child: Text('Sin cancha'),
-          ),
+          const DropdownMenuItem<int?>(value: null, child: Text('Sin cancha')),
           for (final c in courts)
             DropdownMenuItem<int?>(value: c.id, child: Text(_label(c))),
         ],

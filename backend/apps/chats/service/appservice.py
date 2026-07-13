@@ -11,10 +11,13 @@ from apps.chats.service.dto import (
     ChatOutputDTO,
     MessageCreateInputDTO,
     MessageOutputDTO,
+    MessageUpdateInputDTO,
 )
 from apps.chats.exceptions.exceptions import (
     ChatForbiddenException,
     ChatNotFoundException,
+    MessageForbiddenException,
+    MessageNotFoundException,
 )
 from apps.games.models.game_player import GamePlayerModel
 from apps.players.models.models import PlayerModel
@@ -45,6 +48,7 @@ class AppService:
             user_id=msg.user_id,
             content=msg.content,
             created_at=iso_utc(msg.created_at),
+            updated_at=iso_utc(msg.updated_at) if msg.updated_at else None,
             author_name=msg.author_name,
             author_player_id=msg.author_player_id,
         )
@@ -129,6 +133,41 @@ class AppService:
             content=data.content,
         )
         return self._message_to_dto(msg)
+
+    async def _get_own_message(
+        self, chat_id: int, message_id: int, current_user_id: int
+    ):
+        """Shared guard for edit/delete: the chat must be readable, the
+        message must belong to that chat, and the caller must be its author."""
+        chat = await ChatModel().get_by_id(chat_id=chat_id)
+        await self._assert_can_read(chat, current_user_id)
+        msg = await ChatMessageModel().get_message(message_id=message_id)
+        if msg.chat_id != chat_id:
+            raise MessageNotFoundException()
+        if msg.user_id != current_user_id:
+            raise MessageForbiddenException()
+        return msg
+
+    async def update_message(
+        self,
+        chat_id: int,
+        message_id: int,
+        data: MessageUpdateInputDTO,
+        current_user_id: int,
+    ) -> MessageOutputDTO:
+        await self._get_own_message(chat_id, message_id, current_user_id)
+        updated = await ChatMessageModel().update_message(
+            message_id=message_id, content=data.content
+        )
+        return self._message_to_dto(updated)
+
+    async def delete_message(
+        self, chat_id: int, message_id: int, current_user_id: int
+    ) -> None:
+        await self._get_own_message(chat_id, message_id, current_user_id)
+        await ChatMessageModel().delete_message(
+            message_id=message_id, chat_id=chat_id
+        )
 
     # -------- read state --------
 

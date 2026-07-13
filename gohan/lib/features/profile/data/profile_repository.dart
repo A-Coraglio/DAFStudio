@@ -16,8 +16,7 @@ class ProfileRepository {
 
   /// Public profile of any player by id — backs the `/players/:id` screen.
   Future<PlayerProfile> getPlayer(int playerId) async {
-    final res =
-        await _dio.get<Map<String, dynamic>>('/api/players/$playerId/');
+    final res = await _dio.get<Map<String, dynamic>>('/api/players/$playerId/');
     return PlayerProfile.fromJson(res.data!);
   }
 
@@ -44,15 +43,15 @@ class ProfileRepository {
   }
 
   Future<PlayerStats> getMyStats() async {
-    final res =
-        await _dio.get<Map<String, dynamic>>('/api/players/me/stats/');
+    final res = await _dio.get<Map<String, dynamic>>('/api/players/me/stats/');
     return PlayerStats.fromJson(res.data!);
   }
 
   /// Public W/L/D stats of any player — backs the public profile screen.
   Future<PlayerStats> getPlayerStats(int playerId) async {
-    final res = await _dio
-        .get<Map<String, dynamic>>('/api/players/$playerId/stats/');
+    final res = await _dio.get<Map<String, dynamic>>(
+      '/api/players/$playerId/stats/',
+    );
     return PlayerStats.fromJson(res.data!);
   }
 

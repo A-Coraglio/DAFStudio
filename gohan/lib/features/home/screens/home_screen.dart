@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/error_view.dart';
 import '../../games/providers/games_providers.dart';
 import '../../profile/providers/profile_providers.dart';
@@ -31,34 +32,47 @@ class HomeScreen extends ConsumerWidget {
     });
 
     final sportsAsync = ref.watch(sportsListProvider);
+    final scheme = Theme.of(context).colorScheme;
     return Scaffold(
-      body: SafeArea(
-        child: sportsAsync.when(
-          loading: () => const HomeSkeleton(),
-          error: (err, _) => ErrorView(
-            error: err,
-            message: 'No pudimos cargar los deportes.',
-            onRetry: () => ref.invalidate(sportsListProvider),
+      // Degradado sutil de marca arriba que funde al surface — saca a la
+      // home del "fondo plano de template" sin ensuciar el contenido.
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            stops: const [0, .35],
+            colors: [brandTint(Theme.of(context).brightness), scheme.surface],
           ),
-          data: (_) => RefreshIndicator(
-            onRefresh: () async {
-              ref.invalidate(myGamesProvider);
-              ref.invalidate(nextGameProvider);
-              ref.invalidate(feedGamesProvider);
-              await ref.read(nextGameProvider.future);
-            },
-            child: ListView(
-              padding: const EdgeInsets.all(16),
-              children: const [
-                HomeHeader(),
-                SizedBox(height: 20),
-                MatchmakingBanner(),
-                NextGameCard(),
-                SizedBox(height: 20),
-                QuickActionsRow(),
-                SizedBox(height: 20),
-                NearbyGamesCarousel(),
-              ],
+        ),
+        child: SafeArea(
+          child: sportsAsync.when(
+            loading: () => const HomeSkeleton(),
+            error: (err, _) => ErrorView(
+              error: err,
+              message: 'No pudimos cargar los deportes.',
+              onRetry: () => ref.invalidate(sportsListProvider),
+            ),
+            data: (_) => RefreshIndicator(
+              onRefresh: () async {
+                ref.invalidate(myGamesProvider);
+                ref.invalidate(nextGameProvider);
+                ref.invalidate(feedGamesProvider);
+                await ref.read(nextGameProvider.future);
+              },
+              child: ListView(
+                padding: const EdgeInsets.all(16),
+                children: const [
+                  HomeHeader(),
+                  SizedBox(height: 20),
+                  MatchmakingBanner(),
+                  NextGameCard(),
+                  SizedBox(height: 20),
+                  QuickActionsRow(),
+                  SizedBox(height: 20),
+                  NearbyGamesCarousel(),
+                ],
+              ),
             ),
           ),
         ),

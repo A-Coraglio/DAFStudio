@@ -2,11 +2,7 @@ import 'package:flutter/material.dart';
 
 /// "3/10 jugadores" pill. Colors to hint full vs open.
 class GamePlayersPill extends StatelessWidget {
-  const GamePlayersPill({
-    super.key,
-    required this.current,
-    required this.max,
-  });
+  const GamePlayersPill({super.key, required this.current, required this.max});
 
   final int current;
   final int max;
@@ -27,9 +23,9 @@ class GamePlayersPill extends StatelessWidget {
         Text(
           '$current/$max',
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: full ? scheme.error : null,
-                fontWeight: full ? FontWeight.w600 : null,
-              ),
+            color: full ? scheme.error : null,
+            fontWeight: full ? FontWeight.w600 : null,
+          ),
         ),
       ],
     );

@@ -42,3 +42,9 @@ class GameDDO(BaseModel):
         description="Whether the calling user participates in the game — "
         "populated by list/get when a for_user_id is passed.",
     )
+    organizer_ranking_points: int | None = Field(
+        default=None,
+        description="Ranking of the organizer's player profile — the game's "
+        "implicit skill anchor. Populated by list/get JOINs; None on "
+        "INSERT/UPDATE ... RETURNING rows.",
+    )

@@ -38,8 +38,7 @@ class GamePlayersList extends ConsumerWidget {
                 PlayerTile(
                   player: players[i],
                   isMe: players[i].playerId == myPlayerId,
-                  onTap: () =>
-                      context.push('/players/${players[i].playerId}'),
+                  onTap: () => context.push('/players/${players[i].playerId}'),
                 ),
               ],
             ],

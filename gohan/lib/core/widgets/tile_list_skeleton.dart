@@ -8,6 +8,7 @@ class TileListSkeleton extends StatelessWidget {
   const TileListSkeleton({super.key, this.rows = 8, this.shrinkWrap = false});
 
   final int rows;
+
   /// True when embedded inside another scrollable (e.g. a Card in a ListView).
   final bool shrinkWrap;
 

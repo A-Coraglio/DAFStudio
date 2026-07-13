@@ -23,10 +23,12 @@ class GamesRepository {
     double? nearLat,
     double? nearLon,
     double? radiusKm,
+    int? courtId,
   }) async {
     final res = await _dio.get<List<dynamic>>(
       '/api/games/',
       queryParameters: {
+        if (courtId != null) 'court_id': courtId,
         if (sportId != null) 'sport_id': sportId,
         if (mode != null) 'mode': mode,
         if (level != null) 'level': level,
@@ -107,8 +109,11 @@ class GamesRepository {
     return Game.fromJson(res.data!);
   }
 
-  Future<Game> reportResult(int gameId,
-      {required int home, required int away}) async {
+  Future<Game> reportResult(
+    int gameId, {
+    required int home,
+    required int away,
+  }) async {
     final res = await _dio.post<Map<String, dynamic>>(
       '/api/games/$gameId/report-result/',
       data: {'reported_home': home, 'reported_away': away},

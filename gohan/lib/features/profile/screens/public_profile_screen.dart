@@ -18,7 +18,9 @@ class PublicProfileScreen extends ConsumerWidget {
 
   String? _favoriteSportName(WidgetRef ref, int? favoriteSportId) {
     if (favoriteSportId == null) return null;
-    return ref.watch(sportsListProvider).maybeWhen(
+    return ref
+        .watch(sportsListProvider)
+        .maybeWhen(
           data: (sports) {
             try {
               return sports.firstWhere((s) => s.id == favoriteSportId).name;
@@ -54,8 +56,10 @@ class PublicProfileScreen extends ConsumerWidget {
           children: [
             PublicProfileCard(
               profile: profile,
-              favoriteSportName:
-                  _favoriteSportName(ref, profile.favoriteSportId),
+              favoriteSportName: _favoriteSportName(
+                ref,
+                profile.favoriteSportId,
+              ),
             ),
             const SizedBox(height: 16),
             PublicStatsCard(playerId: playerId),

@@ -29,17 +29,15 @@ class _MessageComposerState extends ConsumerState<MessageComposer> {
     if (text.isEmpty || _sending) return;
     setState(() => _sending = true);
     try {
-      await ref
-          .read(chatsRepositoryProvider)
-          .postMessage(widget.chatId, text);
+      await ref.read(chatsRepositoryProvider).postMessage(widget.chatId, text);
       _controller.clear();
       ref.invalidate(chatMessagesStreamProvider(widget.chatId));
       widget.onSent?.call();
     } on DioException catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(dioErrorMessage(e))),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(dioErrorMessage(e))));
     } finally {
       if (mounted) setState(() => _sending = false);
     }

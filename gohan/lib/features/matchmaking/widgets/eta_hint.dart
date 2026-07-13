@@ -20,7 +20,9 @@ class EtaHint extends StatelessWidget {
       }
       return null;
     }
-    if (estimatedWaitSeconds! <= 30) return 'Empareje inminente.';
+    if (estimatedWaitSeconds! <= 30) {
+      return '¡Ya casi! Estamos armando tu partido.';
+    }
     if (estimatedWaitSeconds! <= 180) return 'Espera estimada: ~2 min.';
     return 'Espera estimada: algunos minutos.';
   }
@@ -34,8 +36,8 @@ class EtaHint extends StatelessWidget {
       child: Text(
         copy,
         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-            ),
+          color: Theme.of(context).colorScheme.onSurfaceVariant,
+        ),
       ),
     );
   }

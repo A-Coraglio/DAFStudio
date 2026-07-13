@@ -3,11 +3,7 @@ import 'package:flutter/material.dart';
 /// Slider 1–50 km with a live label above it. Bigger radius = faster match
 /// but further venues — the usual CS-style tradeoff.
 class RadiusSlider extends StatelessWidget {
-  const RadiusSlider({
-    super.key,
-    required this.value,
-    required this.onChanged,
-  });
+  const RadiusSlider({super.key, required this.value, required this.onChanged});
 
   final double value;
   final ValueChanged<double> onChanged;

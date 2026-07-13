@@ -33,10 +33,7 @@ class ProfileAvatar extends StatelessWidget {
     return CircleAvatar(
       radius: radius,
       foregroundImage: url == null ? null : NetworkImage(url),
-      child: Text(
-        initials,
-        style: TextStyle(fontSize: radius * 0.7),
-      ),
+      child: Text(initials, style: TextStyle(fontSize: radius * 0.7)),
     );
   }
 }

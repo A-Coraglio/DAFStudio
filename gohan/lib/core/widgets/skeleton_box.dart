@@ -3,12 +3,7 @@ import 'package:flutter/material.dart';
 /// Pulsing placeholder box used to build skeleton loading states. Animates a
 /// subtle opacity loop — no external shimmer package needed.
 class SkeletonBox extends StatefulWidget {
-  const SkeletonBox({
-    super.key,
-    this.width,
-    this.height = 14,
-    this.radius = 8,
-  });
+  const SkeletonBox({super.key, this.width, this.height = 14, this.radius = 8});
 
   final double? width;
   final double height;

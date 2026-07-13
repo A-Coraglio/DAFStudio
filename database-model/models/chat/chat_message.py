@@ -13,3 +13,5 @@ class ChatMessage(SQLModel, table=True):
         default_factory=lambda: datetime.now(timezone.utc),
         sa_column_kwargs={"server_default": func.now()},
     )
+    # Set on every edit by the author; NULL = never edited.
+    updated_at: datetime | None = Field(default=None)

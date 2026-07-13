@@ -30,16 +30,18 @@ class ProfileScreen extends ConsumerWidget {
 
   String? _favoriteSportName(WidgetRef ref, int? favoriteSportId) {
     if (favoriteSportId == null) return null;
-    return ref.watch(sportsListProvider).maybeWhen(
-      data: (sports) {
-        try {
-          return sports.firstWhere((s) => s.id == favoriteSportId).name;
-        } on StateError {
-          return null;
-        }
-      },
-      orElse: () => null,
-    );
+    return ref
+        .watch(sportsListProvider)
+        .maybeWhen(
+          data: (sports) {
+            try {
+              return sports.firstWhere((s) => s.id == favoriteSportId).name;
+            } on StateError {
+              return null;
+            }
+          },
+          orElse: () => null,
+        );
   }
 
   @override
@@ -68,7 +70,10 @@ class ProfileScreen extends ConsumerWidget {
           children: [
             ProfileCard(
               profile: profile,
-              favoriteSportName: _favoriteSportName(ref, profile.favoriteSportId),
+              favoriteSportName: _favoriteSportName(
+                ref,
+                profile.favoriteSportId,
+              ),
             ),
             const SizedBox(height: 16),
             const PlayerStatsCard(),

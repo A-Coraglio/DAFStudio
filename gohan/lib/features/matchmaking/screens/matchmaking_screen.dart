@@ -23,8 +23,7 @@ class MatchmakingScreen extends ConsumerWidget {
     ref.listen(matchmakingStatusStreamProvider, (prev, next) {
       final p = prev?.valueOrNull?.ticket?.status;
       final n = next.valueOrNull?.ticket?.status;
-      if (p != n &&
-          (n == TicketStatus.proposed || n == TicketStatus.matched)) {
+      if (p != n && (n == TicketStatus.proposed || n == TicketStatus.matched)) {
         HapticFeedback.heavyImpact();
       }
     });
@@ -32,7 +31,7 @@ class MatchmakingScreen extends ConsumerWidget {
     final statusAsync = ref.watch(matchmakingStatusStreamProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Matchmaking')),
+      appBar: AppBar(title: const Text('Jugar ya')),
       body: statusAsync.when(
         loading: () => const MatchmakingSkeleton(),
         error: (err, _) => ErrorView(
@@ -46,15 +45,18 @@ class MatchmakingScreen extends ConsumerWidget {
           }
           return switch (ticket.status) {
             TicketStatus.waiting => WaitingPanel(
-                ticket: ticket,
-                estimatedWaitSeconds: status.estimatedWaitSeconds,
-                queueDepth: status.queueDepth,
-              ),
-            TicketStatus.proposed || TicketStatus.accepted =>
-              MatchFoundPanel(ticket: ticket, game: status.proposedGame),
-            TicketStatus.matched => status.proposedGame == null
-                ? const _PreparingLobby()
-                : LobbyPanel(game: status.proposedGame!),
+              ticket: ticket,
+              estimatedWaitSeconds: status.estimatedWaitSeconds,
+              queueDepth: status.queueDepth,
+            ),
+            TicketStatus.proposed || TicketStatus.accepted => MatchFoundPanel(
+              ticket: ticket,
+              game: status.proposedGame,
+            ),
+            TicketStatus.matched =>
+              status.proposedGame == null
+                  ? const _PreparingLobby()
+                  : LobbyPanel(game: status.proposedGame!),
             _ => const QueueForm(),
           };
         },
@@ -80,7 +82,7 @@ class _PreparingLobby extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           Text(
-            '¡Todos aceptaron! Preparando el lobby...',
+            '¡Todos aceptaron! Armando tu partido...',
             style: Theme.of(context).textTheme.bodyLarge,
           ),
         ],

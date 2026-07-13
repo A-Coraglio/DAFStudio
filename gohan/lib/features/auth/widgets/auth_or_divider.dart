@@ -11,10 +11,7 @@ class AuthOrDivider extends StatelessWidget {
     return const Row(
       children: [
         Expanded(child: Divider()),
-        Padding(
-          padding: EdgeInsets.symmetric(horizontal: 8),
-          child: Text('o'),
-        ),
+        Padding(padding: EdgeInsets.symmetric(horizontal: 8), child: Text('o')),
         Expanded(child: Divider()),
       ],
     );

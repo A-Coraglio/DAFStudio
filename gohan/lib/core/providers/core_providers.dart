@@ -48,8 +48,9 @@ class SessionNotifier extends StateNotifier<SessionState> {
   }
 }
 
-final sessionProvider =
-    StateNotifierProvider<SessionNotifier, SessionState>((ref) {
+final sessionProvider = StateNotifierProvider<SessionNotifier, SessionState>((
+  ref,
+) {
   return SessionNotifier();
 });
 

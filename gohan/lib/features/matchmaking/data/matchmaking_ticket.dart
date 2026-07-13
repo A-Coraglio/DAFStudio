@@ -10,9 +10,9 @@ enum TicketStatus {
   rejected;
 
   static TicketStatus fromString(String v) => values.firstWhere(
-        (s) => s.name == v,
-        orElse: () => TicketStatus.cancelled,
-      );
+    (s) => s.name == v,
+    orElse: () => TicketStatus.cancelled,
+  );
 
   bool get isActive =>
       this == TicketStatus.waiting ||

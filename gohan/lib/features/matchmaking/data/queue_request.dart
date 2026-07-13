@@ -20,12 +20,12 @@ class QueueRequest {
   });
 
   Map<String, dynamic> toJson() => {
-        'sport_id': sportId,
-        'max_radius_km': maxRadiusKm,
-        'origin_lat': originLat,
-        'origin_lon': originLon,
-        'window_start': windowStart.toIso8601String(),
-        'window_end': windowEnd.toIso8601String(),
-        'mode': mode,
-      };
+    'sport_id': sportId,
+    'max_radius_km': maxRadiusKm,
+    'origin_lat': originLat,
+    'origin_lon': originLon,
+    'window_start': windowStart.toIso8601String(),
+    'window_end': windowEnd.toIso8601String(),
+    'mode': mode,
+  };
 }

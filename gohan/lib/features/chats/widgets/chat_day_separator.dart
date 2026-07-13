@@ -22,9 +22,9 @@ class ChatDaySeparator extends StatelessWidget {
         ),
         child: Text(
           formatDayLabel(day),
-          style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                color: scheme.onSurfaceVariant,
-              ),
+          style: Theme.of(
+            context,
+          ).textTheme.labelSmall?.copyWith(color: scheme.onSurfaceVariant),
         ),
       ),
     );
