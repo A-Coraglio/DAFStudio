@@ -30,6 +30,8 @@ def _row_to_message(row) -> ChatMessageDDO:
         user_id=row["user_id"],
         content=row["content"],
         created_at=row["created_at"],
+        author_name=row.get("author_name"),
+        author_player_id=row.get("author_player_id"),
     )
 
 
@@ -165,17 +167,22 @@ class ChatMessageModel(GeneralModel):
         """Descending by id — newest first. Use `before_id` to page backward."""
         async with self.get_db_connection() as connection:
             connection: PoolConnectionProxy = cast(PoolConnectionProxy, connection)
+            # Author display name resolves player first (real name), then
+            # falls back to the auth username for users without a profile.
+            select = (
+                f"SELECT m.*, p.id AS author_player_id, COALESCE(NULLIF(TRIM(CONCAT(p.first_name, ' ', p.last_name)), ''), au.username) AS author_name "
+                f"FROM {self.__table_name__} m "
+                f"LEFT JOIN auth_user au ON au.id = m.user_id LEFT JOIN player p ON p.user_id = m.user_id "
+            )
             if before_id is not None:
                 query = (
-                    f"SELECT * FROM {self.__table_name__} "
-                    "WHERE chat_id = $1 AND id < $2 "
-                    "ORDER BY id DESC LIMIT $3"
+                    select + "WHERE m.chat_id = $1 AND m.id < $2 "
+                    "ORDER BY m.id DESC LIMIT $3"
                 )
                 values = [chat_id, before_id, limit]
             else:
                 query = (
-                    f"SELECT * FROM {self.__table_name__} "
-                    "WHERE chat_id = $1 ORDER BY id DESC LIMIT $2"
+                    select + "WHERE m.chat_id = $1 ORDER BY m.id DESC LIMIT $2"
                 )
                 values = [chat_id, limit]
             try:

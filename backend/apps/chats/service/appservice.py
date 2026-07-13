@@ -45,6 +45,8 @@ class AppService:
             user_id=msg.user_id,
             content=msg.content,
             created_at=iso_utc(msg.created_at),
+            author_name=msg.author_name,
+            author_player_id=msg.author_player_id,
         )
 
     async def _assert_can_read(

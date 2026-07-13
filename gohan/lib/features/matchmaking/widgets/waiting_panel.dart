@@ -3,11 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/http/api_client.dart';
+import '../../../core/widgets/confirm_dialog.dart';
 import '../../sports/providers/sports_providers.dart';
 import '../data/matchmaking_ticket.dart';
 import '../providers/matchmaking_providers.dart';
 import 'eta_hint.dart';
 import 'queue_timer.dart';
+import 'radar_pulse.dart';
 
 /// Shown while the user is in queue (`waiting`). Spins a live timer +
 /// cancel button.
@@ -46,7 +48,7 @@ class WaitingPanel extends ConsumerWidget {
           Text('Buscando partido...',
               style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: 8),
-          QueueTimer(since: ticket.createdAt),
+          RadarPulse(child: QueueTimer(since: ticket.createdAt)),
           EtaHint(
             estimatedWaitSeconds: estimatedWaitSeconds,
             queueDepth: queueDepth,
@@ -73,6 +75,14 @@ class _CancelButtonState extends ConsumerState<_CancelButton> {
   bool _loading = false;
 
   Future<void> _cancel() async {
+    final ok = await showConfirmDialog(
+      context,
+      title: 'Cancelar búsqueda',
+      message: '¿Dejar de buscar partido? Perdés tu lugar en la cola.',
+      confirmLabel: 'Dejar de buscar',
+      destructive: true,
+    );
+    if (!ok || !mounted) return;
     setState(() => _loading = true);
     try {
       await ref.read(matchmakingRepositoryProvider).cancel();

@@ -44,6 +44,7 @@ async def list_games(
         near_lat=near_lat,
         near_lon=near_lon,
         radius_km=radius_km,
+        for_user_id=current_user_id,
     )
 
 

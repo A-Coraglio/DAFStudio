@@ -6,13 +6,16 @@ import 'package:go_router/go_router.dart';
 import '../../../core/http/api_client.dart';
 import '../data/player_profile.dart';
 import '../providers/profile_providers.dart';
+import '../widgets/onboarding_avatar_step.dart';
+import '../widgets/onboarding_level_step.dart';
 import '../widgets/onboarding_name_step.dart';
 import '../widgets/onboarding_progress.dart';
 import '../widgets/onboarding_sport_step.dart';
 
 /// Shown right after register / login when the player profile is missing
-/// first_name, last_name or favorite_sport_id. A two-step flow — name, then
-/// favorite sport. The router guard blocks /home until it's done.
+/// first_name, last_name or favorite_sport_id. Four steps — name, favorite
+/// sport, optional level, optional photo. The router guard blocks /home
+/// until it's done.
 class CompleteProfileScreen extends ConsumerStatefulWidget {
   const CompleteProfileScreen({super.key});
 
@@ -27,6 +30,7 @@ class _CompleteProfileScreenState
   final _firstNameCtrl = TextEditingController();
   final _lastNameCtrl = TextEditingController();
   int? _sportId;
+  String? _level;
   int _step = 0;
   bool _loading = false;
 
@@ -37,19 +41,23 @@ class _CompleteProfileScreenState
     super.dispose();
   }
 
-  void _next() {
+  void _nextFromName() {
     if (_nameFormKey.currentState!.validate()) {
       setState(() => _step = 1);
     }
   }
 
-  Future<void> _submit() async {
+  void _nextFromSport() {
     if (_sportId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Elegí tu deporte favorito.')),
       );
       return;
     }
+    setState(() => _step = 2);
+  }
+
+  Future<void> _submit() async {
     setState(() => _loading = true);
     try {
       await ref.read(profileRepositoryProvider).updateMyProfile(
@@ -57,6 +65,7 @@ class _CompleteProfileScreenState
               firstName: _firstNameCtrl.text.trim(),
               lastName: _lastNameCtrl.text.trim(),
               favoriteSportId: _sportId,
+              level: _level,
             ),
           );
       ref.invalidate(myProfileProvider);
@@ -82,7 +91,7 @@ class _CompleteProfileScreenState
             ? null
             : IconButton(
                 icon: const Icon(Icons.arrow_back),
-                onPressed: () => setState(() => _step = 0),
+                onPressed: () => setState(() => _step -= 1),
               ),
       ),
       body: Center(
@@ -93,22 +102,31 @@ class _CompleteProfileScreenState
             child: ListView(
               shrinkWrap: true,
               children: [
-                OnboardingProgress(step: _step, total: 2),
+                OnboardingProgress(step: _step, total: 4),
                 const SizedBox(height: 24),
-                if (_step == 0)
-                  OnboardingNameStep(
-                    formKey: _nameFormKey,
-                    firstNameCtrl: _firstNameCtrl,
-                    lastNameCtrl: _lastNameCtrl,
-                    onContinue: _next,
-                  )
-                else
-                  OnboardingSportStep(
-                    sportId: _sportId,
-                    onChanged: (v) => setState(() => _sportId = v),
-                    onSubmit: _submit,
-                    loading: _loading,
-                  ),
+                switch (_step) {
+                  0 => OnboardingNameStep(
+                      formKey: _nameFormKey,
+                      firstNameCtrl: _firstNameCtrl,
+                      lastNameCtrl: _lastNameCtrl,
+                      onContinue: _nextFromName,
+                    ),
+                  1 => OnboardingSportStep(
+                      sportId: _sportId,
+                      onChanged: (v) => setState(() => _sportId = v),
+                      onSubmit: _nextFromSport,
+                      loading: false,
+                    ),
+                  2 => OnboardingLevelStep(
+                      level: _level,
+                      onChanged: (v) => setState(() => _level = v),
+                      onContinue: () => setState(() => _step = 3),
+                    ),
+                  _ => OnboardingAvatarStep(
+                      onSubmit: _submit,
+                      loading: _loading,
+                    ),
+                },
               ],
             ),
           ),

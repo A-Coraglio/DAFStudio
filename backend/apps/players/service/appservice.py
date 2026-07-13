@@ -138,6 +138,30 @@ class AppService:
             raise PlayerNotFoundException(
                 message=f"No player profile for user {user_id}"
             )
+        return await self._stats_for_player(player)
+
+    async def player_stats(self, player_id: int) -> PlayerStatsOutputDTO:
+        """Public W/L/D of any player — same tally as my_stats. Backs the
+        public profile screen."""
+        player = await PlayerModel().get_player_by_id(player_id=player_id)
+        return await self._stats_for_player(player)
+
+    async def player_games(
+        self, player_id: int, limit: int = 10, offset: int = 0,
+    ) -> list[MyGameOutputDTO]:
+        """Public recent history of any player, outcomes from their own
+        perspective — same shape as my_games."""
+        player = await PlayerModel().get_player_by_id(player_id=player_id)
+        games = await GamesModel().list_games_for_player(
+            player_id=player.id, status=None, mode=None,
+            limit=limit, offset=offset,
+        )
+        return [
+            await self._game_to_my_dto(game=g, player_id=player.id)
+            for g in games
+        ]
+
+    async def _stats_for_player(self, player) -> PlayerStatsOutputDTO:
         # Pull everything finished — no limit. If the per-user history ever
         # explodes we can switch to a per-mode aggregate query, but for now
         # this is the simplest correct version.

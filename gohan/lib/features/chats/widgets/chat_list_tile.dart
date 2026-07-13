@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/format/dates.dart';
 import '../data/chat.dart';
 
 /// One row of the chat list — title, last-message preview and last-activity
@@ -49,7 +50,7 @@ class ChatListTile extends StatelessWidget {
               children: [
                 if (at != null)
                   Text(
-                    _shortTime(at),
+                    formatListTime(at),
                     style: Theme.of(context).textTheme.labelSmall?.copyWith(
                           color: hasUnread ? scheme.primary : null,
                         ),
@@ -89,13 +90,4 @@ class _UnreadBadge extends StatelessWidget {
       ),
     );
   }
-}
-
-/// `HH:mm` when the timestamp is today, `dd/MM` otherwise.
-String _shortTime(DateTime utc) {
-  final t = utc.toLocal();
-  final now = DateTime.now();
-  String two(int n) => n.toString().padLeft(2, '0');
-  final isToday = t.year == now.year && t.month == now.month && t.day == now.day;
-  return isToday ? '${two(t.hour)}:${two(t.minute)}' : '${two(t.day)}/${two(t.month)}';
 }

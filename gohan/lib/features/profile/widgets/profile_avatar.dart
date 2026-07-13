@@ -28,14 +28,11 @@ class ProfileAvatar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final url = _absoluteUrl();
-    if (url != null) {
-      return CircleAvatar(
-        radius: radius,
-        backgroundImage: NetworkImage(url),
-      );
-    }
+    // foregroundImage + child: the initials render underneath, so they show
+    // while the image loads and whenever it fails to decode.
     return CircleAvatar(
       radius: radius,
+      foregroundImage: url == null ? null : NetworkImage(url),
       child: Text(
         initials,
         style: TextStyle(fontSize: radius * 0.7),

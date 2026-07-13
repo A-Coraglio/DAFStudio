@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/widgets/error_view.dart';
+import '../../../core/widgets/tile_list_skeleton.dart';
 import '../../sports/providers/sports_providers.dart';
 import '../data/player_profile.dart';
 import '../data/player_search_query.dart';
@@ -33,9 +34,9 @@ class PlayerSearchResults extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final async = ref.watch(playerSearchProvider(query));
     return async.when(
-      loading: () => const Center(child: CircularProgressIndicator()),
+      loading: () => const TileListSkeleton(),
       error: (err, _) => ErrorView(
-        message: err.toString(),
+        error: err,
         onRetry: () => ref.invalidate(playerSearchProvider(query)),
       ),
       data: (players) {

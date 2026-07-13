@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
@@ -70,7 +71,7 @@ class _GoogleSignInButtonState extends ConsumerState<GoogleSignInButton> {
                 width: 18, height: 18,
                 child: CircularProgressIndicator(strokeWidth: 2),
               )
-            : const Icon(Icons.g_mobiledata, size: 28),
+            : SvgPicture.asset('assets/google_g.svg', width: 18, height: 18),
         label: const Text('Continuar con Google'),
       ),
     );

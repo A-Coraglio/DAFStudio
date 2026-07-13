@@ -27,6 +27,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   final _usernameCtrl = TextEditingController();
   final _emailCtrl = TextEditingController();
   final _passCtrl = TextEditingController();
+  final _pass2Ctrl = TextEditingController();
   bool _loading = false;
 
   @override
@@ -34,6 +35,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     _usernameCtrl.dispose();
     _emailCtrl.dispose();
     _passCtrl.dispose();
+    _pass2Ctrl.dispose();
     super.dispose();
   }
 
@@ -54,19 +56,16 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       // Auto-login after register, then route to onboarding. The router's
       // profile-completion guard will handle /complete-profile vs /home.
       final login = await repo.login(
-        LoginRequest(
-          email: _emailCtrl.text.trim(),
-          password: _passCtrl.text,
-        ),
+        LoginRequest(email: _emailCtrl.text.trim(), password: _passCtrl.text),
       );
       await ref.read(sessionProvider.notifier).setToken(login.accessToken);
       if (!mounted) return;
       context.go('/home');
     } on DioException catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(dioErrorMessage(e))),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(dioErrorMessage(e))));
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -83,37 +82,47 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
             padding: const EdgeInsets.all(16),
             child: Form(
               key: _formKey,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const AuthHeader(
-                    subtitle: 'Creá tu cuenta y empezá a jugar.',
-                  ),
-                  UsernameField(controller: _usernameCtrl),
-                  const SizedBox(height: 12),
-                  EmailField(controller: _emailCtrl),
-                  const SizedBox(height: 12),
-                  PasswordField(
-                    controller: _passCtrl,
-                    minLength: 6,
-                    onSubmitted: (_) => _loading ? null : _submit(),
-                  ),
-                  const SizedBox(height: 20),
-                  PrimarySubmitButton(
-                    label: 'Crear cuenta',
-                    onPressed: _submit,
-                    loading: _loading,
-                  ),
-                  const SizedBox(height: 12),
-                  const AuthOrDivider(),
-                  const SizedBox(height: 12),
-                  GoogleSignInButton(disabled: _loading),
-                  const SizedBox(height: 12),
-                  TextButton(
-                    onPressed: _loading ? null : () => context.go('/login'),
-                    child: const Text('Ya tengo cuenta'),
-                  ),
-                ],
+              child: AutofillGroup(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const AuthHeader(
+                      subtitle: 'Creá tu cuenta y empezá a jugar.',
+                    ),
+                    UsernameField(controller: _usernameCtrl),
+                    const SizedBox(height: 12),
+                    EmailField(controller: _emailCtrl),
+                    const SizedBox(height: 12),
+                    PasswordField(
+                      controller: _passCtrl,
+                      minLength: 6,
+                      isNew: true,
+                    ),
+                    const SizedBox(height: 12),
+                    PasswordField(
+                      controller: _pass2Ctrl,
+                      label: 'Repetir contraseña',
+                      isNew: true,
+                      matchWith: _passCtrl,
+                      onSubmitted: (_) => _loading ? null : _submit(),
+                    ),
+                    const SizedBox(height: 20),
+                    PrimarySubmitButton(
+                      label: 'Crear cuenta',
+                      onPressed: _submit,
+                      loading: _loading,
+                    ),
+                    const SizedBox(height: 12),
+                    const AuthOrDivider(),
+                    const SizedBox(height: 12),
+                    GoogleSignInButton(disabled: _loading),
+                    const SizedBox(height: 12),
+                    TextButton(
+                      onPressed: _loading ? null : () => context.go('/login'),
+                      child: const Text('Ya tengo cuenta'),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),

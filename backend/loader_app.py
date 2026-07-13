@@ -105,16 +105,14 @@ app.mount("/uploads", StaticFiles(directory=UPLOADS_DIR), name="uploads")
 
 
 
-@app.middleware("http")
-async def add_process_time_header(request: Request, call_next):
-    try:
-        response = await call_next(request)
-        return response
-    except Exception as e:
-        if isinstance(e, AppException):
-            return JSONResponse({
-                "type_exception" : e.__class__.__name__,
-                "error" : str(e),
-                "trace" : format_exc()
-            }, status_code=e.error_code)
-        raise
+# Registered as an exception handler (not an HTTP middleware) on purpose: a
+# middleware wrapping CORSMiddleware would build its response outside the CORS
+# layer, and the browser would reject every AppException — including the 401 of
+# an expired token — as a CORS failure instead of surfacing the status code.
+@app.exception_handler(AppException)
+async def app_exception_handler(request: Request, exc: AppException):
+    return JSONResponse({
+        "type_exception" : exc.__class__.__name__,
+        "error" : str(exc),
+        "trace" : format_exc()
+    }, status_code=exc.error_code)

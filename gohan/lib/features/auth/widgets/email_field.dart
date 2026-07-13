@@ -18,6 +18,7 @@ class EmailField extends StatelessWidget {
       controller: controller,
       focusNode: focusNode,
       keyboardType: TextInputType.emailAddress,
+      autofillHints: const [AutofillHints.email],
       textInputAction: TextInputAction.next,
       onFieldSubmitted: onSubmitted,
       decoration: const InputDecoration(labelText: 'Email'),

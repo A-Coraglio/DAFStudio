@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/widgets/error_view.dart';
+import '../../../core/widgets/tile_list_skeleton.dart';
 import '../providers/profile_providers.dart';
 import '../widgets/my_game_tile.dart';
 
@@ -48,9 +49,9 @@ class _MyGamesScreenState extends ConsumerState<MyGamesScreen> {
           ),
           Expanded(
             child: async.when(
-              loading: () => const Center(child: CircularProgressIndicator()),
+              loading: () => const TileListSkeleton(),
               error: (err, _) => ErrorView(
-                message: err.toString(),
+                error: err,
                 onRetry: () => ref.invalidate(myGamesProvider(_mode)),
               ),
               data: (games) {

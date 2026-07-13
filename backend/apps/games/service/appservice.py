@@ -49,6 +49,10 @@ class AppService:
             sport_id=game.sport_id,
             sport_name=game.sport_name,
             distance_km=game.distance_km,
+            court_name=game.court_name,
+            court_lat=game.court_lat,
+            court_lon=game.court_lon,
+            is_joined=game.is_joined,
             organizer_id=game.organizer_id,
             court_id=game.court_id,
             max_players=game.max_players,
@@ -99,6 +103,7 @@ class AppService:
         near_lat: float | None = None,
         near_lon: float | None = None,
         radius_km: float | None = None,
+        for_user_id: int | None = None,
     ) -> list[GamesOutputDTO]:
         games: list[GameDDO] = await GamesModel().list_games(
             sport_id=sport_id,
@@ -111,6 +116,7 @@ class AppService:
             near_lat=near_lat,
             near_lon=near_lon,
             radius_km=radius_km,
+            for_user_id=for_user_id,
         )
         counts = await GamePlayerModel().counts_by_game_ids(
             [g.id for g in games]

@@ -31,7 +31,7 @@ class SportSelectorButton extends ConsumerWidget {
       ),
     );
     if (chosen == null) return;
-    ref.read(activeSportIdProvider.notifier).state = chosen.id;
+    await ref.read(activeSportIdProvider.notifier).set(chosen.id);
   }
 
   @override

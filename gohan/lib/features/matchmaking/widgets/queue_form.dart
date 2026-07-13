@@ -82,6 +82,13 @@ class _QueueFormState extends ConsumerState<QueueForm> {
 
   @override
   Widget build(BuildContext context) {
+    // The nav shell keeps this tab alive, so initState ran only once —
+    // follow the home sport selector for as long as the form is idle.
+    ref.listen(activeSportIdProvider, (_, next) {
+      if (next != null && next != _sportId) {
+        setState(() => _sportId = next);
+      }
+    });
     return ListView(
       padding: const EdgeInsets.all(20),
       children: [

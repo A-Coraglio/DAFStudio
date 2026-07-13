@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
+import '../../../core/format/dates.dart';
+import '../../../core/format/labels.dart';
 import '../data/game.dart';
 import 'game_mode_badge.dart';
 import 'game_players_pill.dart';
@@ -37,7 +40,7 @@ class GameInfoCard extends StatelessWidget {
                 const SizedBox(width: 8),
                 Text(
                   (game.sportName ?? 'Deporte') +
-                      (game.level != null ? ' · ${game.level}' : ''),
+                      (game.level != null ? ' · ${levelLabel(game.level)}' : ''),
                   style: Theme.of(context).textTheme.bodyMedium,
                 ),
               ],
@@ -53,6 +56,52 @@ class GameInfoCard extends StatelessWidget {
                 ),
               ],
             ),
+            if (formatCountdown(game.scheduledAt) != null) ...[
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  Icon(
+                    Icons.timer_outlined,
+                    size: 16,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    formatCountdown(game.scheduledAt)!,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Theme.of(context).colorScheme.primary,
+                          fontWeight: FontWeight.w600,
+                        ),
+                  ),
+                ],
+              ),
+            ],
+            if (game.courtName != null) ...[
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  const Icon(Icons.place_outlined, size: 16),
+                  const SizedBox(width: 4),
+                  Expanded(
+                    child: Text(
+                      game.courtName!,
+                      style: Theme.of(context).textTheme.bodySmall,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  if (game.courtLat != null && game.courtLon != null)
+                    TextButton.icon(
+                      onPressed: () => launchUrl(Uri.parse(
+                        'https://www.google.com/maps/search/?api=1'
+                        '&query=${game.courtLat},${game.courtLon}',
+                      )),
+                      icon: const Icon(Icons.directions, size: 18),
+                      label: const Text('Cómo llegar'),
+                    ),
+                ],
+              ),
+            ],
             if (game.resultHome != null && game.resultAway != null) ...[
               const SizedBox(height: 14),
               Text(

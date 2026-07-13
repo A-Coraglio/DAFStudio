@@ -32,7 +32,7 @@ class ChatScreen extends ConsumerWidget {
         skipLoadingOnReload: true,
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (err, _) => ErrorView(
-          message: err.toString(),
+          error: err,
           onRetry: () => ref.invalidate(myChatsProvider),
         ),
         data: (_) => ChatPanel(chatId: chatId),

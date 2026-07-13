@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/format/labels.dart';
 import '../data/game_player.dart';
 
 /// Single-row view of a participant for the players list. When [onTap] is
@@ -33,7 +34,7 @@ class PlayerTile extends StatelessWidget {
         ),
       ),
       subtitle: Text('${player.rankingPoints} pts'
-          '${player.level != null ? ' · ${player.level}' : ''}'),
+          '${player.level != null ? ' · ${levelLabel(player.level)}' : ''}'),
       trailing: onTap == null ? null : const Icon(Icons.chevron_right),
     );
   }

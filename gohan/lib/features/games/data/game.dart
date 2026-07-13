@@ -9,6 +9,14 @@ class Game {
   /// Km to the game's court from the user. Set by the feed when location is
   /// available; null otherwise (no location, or game without a geo court).
   final double? distanceKm;
+  /// Court display name, joined server-side. Null when the game has no court.
+  final String? courtName;
+  /// Court coordinates — only populated by the detail endpoint.
+  final double? courtLat;
+  final double? courtLon;
+  /// Whether the current user participates. Only populated by the list
+  /// endpoint; null elsewhere (detail derives it from the roster).
+  final bool? isJoined;
   final int organizerId;
   final int? courtId;
   final int maxPlayers;
@@ -37,6 +45,10 @@ class Game {
     required this.sportId,
     required this.sportName,
     required this.distanceKm,
+    this.courtName,
+    this.courtLat,
+    this.courtLon,
+    this.isJoined,
     required this.organizerId,
     required this.courtId,
     required this.maxPlayers,
@@ -60,6 +72,10 @@ class Game {
         sportId: json['sport_id'] as int,
         sportName: json['sport_name'] as String?,
         distanceKm: (json['distance_km'] as num?)?.toDouble(),
+        courtName: json['court_name'] as String?,
+        courtLat: (json['court_lat'] as num?)?.toDouble(),
+        courtLon: (json['court_lon'] as num?)?.toDouble(),
+        isJoined: json['is_joined'] as bool?,
         organizerId: json['organizer_id'] as int,
         courtId: json['court_id'] as int?,
         maxPlayers: json['max_players'] as int,

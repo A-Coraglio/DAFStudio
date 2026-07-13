@@ -33,6 +33,17 @@ class PlayerStatsCard extends ConsumerWidget {
                     _Metric(label: 'Perdidos', value: '${stats.losses}'),
                   ],
                 ),
+                if (stats.totalPlayed > 0) ...[
+                  const SizedBox(height: 10),
+                  Text(
+                    '${(stats.wins * 100 / stats.totalPlayed).round()}% '
+                    'de efectividad en competitivos',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.primary,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
                 if (stats.casualPlayed > 0) ...[
                   const SizedBox(height: 8),
                   Text(

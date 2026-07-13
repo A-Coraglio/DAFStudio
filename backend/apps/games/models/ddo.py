@@ -26,3 +26,19 @@ class GameDDO(BaseModel):
         description="Distance from the caller's point to the game's court — "
         "populated by list_games when near_lat/near_lon are passed.",
     )
+    court_name: str | None = Field(
+        default=None,
+        description="Court display name — populated by list/get queries that "
+        "JOIN the court table; None on INSERT/UPDATE ... RETURNING rows.",
+    )
+    court_lat: float | None = Field(
+        default=None, description="Court latitude — detail query only."
+    )
+    court_lon: float | None = Field(
+        default=None, description="Court longitude — detail query only."
+    )
+    is_joined: bool | None = Field(
+        default=None,
+        description="Whether the calling user participates in the game — "
+        "populated by list/get when a for_user_id is passed.",
+    )

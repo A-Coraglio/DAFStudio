@@ -17,6 +17,7 @@ class UsernameField extends StatelessWidget {
     return TextFormField(
       controller: controller,
       focusNode: focusNode,
+      autofillHints: const [AutofillHints.newUsername],
       textInputAction: TextInputAction.next,
       onFieldSubmitted: onSubmitted,
       decoration: const InputDecoration(labelText: 'Usuario'),

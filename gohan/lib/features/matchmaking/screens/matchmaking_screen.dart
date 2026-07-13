@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/widgets/error_view.dart';
 import '../data/matchmaking_ticket.dart';
 import '../providers/matchmaking_providers.dart';
 import '../widgets/lobby_panel.dart';
+import '../widgets/matchmaking_skeleton.dart';
 import '../widgets/match_found_panel.dart';
 import '../widgets/queue_form.dart';
 import '../widgets/waiting_panel.dart';
@@ -16,14 +18,25 @@ class MatchmakingScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Buzz when a proposal lands or the lobby completes — the user may not
+    // be looking at the screen while queued.
+    ref.listen(matchmakingStatusStreamProvider, (prev, next) {
+      final p = prev?.valueOrNull?.ticket?.status;
+      final n = next.valueOrNull?.ticket?.status;
+      if (p != n &&
+          (n == TicketStatus.proposed || n == TicketStatus.matched)) {
+        HapticFeedback.heavyImpact();
+      }
+    });
+
     final statusAsync = ref.watch(matchmakingStatusStreamProvider);
 
     return Scaffold(
       appBar: AppBar(title: const Text('Matchmaking')),
       body: statusAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
+        loading: () => const MatchmakingSkeleton(),
         error: (err, _) => ErrorView(
-          message: err.toString(),
+          error: err,
           onRetry: () => ref.invalidate(matchmakingStatusStreamProvider),
         ),
         data: (status) {
@@ -40,11 +53,37 @@ class MatchmakingScreen extends ConsumerWidget {
             TicketStatus.proposed || TicketStatus.accepted =>
               MatchFoundPanel(ticket: ticket, game: status.proposedGame),
             TicketStatus.matched => status.proposedGame == null
-                ? const Center(child: CircularProgressIndicator())
+                ? const _PreparingLobby()
                 : LobbyPanel(game: status.proposedGame!),
             _ => const QueueForm(),
           };
         },
+      ),
+    );
+  }
+}
+
+/// `matched` without a resolved game yet — the next status poll fills it in.
+class _PreparingLobby extends StatelessWidget {
+  const _PreparingLobby();
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const SizedBox(
+            width: 28,
+            height: 28,
+            child: CircularProgressIndicator(strokeWidth: 3),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            '¡Todos aceptaron! Preparando el lobby...',
+            style: Theme.of(context).textTheme.bodyLarge,
+          ),
+        ],
       ),
     );
   }

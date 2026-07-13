@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/format/dates.dart';
+import '../../../core/format/labels.dart';
 import '../../games/data/game.dart';
 import 'outcome_chip.dart';
 
@@ -14,11 +16,9 @@ class MyGameTile extends StatelessWidget {
   String _subtitle() {
     final parts = <String>[];
     if (game.sportName != null) parts.add(game.sportName!);
-    parts.add(game.mode);
+    parts.add(modeLabel(game.mode));
     if (game.scheduledAt != null) {
-      final d = game.scheduledAt!;
-      parts.add('${d.day.toString().padLeft(2, '0')}/'
-          '${d.month.toString().padLeft(2, '0')}/${d.year}');
+      parts.add(formatFullDate(game.scheduledAt!));
     }
     return parts.join(' · ');
   }

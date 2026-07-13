@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/format/labels.dart';
 import '../../sports/providers/sports_providers.dart';
 import '../data/player_search_query.dart';
 
@@ -55,7 +56,7 @@ class PlayerSearchFilters extends ConsumerWidget {
           children: [
             for (final lvl in _levels)
               FilterChip(
-                label: Text(lvl),
+                label: Text(levelLabel(lvl)),
                 selected: query.level == lvl,
                 onSelected: (sel) => onChanged(
                   sel

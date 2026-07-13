@@ -122,3 +122,31 @@ async def get_player(
     current_user_id: int = Depends(get_current_user_id),
 ):
     return await AppService().players_getter_by_id(player_id=player_id)
+
+
+@router.get("/players/{player_id}/stats/", responses={
+    200: {"model": PlayerStatsOutputDTO, "description": "Public W/L/D stats"},
+    401: {"description": "Unauthorized"},
+    404: {"description": "Player not found"},
+})
+async def player_stats(
+    player_id: int,
+    current_user_id: int = Depends(get_current_user_id),
+):
+    return await AppService().player_stats(player_id=player_id)
+
+
+@router.get("/players/{player_id}/games/", responses={
+    200: {"model": list[MyGameOutputDTO], "description": "Recent games"},
+    401: {"description": "Unauthorized"},
+    404: {"description": "Player not found"},
+})
+async def player_games(
+    player_id: int,
+    limit: int = Query(default=10, le=30),
+    offset: int = Query(default=0),
+    current_user_id: int = Depends(get_current_user_id),
+):
+    return await AppService().player_games(
+        player_id=player_id, limit=limit, offset=offset,
+    )

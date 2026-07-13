@@ -15,15 +15,18 @@ class PrimarySubmitButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return FilledButton(
-      onPressed: loading ? null : onPressed,
-      child: loading
-          ? const SizedBox(
-              width: 20,
-              height: 20,
-              child: CircularProgressIndicator(strokeWidth: 2),
-            )
-          : Text(label),
+    return SizedBox(
+      width: double.infinity,
+      child: FilledButton(
+        onPressed: loading ? null : onPressed,
+        child: loading
+            ? const SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              )
+            : Text(label),
+      ),
     );
   }
 }

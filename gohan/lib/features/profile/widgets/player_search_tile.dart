@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/format/labels.dart';
 import '../data/player_profile.dart';
 import 'profile_avatar.dart';
 
@@ -27,7 +28,7 @@ class PlayerSearchTile extends StatelessWidget {
   String _subtitle() {
     final parts = <String>[];
     if (favoriteSportName != null) parts.add(favoriteSportName!);
-    if (player.level != null) parts.add(player.level!);
+    if (player.level != null) parts.add(levelLabel(player.level));
     return parts.join(' · ');
   }
 
@@ -41,10 +42,13 @@ class PlayerSearchTile extends StatelessWidget {
       ),
       title: Text(player.displayName),
       subtitle: _subtitle().isEmpty ? null : Text(_subtitle()),
-      trailing: Text(
-        '${player.rankingPoints} pts',
-        style: Theme.of(context).textTheme.labelMedium,
-      ),
+      // "0 pts" on every new player is noise — show points once they exist.
+      trailing: player.rankingPoints <= 0
+          ? null
+          : Text(
+              '${player.rankingPoints} pts',
+              style: Theme.of(context).textTheme.labelMedium,
+            ),
       onTap: () => context.push('/players/${player.id}'),
     );
   }

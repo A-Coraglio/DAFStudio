@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/http/api_client.dart';
+import '../../../core/widgets/confirm_dialog.dart';
 import '../../games/data/game.dart';
 import '../../games/widgets/game_info_card.dart';
 import '../data/matchmaking_ticket.dart';
@@ -85,9 +86,19 @@ class _MatchFoundPanelState extends ConsumerState<MatchFoundPanel> {
         OutlinedButton.icon(
           onPressed: _loading
               ? null
-              : () => _run(() => repo.reject(widget.ticket.id)),
+              : () async {
+                  final ok = await showConfirmDialog(
+                    context,
+                    title: 'Rechazar propuesta',
+                    message:
+                        'Rechazás este partido y salís de la cola de búsqueda.',
+                    confirmLabel: 'Rechazar',
+                    destructive: true,
+                  );
+                  if (ok) _run(() => repo.reject(widget.ticket.id));
+                },
           icon: const Icon(Icons.close),
-          label: const Text('Cancelar'),
+          label: const Text('Rechazar'),
         ),
       ],
     );

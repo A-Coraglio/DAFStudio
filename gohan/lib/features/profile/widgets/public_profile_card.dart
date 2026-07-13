@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/format/labels.dart';
 import '../data/player_profile.dart';
 import 'profile_avatar.dart';
 
@@ -56,7 +57,7 @@ class PublicProfileCard extends StatelessWidget {
           ListTile(
             leading: const Icon(Icons.signal_cellular_alt),
             title: const Text('Nivel'),
-            trailing: Text(profile.level ?? 'Sin definir'),
+            trailing: Text(levelLabel(profile.level)),
           ),
           const Divider(height: 1),
           ListTile(

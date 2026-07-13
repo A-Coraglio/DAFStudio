@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/http/api_client.dart';
@@ -7,11 +8,13 @@ import '../providers/chats_providers.dart';
 
 /// Text field + send button pinned at the bottom of a chat panel. Invalidates
 /// the messages stream after a successful send so the new message shows up
-/// immediately without waiting for the poll tick.
+/// immediately without waiting for the poll tick. On hardware keyboards
+/// Enter sends and Shift+Enter inserts a newline.
 class MessageComposer extends ConsumerStatefulWidget {
-  const MessageComposer({super.key, required this.chatId});
+  const MessageComposer({super.key, required this.chatId, this.onSent});
 
   final int chatId;
+  final VoidCallback? onSent;
 
   @override
   ConsumerState<MessageComposer> createState() => _MessageComposerState();
@@ -31,6 +34,7 @@ class _MessageComposerState extends ConsumerState<MessageComposer> {
           .postMessage(widget.chatId, text);
       _controller.clear();
       ref.invalidate(chatMessagesStreamProvider(widget.chatId));
+      widget.onSent?.call();
     } on DioException catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -39,6 +43,18 @@ class _MessageComposerState extends ConsumerState<MessageComposer> {
     } finally {
       if (mounted) setState(() => _sending = false);
     }
+  }
+
+  KeyEventResult _onKey(FocusNode node, KeyEvent event) {
+    // Physical keyboards only (web/desktop): Enter sends, Shift+Enter falls
+    // through to the TextField and inserts the newline.
+    if (event is KeyDownEvent &&
+        event.logicalKey == LogicalKeyboardKey.enter &&
+        !HardwareKeyboard.instance.isShiftPressed) {
+      _send();
+      return KeyEventResult.handled;
+    }
+    return KeyEventResult.ignored;
   }
 
   @override
@@ -56,16 +72,18 @@ class _MessageComposerState extends ConsumerState<MessageComposer> {
         child: Row(
           children: [
             Expanded(
-              child: TextField(
-                controller: _controller,
-                minLines: 1,
-                maxLines: 4,
-                decoration: const InputDecoration(
-                  hintText: 'Escribí un mensaje...',
-                  border: OutlineInputBorder(),
-                  isDense: true,
+              child: Focus(
+                onKeyEvent: _onKey,
+                child: TextField(
+                  controller: _controller,
+                  minLines: 1,
+                  maxLines: 4,
+                  decoration: const InputDecoration(
+                    hintText: 'Escribí un mensaje...',
+                    border: OutlineInputBorder(),
+                    isDense: true,
+                  ),
                 ),
-                onSubmitted: (_) => _send(),
               ),
             ),
             const SizedBox(width: 8),

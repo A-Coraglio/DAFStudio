@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/providers/core_providers.dart';
+import '../../../core/storage/sport_prefs.dart';
 import '../data/sport_model.dart';
 import '../data/sports_repository.dart';
 
@@ -14,6 +15,26 @@ final sportsListProvider = FutureProvider<List<Sport>>((ref) async {
 });
 
 /// The user's currently-active sport for browsing/matchmaking. Distinct from
-/// their persisted favorite sport — this is session-scoped and changed from
-/// the home dropdown. Null means "no sport selected yet".
-final activeSportIdProvider = StateProvider<int?>((ref) => null);
+/// their favorite sport — this one is changed from the home dropdown and
+/// persisted locally so it survives restarts. Null means "no sport yet".
+class ActiveSportIdNotifier extends Notifier<int?> {
+  @override
+  int? build() {
+    _load();
+    return null;
+  }
+
+  Future<void> _load() async {
+    final value = await SportPrefs.readActiveSport();
+    if (value != null) state = value;
+  }
+
+  Future<void> set(int id) async {
+    state = id;
+    await SportPrefs.writeActiveSport(id);
+  }
+}
+
+final activeSportIdProvider = NotifierProvider<ActiveSportIdNotifier, int?>(
+  ActiveSportIdNotifier.new,
+);

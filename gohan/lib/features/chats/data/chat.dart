@@ -50,6 +50,10 @@ class ChatMessage {
   final int userId;
   final String content;
   final DateTime createdAt;
+  /// Author display name (real name, or username as fallback) and their
+  /// player id for linking to the public profile.
+  final String? authorName;
+  final int? authorPlayerId;
 
   const ChatMessage({
     required this.id,
@@ -57,6 +61,8 @@ class ChatMessage {
     required this.userId,
     required this.content,
     required this.createdAt,
+    this.authorName,
+    this.authorPlayerId,
   });
 
   factory ChatMessage.fromJson(Map<String, dynamic> json) => ChatMessage(
@@ -65,5 +71,7 @@ class ChatMessage {
         userId: json['user_id'] as int,
         content: json['content'] as String,
         createdAt: DateTime.parse(json['created_at'] as String),
+        authorName: json['author_name'] as String?,
+        authorPlayerId: json['author_player_id'] as int?,
       );
 }

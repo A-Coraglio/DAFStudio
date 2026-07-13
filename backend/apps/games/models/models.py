@@ -28,6 +28,10 @@ def _row_to_ddo(row) -> GameDDO:
         sport_name=row.get("sport_name"),
         # Present only when list_games is called with a near point.
         distance_km=row.get("distance_km"),
+        court_name=row.get("court_name"),
+        court_lat=row.get("court_lat"),
+        court_lon=row.get("court_lon"),
+        is_joined=row.get("is_joined"),
     )
 
 
@@ -58,6 +62,7 @@ class GamesModel(GeneralModel):
         near_lat: float | None = None,
         near_lon: float | None = None,
         radius_km: float | None = None,
+        for_user_id: int | None = None,
     ) -> list[GameDDO]:
         """Lists games with optional filters. Geo filtering joins against the
         court table and excludes games without a resolved court."""
@@ -111,9 +116,22 @@ class GamesModel(GeneralModel):
                     params.append(radius_km)
                     idx += 1
 
+            # With a caller, expose whether they already joined each game —
+            # the feed renders an "Anotado" badge without N+1 roster fetches.
+            select_joined = ""
+            if for_user_id is not None:
+                select_joined = (
+                    f", EXISTS(SELECT 1 FROM game_player gp "
+                    f"JOIN player p ON p.id = gp.player_id "
+                    f"WHERE gp.game_id = g.id AND p.user_id = ${idx}) AS is_joined"
+                )
+                params.append(for_user_id)
+                idx += 1
+
             where_sql = f"WHERE {' AND '.join(where_clauses)}" if where_clauses else ""
             query = (
-                f"SELECT g.*, s.name AS sport_name{select_distance} "
+                f"SELECT g.*, s.name AS sport_name, c.name AS court_name"
+                f"{select_distance}{select_joined} "
                 f"FROM {self.__table_name__} g "
                 f"LEFT JOIN court c ON c.id = g.court_id "
                 f"LEFT JOIN sports s ON s.id = g.sport_id "
@@ -129,7 +147,10 @@ class GamesModel(GeneralModel):
         async with self.get_db_connection() as connection:
             connection: PoolConnectionProxy = cast(PoolConnectionProxy, connection)
             query = (
-                f"SELECT g.*, s.name AS sport_name FROM {self.__table_name__} g "
+                f"SELECT g.*, s.name AS sport_name, c.name AS court_name, "
+                f"c.lat AS court_lat, c.lon AS court_lon "
+                f"FROM {self.__table_name__} g "
+                f"LEFT JOIN court c ON c.id = g.court_id "
                 f"LEFT JOIN sports s ON s.id = g.sport_id "
                 f"WHERE g.id = $1"
             )

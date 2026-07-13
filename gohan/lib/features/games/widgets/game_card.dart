@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/format/labels.dart';
 import '../data/game.dart';
 import 'game_distance_text.dart';
 import 'game_mode_badge.dart';
@@ -38,14 +39,21 @@ class GameCard extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 8),
+                  if (game.isJoined == true) ...[
+                    const _JoinedBadge(),
+                    const SizedBox(width: 6),
+                  ],
                   GameModeBadge(mode: game.mode),
                 ],
               ),
               const SizedBox(height: 4),
               Text(
                 (game.sportName ?? 'Deporte') +
-                    (game.level != null ? ' · ${game.level}' : ''),
+                    (game.level != null ? ' · ${levelLabel(game.level)}' : '') +
+                    (game.courtName != null ? ' · ${game.courtName}' : ''),
                 style: Theme.of(context).textTheme.bodySmall,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
               const SizedBox(height: 10),
               Wrap(
@@ -65,6 +73,36 @@ class GameCard extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// Small "Anotado" chip shown on feed cards for games the user is in.
+class _JoinedBadge extends StatelessWidget {
+  const _JoinedBadge();
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: scheme.primaryContainer,
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.check, size: 13, color: scheme.onPrimaryContainer),
+          const SizedBox(width: 3),
+          Text(
+            'Anotado',
+            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                  color: scheme.onPrimaryContainer,
+                ),
+          ),
+        ],
       ),
     );
   }

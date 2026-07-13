@@ -30,6 +30,12 @@ class GamesOutputDTO(BaseModel):
     sport_id: int
     sport_name: str | None = None
     distance_km: float | None = None
+    court_name: str | None = None
+    court_lat: float | None = None
+    court_lon: float | None = None
+    # Whether the calling user participates. Populated on the list endpoint;
+    # null elsewhere (the detail screen derives it from the roster).
+    is_joined: bool | None = None
     organizer_id: int
     court_id: int | None = None
     max_players: int

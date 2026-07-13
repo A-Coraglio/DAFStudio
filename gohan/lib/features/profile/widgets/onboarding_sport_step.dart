@@ -3,8 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../core/widgets/primary_submit_button.dart';
 import '../../sports/widgets/sport_dropdown_field.dart';
 
-/// Step 2 of onboarding — favorite sport. The final step, so its button
-/// submits the whole profile.
+/// Step 2 of onboarding — favorite sport.
 class OnboardingSportStep extends StatelessWidget {
   const OnboardingSportStep({
     super.key,
@@ -38,7 +37,7 @@ class OnboardingSportStep extends StatelessWidget {
         SportDropdownField(value: sportId, onChanged: onChanged),
         const SizedBox(height: 24),
         PrimarySubmitButton(
-          label: 'Empezar a jugar',
+          label: 'Siguiente',
           onPressed: onSubmit,
           loading: loading,
         ),

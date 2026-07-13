@@ -4,9 +4,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/widgets/error_view.dart';
 import '../providers/games_providers.dart';
 import '../widgets/game_action_button.dart';
+import '../widgets/game_detail_skeleton.dart';
 import '../widgets/game_chat_app_bar_action.dart';
 import '../widgets/game_info_card.dart';
+import '../widgets/game_organizer_menu.dart';
 import '../widgets/game_players_list.dart';
+import '../widgets/game_share_action.dart';
 import '../widgets/report_progress_hint.dart';
 import '../widgets/report_result_button.dart';
 
@@ -19,16 +22,25 @@ class GameDetailScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final gameAsync = ref.watch(gameByIdProvider(gameId));
     final playersAsync = ref.watch(gamePlayersProvider(gameId));
+    final game = gameAsync.valueOrNull;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Partido'),
-        actions: [GameChatAppBarAction(gameId: gameId)],
+        title: Text(
+          game?.name ?? 'Partido',
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+        actions: [
+          GameChatAppBarAction(gameId: gameId),
+          if (game != null) GameShareAction(game: game),
+          if (game != null) GameOrganizerMenu(game: game),
+        ],
       ),
       body: gameAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
+        loading: () => const GameDetailSkeleton(),
         error: (err, _) => ErrorView(
-          message: err.toString(),
+          error: err,
           onRetry: () => ref.invalidate(gameByIdProvider(gameId)),
         ),
         data: (game) => RefreshIndicator(

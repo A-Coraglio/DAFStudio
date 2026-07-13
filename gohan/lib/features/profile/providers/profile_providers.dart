@@ -24,6 +24,18 @@ final playerProfileProvider =
   return ref.read(profileRepositoryProvider).getPlayer(playerId);
 });
 
+/// Public stats of an arbitrary player — public profile screen.
+final playerStatsProvider =
+    FutureProvider.family<PlayerStats, int>((ref, playerId) async {
+  return ref.read(profileRepositoryProvider).getPlayerStats(playerId);
+});
+
+/// Public recent games of an arbitrary player — public profile screen.
+final playerGamesProvider =
+    FutureProvider.family<List<Game>, int>((ref, playerId) async {
+  return ref.read(profileRepositoryProvider).getPlayerGames(playerId);
+});
+
 /// Discovery feed. The family key bundles all filters so identical searches
 /// share the same fetch + cache entry.
 final playerSearchProvider = FutureProvider.family<

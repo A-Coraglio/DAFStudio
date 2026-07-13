@@ -25,9 +25,12 @@ class AppTheme {
         elevation: 0,
         centerTitle: false,
       ),
+      // minimumSize keeps a finite width on purpose: Size.fromHeight forces
+      // width=infinity, which crashes any button placed inside a Row.
+      // Full-width CTAs get their width from the layout (SizedBox/ListView).
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
-          minimumSize: const Size.fromHeight(52),
+          minimumSize: const Size(64, 52),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(14),
           ),
@@ -39,7 +42,7 @@ class AppTheme {
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          minimumSize: const Size.fromHeight(52),
+          minimumSize: const Size(64, 52),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(14),
           ),

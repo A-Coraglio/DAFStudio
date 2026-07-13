@@ -42,7 +42,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
     setState(() => _loading = true);
     try {
-      final res = await ref.read(authRepositoryProvider).login(
+      final res = await ref
+          .read(authRepositoryProvider)
+          .login(
             LoginRequest(
               email: _emailCtrl.text.trim(),
               password: _passCtrl.text,
@@ -53,9 +55,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       context.go('/home');
     } on DioException catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(dioErrorMessage(e))),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(dioErrorMessage(e))));
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -72,39 +74,43 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             padding: const EdgeInsets.all(16),
             child: Form(
               key: _formKey,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const AuthHeader(
-                    subtitle:
-                        'Encontrá con quién jugar, en cualquier deporte.',
-                  ),
-                  EmailField(
-                    controller: _emailCtrl,
-                    onSubmitted: (_) => _passFocus.requestFocus(),
-                  ),
-                  const SizedBox(height: 12),
-                  PasswordField(
-                    controller: _passCtrl,
-                    focusNode: _passFocus,
-                    onSubmitted: (_) => _loading ? null : _submit(),
-                  ),
-                  const SizedBox(height: 20),
-                  PrimarySubmitButton(
-                    label: 'Ingresar',
-                    onPressed: _submit,
-                    loading: _loading,
-                  ),
-                  const SizedBox(height: 12),
-                  const AuthOrDivider(),
-                  const SizedBox(height: 12),
-                  GoogleSignInButton(disabled: _loading),
-                  const SizedBox(height: 12),
-                  TextButton(
-                    onPressed: _loading ? null : () => context.go('/register'),
-                    child: const Text('Crear cuenta'),
-                  ),
-                ],
+              child: AutofillGroup(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const AuthHeader(
+                      subtitle:
+                          'Encontrá con quién jugar, en cualquier deporte.',
+                    ),
+                    EmailField(
+                      controller: _emailCtrl,
+                      onSubmitted: (_) => _passFocus.requestFocus(),
+                    ),
+                    const SizedBox(height: 12),
+                    PasswordField(
+                      controller: _passCtrl,
+                      focusNode: _passFocus,
+                      onSubmitted: (_) => _loading ? null : _submit(),
+                    ),
+                    const SizedBox(height: 20),
+                    PrimarySubmitButton(
+                      label: 'Ingresar',
+                      onPressed: _submit,
+                      loading: _loading,
+                    ),
+                    const SizedBox(height: 12),
+                    const AuthOrDivider(),
+                    const SizedBox(height: 12),
+                    GoogleSignInButton(disabled: _loading),
+                    const SizedBox(height: 12),
+                    TextButton(
+                      onPressed: _loading
+                          ? null
+                          : () => context.go('/register'),
+                      child: const Text('Crear cuenta'),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -113,4 +119,3 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     );
   }
 }
-

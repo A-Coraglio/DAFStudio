@@ -49,6 +49,25 @@ class ProfileRepository {
     return PlayerStats.fromJson(res.data!);
   }
 
+  /// Public W/L/D stats of any player — backs the public profile screen.
+  Future<PlayerStats> getPlayerStats(int playerId) async {
+    final res = await _dio
+        .get<Map<String, dynamic>>('/api/players/$playerId/stats/');
+    return PlayerStats.fromJson(res.data!);
+  }
+
+  /// Public recent history of any player (outcomes from their perspective).
+  Future<List<Game>> getPlayerGames(int playerId, {int limit = 5}) async {
+    final res = await _dio.get<List<dynamic>>(
+      '/api/players/$playerId/games/',
+      queryParameters: {'limit': limit},
+    );
+    return (res.data ?? const [])
+        .cast<Map<String, dynamic>>()
+        .map(Game.fromJson)
+        .toList(growable: false);
+  }
+
   /// Discovery feed. Backend excludes the caller from the results.
   Future<List<PlayerProfile>> searchPlayers({
     String? query,

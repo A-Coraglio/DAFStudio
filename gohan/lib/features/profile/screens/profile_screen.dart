@@ -3,10 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/providers/core_providers.dart';
+import '../../../core/widgets/confirm_dialog.dart';
 import '../../../core/widgets/error_view.dart';
 import '../../sports/providers/sports_providers.dart';
 import '../providers/profile_providers.dart';
 import '../widgets/player_stats_card.dart';
+import '../widgets/profile_skeleton.dart';
 import '../widgets/profile_card.dart';
 import '../widgets/theme_mode_tile.dart';
 
@@ -14,6 +16,14 @@ class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
 
   Future<void> _logout(BuildContext context, WidgetRef ref) async {
+    final ok = await showConfirmDialog(
+      context,
+      title: 'Cerrar sesión',
+      message: '¿Seguro que querés salir de tu cuenta?',
+      confirmLabel: 'Cerrar sesión',
+      destructive: true,
+    );
+    if (!ok || !context.mounted) return;
     await ref.read(sessionProvider.notifier).clear();
     if (context.mounted) context.go('/login');
   }
@@ -48,9 +58,9 @@ class ProfileScreen extends ConsumerWidget {
         ],
       ),
       body: profileAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
+        loading: () => const ProfileSkeleton(),
         error: (err, _) => ErrorView(
-          message: err.toString(),
+          error: err,
           onRetry: () => ref.invalidate(myProfileProvider),
         ),
         data: (profile) => ListView(

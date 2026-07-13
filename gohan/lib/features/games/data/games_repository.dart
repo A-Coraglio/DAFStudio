@@ -48,6 +48,29 @@ class GamesRepository {
         .toList();
   }
 
+  /// Organizer-only partial update (PUT /api/games/{id}/). Nulls are
+  /// skipped — only the provided fields change.
+  Future<Game> update(
+    int id, {
+    String? name,
+    int? maxPlayers,
+    String? level,
+    DateTime? scheduledAt,
+    String? status,
+  }) async {
+    final res = await _dio.put<Map<String, dynamic>>(
+      '/api/games/$id/',
+      data: {
+        if (name != null) 'name': name,
+        if (maxPlayers != null) 'max_players': maxPlayers,
+        if (level != null) 'level': level,
+        if (scheduledAt != null) 'scheduled_at': scheduledAt.toIso8601String(),
+        if (status != null) 'status': status,
+      },
+    );
+    return Game.fromJson(res.data!);
+  }
+
   Future<Game> getById(int id) async {
     final res = await _dio.get<Map<String, dynamic>>('/api/games/$id/');
     return Game.fromJson(res.data!);

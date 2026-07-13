@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../profile/providers/profile_providers.dart';
+import '../../../core/widgets/tile_list_skeleton.dart';
 import '../providers/games_providers.dart';
 import 'player_tile.dart';
 
@@ -18,10 +19,7 @@ class GamePlayersList extends ConsumerWidget {
 
     return Card(
       child: playersAsync.when(
-        loading: () => const Padding(
-          padding: EdgeInsets.all(16),
-          child: Center(child: CircularProgressIndicator()),
-        ),
+        loading: () => const TileListSkeleton(rows: 3, shrinkWrap: true),
         error: (err, _) => Padding(
           padding: const EdgeInsets.all(16),
           child: Text('No pudimos cargar los jugadores: $err'),

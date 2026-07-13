@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/http/api_client.dart';
+import '../../../core/widgets/confirm_dialog.dart';
 import '../../profile/providers/profile_providers.dart';
 import '../data/game.dart';
 import '../data/game_player.dart';
@@ -91,7 +92,16 @@ class _GameActionButtonState extends ConsumerState<GameActionButton> {
     if (iAmIn) {
       return (
         'Salir del partido',
-        () => _run(() => repo.leave(game.id), 'Saliste del partido'),
+        () async {
+          final ok = await showConfirmDialog(
+            context,
+            title: 'Salir del partido',
+            message: '¿Seguro que querés bajarte? Tu lugar queda libre.',
+            confirmLabel: 'Salir',
+            destructive: true,
+          );
+          if (ok) _run(() => repo.leave(game.id), 'Saliste del partido');
+        },
       );
     }
     if (game.isFull) return ('Completo', null);

@@ -31,3 +31,7 @@ class MessageOutputDTO(BaseModel):
     user_id: int
     content: str
     created_at: str
+    # Who wrote it — real name when the user has a player profile, username
+    # otherwise. player_id lets the UI link to the public profile.
+    author_name: str | None = None
+    author_player_id: int | None = None
