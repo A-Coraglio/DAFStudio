@@ -25,13 +25,27 @@ class GameResultText extends ConsumerWidget {
     final myPlayerId = ref.watch(myProfileProvider).valueOrNull?.id;
     final side = _mySide(players, myPlayerId);
 
+    // When we know the user's side, show the score from their perspective
+    // (tuyos - rivales) so it agrees with the outcome line below.
+    final displayHome = side == 'away' ? away : home;
+    final displayAway = side == 'away' ? home : away;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Resultado: $home - $away',
+          'Resultado: $displayHome - $displayAway',
           style: Theme.of(context).textTheme.titleMedium,
         ),
+        if (game.setScores.isNotEmpty) ...[
+          const SizedBox(height: 2),
+          Text(
+            'Sets: ${_setsText(side)}',
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ],
         if (side != null) ...[
           const SizedBox(height: 2),
           Text(
@@ -61,13 +75,18 @@ class GameResultText extends ConsumerWidget {
     return null;
   }
 
+  /// Per-set scores oriented to the player's perspective (tuyos-rivales),
+  /// e.g. "6-4  6-3".
+  String _setsText(String? side) => game.setScores.map((s) {
+    final h = side == 'away' ? s.away : s.home;
+    final a = side == 'away' ? s.home : s.away;
+    return '$h-$a';
+  }).join('  ');
+
   String _myOutcomeText(String side, int home, int away) {
-    final sideName = side == 'home' ? 'local' : 'visitante';
-    if (home == away) return 'Jugaste de $sideName — empate';
+    if (home == away) return 'Empataste';
     final won = (side == 'home') == (home > away);
-    return won
-        ? 'Jugaste de $sideName — ¡ganaste! 🎉'
-        : 'Jugaste de $sideName — perdiste';
+    return won ? '¡Ganaste! 🎉' : 'Perdiste';
   }
 
   Color _myOutcomeColor(BuildContext context, String side, int home, int away) {

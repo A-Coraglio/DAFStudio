@@ -1,6 +1,7 @@
 /// Mirrors backend `PlayerStatsOutputDTO`. W/L/D refer to competitive games
 /// only; casual is reported separately and never moves the ranking.
 class PlayerStats {
+  final int? sportId; // null = all-sports aggregate
   final int rankingPoints;
   final int totalPlayed;
   final int wins;
@@ -9,6 +10,7 @@ class PlayerStats {
   final int casualPlayed;
 
   const PlayerStats({
+    required this.sportId,
     required this.rankingPoints,
     required this.totalPlayed,
     required this.wins,
@@ -18,6 +20,7 @@ class PlayerStats {
   });
 
   factory PlayerStats.fromJson(Map<String, dynamic> json) => PlayerStats(
+    sportId: json['sport_id'] as int?,
     rankingPoints: json['ranking_points'] as int,
     totalPlayed: json['total_played'] as int,
     wins: json['wins'] as int,

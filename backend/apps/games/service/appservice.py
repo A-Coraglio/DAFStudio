@@ -66,6 +66,7 @@ class AppService:
             scheduled_at=game.scheduled_at.isoformat() if game.scheduled_at else None,
             result_home=game.result_home,
             result_away=game.result_away,
+            sets=game.sets,
             created_at=iso_utc(game.created_at),
             confirmations_count=confirmations_count,
             confirmations_total=confirmations_total,
@@ -189,6 +190,11 @@ class AppService:
             [r.player_id for r in rows]
         )
         profile_by_id = {p.id: p for p in profiles}
+        # Ranking shown is per the game's sport, not an overall number.
+        game = await GamesModel().get_game_by_id(game_id=game_id)
+        sport_ranking = await PlayerModel().list_sport_rankings(
+            sport_id=game.sport_id, player_ids=[r.player_id for r in rows]
+        )
         result: list[GamePlayerOutputDTO] = []
         for row in rows:
             profile = profile_by_id.get(row.player_id)
@@ -200,7 +206,7 @@ class AppService:
                 first_name=profile.first_name if profile else None,
                 last_name=profile.last_name if profile else None,
                 level=profile.level if profile else None,
-                ranking_points=profile.ranking_points if profile else 0,
+                ranking_points=sport_ranking.get(row.player_id, 1000),
             ))
         return result
 
@@ -275,8 +281,9 @@ class AppService:
         self,
         game_id: int,
         current_user_id: int,
-        reported_home: int,
-        reported_away: int,
+        reported_home: int | None = None,
+        reported_away: int | None = None,
+        sets: list | None = None,
     ) -> GamesOutputDTO:
         game = await GamesModel().get_game_by_id(game_id=game_id)
         if game.status not in ("open", "full"):
@@ -292,11 +299,27 @@ class AppService:
                 message="Only participants can report the result"
             )
 
+        # Set-based sports send `sets`; result_home/away become the SETS won and
+        # the per-set detail is stored as "6-4,6-3". Single-score sports send
+        # reported_home/reported_away directly.
+        sets_str: str | None = None
+        if sets:
+            valid = [s for s in sets if s.home != 0 or s.away != 0]
+            if not valid:
+                raise GameStateException(message="Cargá al menos un set")
+            reported_home = sum(1 for s in valid if s.home > s.away)
+            reported_away = sum(1 for s in valid if s.away > s.home)
+            sets_str = ",".join(f"{s.home}-{s.away}" for s in valid)
+        else:
+            reported_home = reported_home or 0
+            reported_away = reported_away or 0
+
         await GameResultConfirmationModel().upsert_confirmation(
             game_id=game_id,
             player_id=player.id,
             reported_home=reported_home,
             reported_away=reported_away,
+            sets=sets_str,
         )
 
         # Consensus rule: when every participant has reported the SAME score,
@@ -323,6 +346,7 @@ class AppService:
             game_id=game_id,
             result_home=first.reported_home,
             result_away=first.reported_away,
+            sets=first.sets,
         )
         await self._apply_elo(finalized or game)
         return await self._game_to_dto_with_count(finalized or game)
@@ -352,13 +376,15 @@ class AppService:
         if not home_gps or not away_gps:
             return
 
-        players = await PlayerModel().list_players_by_ids(
-            [gp.player_id for gp in game_players]
+        # Ranking is per-sport: a game only moves the players' ranking IN the
+        # sport being played.
+        player_ids = [gp.player_id for gp in game_players]
+        ranking_by_id = await PlayerModel().list_sport_rankings(
+            sport_id=game.sport_id, player_ids=player_ids
         )
-        ranking_by_id = {p.id: p.ranking_points for p in players}
 
-        avg_home = sum(ranking_by_id.get(gp.player_id, 0) for gp in home_gps) / len(home_gps)
-        avg_away = sum(ranking_by_id.get(gp.player_id, 0) for gp in away_gps) / len(away_gps)
+        avg_home = sum(ranking_by_id.get(gp.player_id, 1000) for gp in home_gps) / len(home_gps)
+        avg_away = sum(ranking_by_id.get(gp.player_id, 1000) for gp in away_gps) / len(away_gps)
 
         # Actual score for home team.
         if game.result_home > game.result_away:
@@ -371,11 +397,19 @@ class AppService:
         expected_home = 1.0 / (1.0 + 10 ** ((avg_away - avg_home) / 400.0))
         delta = round(_ELO_K_FACTOR * (actual_home - expected_home))
 
+        # Per-sport ranking is the source of truth; player.ranking_points is
+        # kept updated too as a denormalised "overall" for the players search.
         for gp in home_gps:
+            await PlayerModel().adjust_sport_ranking(
+                gp.player_id, game.sport_id, delta
+            )
             await PlayerModel().adjust_ranking_points(
                 player_id=gp.player_id, delta=delta
             )
         for gp in away_gps:
+            await PlayerModel().adjust_sport_ranking(
+                gp.player_id, game.sport_id, -delta
+            )
             await PlayerModel().adjust_ranking_points(
                 player_id=gp.player_id, delta=-delta
             )

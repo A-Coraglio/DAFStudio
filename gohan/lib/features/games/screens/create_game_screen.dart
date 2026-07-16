@@ -146,8 +146,10 @@ class _CreateGameScreenState extends ConsumerState<CreateGameScreen> {
     final counts = sport == null
         ? (options: const [2, 4], standard: 4)
         : playerCountOptions(sport);
-    final myPoints =
-        ref.watch(myProfileProvider).valueOrNull?.rankingPoints ?? 0;
+    // The new game's level anchor is my ranking IN THE SELECTED SPORT.
+    final myPoints = _sportId == null
+        ? 1000
+        : (ref.watch(mySportRankingProvider(_sportId!)).valueOrNull ?? 1000);
     return Scaffold(
       appBar: AppBar(
         title: const Text('Crear partido'),

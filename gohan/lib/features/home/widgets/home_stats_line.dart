@@ -12,7 +12,8 @@ class HomeStatsLine extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final points = ref.watch(myProfileProvider).valueOrNull?.rankingPoints;
+    // Ranking + record are per the currently-selected sport (myStatsProvider
+    // is scoped to it), so the home line matches the profile.
     final stats = ref.watch(myStatsProvider).valueOrNull;
 
     final style = Theme.of(context).textTheme.bodySmall;
@@ -22,7 +23,7 @@ class HomeStatsLine extends ConsumerWidget {
     return GestureDetector(
       onTap: () => context.go('/profile'),
       child: Text(
-        '${points ?? 0} pts · ${stats.wins}G ${stats.losses}P',
+        '${stats.rankingPoints} pts · ${stats.wins}G ${stats.losses}P',
         style: style?.copyWith(
           color: Theme.of(context).colorScheme.primary,
           fontWeight: FontWeight.w600,

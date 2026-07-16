@@ -22,6 +22,7 @@ def _row_to_ddo(row) -> GameDDO:
         scheduled_at=row["scheduled_at"],
         result_home=row["result_home"],
         result_away=row["result_away"],
+        sets=row.get("sets"),
         created_at=row["created_at"],
         # Present only on queries that JOIN sports; .get() keeps the
         # INSERT/UPDATE ... RETURNING * callers working unchanged.
@@ -139,12 +140,14 @@ class GamesModel(GeneralModel):
             where_sql = f"WHERE {' AND '.join(where_clauses)}" if where_clauses else ""
             query = (
                 f"SELECT g.*, s.name AS sport_name, c.name AS court_name, "
-                f"pl.ranking_points AS organizer_ranking_points"
+                f"COALESCE(pss.ranking_points, 1000) AS organizer_ranking_points"
                 f"{select_distance}{select_joined} "
                 f"FROM {self.__table_name__} g "
                 f"LEFT JOIN court c ON c.id = g.court_id "
                 f"LEFT JOIN sports s ON s.id = g.sport_id "
                 f"LEFT JOIN player pl ON pl.user_id = g.organizer_id "
+                f"LEFT JOIN player_sport_stat pss "
+                f"ON pss.player_id = pl.id AND pss.sport_id = g.sport_id "
                 f"{where_sql} {order_clause}"
             )
             try:
@@ -159,11 +162,13 @@ class GamesModel(GeneralModel):
             query = (
                 f"SELECT g.*, s.name AS sport_name, c.name AS court_name, "
                 f"c.lat AS court_lat, c.lon AS court_lon, "
-                f"pl.ranking_points AS organizer_ranking_points "
+                f"COALESCE(pss.ranking_points, 1000) AS organizer_ranking_points "
                 f"FROM {self.__table_name__} g "
                 f"LEFT JOIN court c ON c.id = g.court_id "
                 f"LEFT JOIN sports s ON s.id = g.sport_id "
                 f"LEFT JOIN player pl ON pl.user_id = g.organizer_id "
+                f"LEFT JOIN player_sport_stat pss "
+                f"ON pss.player_id = pl.id AND pss.sport_id = g.sport_id "
                 f"WHERE g.id = $1"
             )
             try:
@@ -314,17 +319,21 @@ class GamesModel(GeneralModel):
         game_id: int,
         result_home: int,
         result_away: int,
+        sets: str | None = None,
     ) -> GameDDO | None:
         """Atomically sets the final score and marks the game as finished."""
         async with self.get_db_connection() as connection:
             connection: PoolConnectionProxy = cast(PoolConnectionProxy, connection)
             query = (
                 f"UPDATE {self.__table_name__} "
-                "SET result_home = $1, result_away = $2, status = 'finished' "
-                "WHERE id = $3 RETURNING *"
+                "SET result_home = $1, result_away = $2, sets = $3, "
+                "status = 'finished' "
+                "WHERE id = $4 RETURNING *"
             )
             try:
-                result = await connection.fetchrow(query, result_home, result_away, game_id)
+                result = await connection.fetchrow(
+                    query, result_home, result_away, sets, game_id
+                )
                 return _row_to_ddo(result) if result else None
             except Exception as e:
                 raise DatabaseException(message=f"Database error: {e}")

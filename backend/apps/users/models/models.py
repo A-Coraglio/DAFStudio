@@ -29,6 +29,23 @@ class UserModel(GeneralModel):
             except Exception as e:
                 raise DatabaseException(message=f"Database error: {e}")
 
+    async def get_user_by_email_or_username(
+        self, identifier: str
+    ) -> UserDDO | None:
+        """Login lookup: the identifier can be either the email or the
+        username (both are unique)."""
+        async with self.get_db_connection() as connection:
+            connection: PoolConnectionProxy = cast(PoolConnectionProxy, connection)
+            query = (
+                f"SELECT * FROM {self.__table_name__} "
+                "WHERE email = $1 OR username = $1"
+            )
+            try:
+                result = await connection.fetchrow(query, identifier)
+                return _row_to_ddo(result) if result else None
+            except Exception as e:
+                raise DatabaseException(message=f"Database error: {e}")
+
     async def get_user_by_id(self, user_id: int) -> UserDDO | None:
         async with self.get_db_connection() as connection:
             connection: PoolConnectionProxy = cast(PoolConnectionProxy, connection)

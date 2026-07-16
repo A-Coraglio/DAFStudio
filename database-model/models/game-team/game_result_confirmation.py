@@ -8,6 +8,9 @@ class GameResultConfirmation(SQLModel, table=True):
     player_id: int = Field(foreign_key="player.id", primary_key=True)
     reported_home: int
     reported_away: int
+    # Per-set detail the player reported, e.g. "6-4,6-3". Null for
+    # single-score sports.
+    sets: str | None = Field(default=None, max_length=100)
     created_at: datetime = Field(
         default_factory=lambda: datetime.now(timezone.utc),
         sa_column_kwargs={"server_default": func.now()},

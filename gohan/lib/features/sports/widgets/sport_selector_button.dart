@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../data/sport_model.dart';
 import '../providers/sports_providers.dart';
+import 'sport_thumbnail.dart';
 
 /// Appbar action: current active sport + bottom-sheet picker.
 class SportSelectorButton extends ConsumerWidget {
@@ -50,7 +51,11 @@ class SportSelectorButton extends ConsumerWidget {
               );
         return TextButton.icon(
           onPressed: () => _pick(context, ref, sports, activeSportId),
-          icon: const Icon(Icons.sports),
+          icon: SportThumbnail(
+            sportName: active?.name,
+            size: 28,
+            borderRadius: 8,
+          ),
           label: Text(active?.name ?? 'Elegir deporte'),
         );
       },

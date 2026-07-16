@@ -44,6 +44,10 @@ class Game {
   final DateTime? scheduledAt;
   final int? resultHome;
   final int? resultAway;
+
+  /// Per-set detail for set-based sports, e.g. "6-4,6-3". Null otherwise;
+  /// resultHome/resultAway then hold the count of sets won.
+  final String? sets;
   final DateTime createdAt;
 
   /// How many participants have already reported a score. Only populated on
@@ -80,6 +84,7 @@ class Game {
     required this.scheduledAt,
     required this.resultHome,
     required this.resultAway,
+    this.sets,
     required this.createdAt,
     this.confirmationsCount,
     this.confirmationsTotal,
@@ -108,6 +113,7 @@ class Game {
     scheduledAt: _parseIso(json['scheduled_at']),
     resultHome: json['result_home'] as int?,
     resultAway: json['result_away'] as int?,
+    sets: json['sets'] as String?,
     createdAt: _parseIso(json['created_at'])!,
     confirmationsCount: json['confirmations_count'] as int?,
     confirmationsTotal: json['confirmations_total'] as int?,
@@ -117,6 +123,22 @@ class Game {
 
   static DateTime? _parseIso(Object? v) =>
       v is String ? DateTime.parse(v) : null;
+
+  /// Parsed per-set scores, e.g. "6-4,6-3" → [(home:6,away:4),(home:6,away:3)].
+  /// Empty when the game has no set detail.
+  List<({int home, int away})> get setScores {
+    final s = sets;
+    if (s == null || s.isEmpty) return const [];
+    final result = <({int home, int away})>[];
+    for (final part in s.split(',')) {
+      final xy = part.split('-');
+      if (xy.length != 2) continue;
+      final h = int.tryParse(xy[0].trim());
+      final a = int.tryParse(xy[1].trim());
+      if (h != null && a != null) result.add((home: h, away: a));
+    }
+    return result;
+  }
 
   bool get isJoinable => status == 'open' && currentPlayers < maxPlayers;
   bool get isFull => currentPlayers >= maxPlayers;

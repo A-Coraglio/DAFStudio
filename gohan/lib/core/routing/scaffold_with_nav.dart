@@ -3,6 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../features/chats/providers/chats_providers.dart';
+import '../../features/sports/data/sport_model.dart';
+import '../../features/sports/providers/sports_providers.dart';
+import '../format/sport_icons.dart';
 
 /// Bottom-nav shell hosting the 5 main tabs. Each tab is a branch of the
 /// [StatefulShellRoute] so its navigation stack survives tab switches. The
@@ -28,6 +31,18 @@ class ScaffoldWithNav extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final unread = ref.watch(unreadTotalProvider).valueOrNull ?? 0;
+
+    // The "Partidos" tab mirrors the selected sport so its icon matches the
+    // home selector and the game cards. Falls back to the generic sports icon
+    // when no sport is resolved yet.
+    final activeSportId = ref.watch(activeSportIdProvider);
+    final sports = ref.watch(sportsListProvider).valueOrNull ?? const <Sport>[];
+    String? activeSportName;
+    for (final s in sports) {
+      if (s.id == activeSportId) activeSportName = s.name;
+    }
+    final hasSport = activeSportName != null;
+
     return Scaffold(
       body: shell,
       bottomNavigationBar: NavigationBar(
@@ -39,9 +54,9 @@ class ScaffoldWithNav extends ConsumerWidget {
             selectedIcon: Icon(Icons.home),
             label: 'Inicio',
           ),
-          const NavigationDestination(
-            icon: Icon(Icons.sports_outlined),
-            selectedIcon: Icon(Icons.sports),
+          NavigationDestination(
+            icon: Icon(hasSport ? sportIcon(activeSportName) : Icons.sports_outlined),
+            selectedIcon: Icon(hasSport ? sportIcon(activeSportName) : Icons.sports),
             label: 'Partidos',
           ),
           const NavigationDestination(

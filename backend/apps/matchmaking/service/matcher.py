@@ -162,11 +162,17 @@ class Matcher:
         if len(tickets) < group_size:
             return 0
 
-        # Preload player ranking for each ticket-owner in one query.
+        # Preload each ticket-owner's ranking IN THIS SPORT (matchmaking groups
+        # players of similar skill in the sport they queued for).
         players = await PlayerModel().list_players_by_user_ids(
             [t.user_id for t in tickets]
         )
-        ranking_by_user = {p.user_id: p.ranking_points for p in players}
+        sport_ranking = await PlayerModel().list_sport_rankings(
+            sport_id=sport.id, player_ids=[p.id for p in players]
+        )
+        ranking_by_user = {
+            p.user_id: sport_ranking.get(p.id, 1000) for p in players
+        }
 
         now = datetime.now(timezone.utc)
         ctxs: list[_TicketCtx] = []

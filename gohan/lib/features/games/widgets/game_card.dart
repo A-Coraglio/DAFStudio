@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../../../core/format/sport_icons.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../sports/widgets/sport_thumbnail.dart';
 import '../data/game.dart';
 import 'game_distance_text.dart';
 import 'game_mode_badge.dart';
@@ -25,19 +25,13 @@ class GameCard extends StatelessWidget {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Tile squircle con el ícono del deporte — le da identidad
-              // visual a la card y hace escaneable el feed.
-              Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primaryContainer,
-                  borderRadius: BorderRadius.circular(AppRadius.input),
-                ),
-                child: Icon(
-                  sportIcon(game.sportName),
-                  color: Theme.of(context).colorScheme.onPrimaryContainer,
-                ),
+              // Miniatura del deporte (gradiente + ícono) — le da identidad
+              // visual a la card, hace escaneable el feed y coincide con la
+              // miniatura del selector de arriba.
+              SportThumbnail(
+                sportName: game.sportName,
+                size: 44,
+                borderRadius: AppRadius.input,
               ),
               const SizedBox(width: 12),
               Expanded(

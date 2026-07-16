@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/providers/core_providers.dart';
 import '../../games/data/game.dart';
+import '../../sports/providers/sports_providers.dart';
 import '../data/player_profile.dart';
 import '../data/player_search_query.dart';
 import '../data/player_stats.dart';
@@ -26,12 +27,16 @@ final playerProfileProvider = FutureProvider.family<PlayerProfile, int>((
   return ref.read(profileRepositoryProvider).getPlayer(playerId);
 });
 
-/// Public stats of an arbitrary player — public profile screen.
+/// Public stats of an arbitrary player — public profile screen. Scoped to the
+/// currently-selected sport so ranking + W/L reflect that sport.
 final playerStatsProvider = FutureProvider.family<PlayerStats, int>((
   ref,
   playerId,
 ) async {
-  return ref.read(profileRepositoryProvider).getPlayerStats(playerId);
+  final sportId = ref.watch(activeSportIdProvider);
+  return ref
+      .read(profileRepositoryProvider)
+      .getPlayerStats(playerId, sportId: sportId);
 });
 
 /// Public recent games of an arbitrary player — public profile screen.
@@ -73,5 +78,20 @@ final myGamesProvider = FutureProvider.family<List<Game>, String?>((
 /// game history is invalidated so the stats card stays in sync with the
 /// history list.
 final myStatsProvider = FutureProvider<PlayerStats>((ref) async {
-  return ref.read(profileRepositoryProvider).getMyStats();
+  // Scoped to the currently-selected sport: ranking + W/L are per-sport.
+  final sportId = ref.watch(activeSportIdProvider);
+  return ref.read(profileRepositoryProvider).getMyStats(sportId: sportId);
+});
+
+/// The caller's ranking in a SPECIFIC sport — used by the level-anchor checks
+/// so a joiner is compared against the game's sport rather than an overall
+/// number. Cached per sport.
+final mySportRankingProvider = FutureProvider.family<int, int>((
+  ref,
+  sportId,
+) async {
+  final stats = await ref
+      .read(profileRepositoryProvider)
+      .getMyStats(sportId: sportId);
+  return stats.rankingPoints;
 });

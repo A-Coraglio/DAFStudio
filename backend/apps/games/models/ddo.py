@@ -15,6 +15,9 @@ class GameDDO(BaseModel):
     scheduled_at: datetime | None = Field(default=None, description="When it will be played")
     result_home: int | None = Field(default=None)
     result_away: int | None = Field(default=None)
+    sets: str | None = Field(
+        default=None, description="Per-set detail like '6-4,6-3' (set sports)"
+    )
     created_at: datetime = Field(description="Creation date")
     sport_name: str | None = Field(
         default=None,

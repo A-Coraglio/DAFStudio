@@ -12,11 +12,17 @@ class ProfileCard extends StatelessWidget {
   const ProfileCard({
     super.key,
     required this.profile,
-    required this.favoriteSportName,
+    required this.rankingPoints,
+    required this.sportName,
   });
 
   final PlayerProfile profile;
-  final String? favoriteSportName;
+
+  /// Ranking for the currently-selected sport (not an overall number).
+  final int rankingPoints;
+
+  /// Name of the sport the ranking belongs to (the active sport).
+  final String? sportName;
 
   Widget _chip(
     BuildContext context,
@@ -91,7 +97,7 @@ class ProfileCard extends StatelessWidget {
               _chip(
                 context,
                 Icons.emoji_events,
-                '${profile.rankingPoints} pts',
+                '$rankingPoints pts',
                 accent: true,
               ),
               _chip(
@@ -99,8 +105,8 @@ class ProfileCard extends StatelessWidget {
                 Icons.signal_cellular_alt,
                 levelLabel(profile.level),
               ),
-              if (favoriteSportName != null)
-                _chip(context, Icons.sports, favoriteSportName!),
+              if (sportName != null)
+                _chip(context, Icons.sports, sportName!),
             ],
           ),
           const SizedBox(height: 16),

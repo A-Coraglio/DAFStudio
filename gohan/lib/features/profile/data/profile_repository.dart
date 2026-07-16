@@ -42,15 +42,19 @@ class ProfileRepository {
         .toList(growable: false);
   }
 
-  Future<PlayerStats> getMyStats() async {
-    final res = await _dio.get<Map<String, dynamic>>('/api/players/me/stats/');
+  Future<PlayerStats> getMyStats({int? sportId}) async {
+    final res = await _dio.get<Map<String, dynamic>>(
+      '/api/players/me/stats/',
+      queryParameters: {if (sportId != null) 'sport_id': sportId},
+    );
     return PlayerStats.fromJson(res.data!);
   }
 
   /// Public W/L/D stats of any player — backs the public profile screen.
-  Future<PlayerStats> getPlayerStats(int playerId) async {
+  Future<PlayerStats> getPlayerStats(int playerId, {int? sportId}) async {
     final res = await _dio.get<Map<String, dynamic>>(
       '/api/players/$playerId/stats/',
+      queryParameters: {if (sportId != null) 'sport_id': sportId},
     );
     return PlayerStats.fromJson(res.data!);
   }

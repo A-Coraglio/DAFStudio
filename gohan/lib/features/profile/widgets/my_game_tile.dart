@@ -24,25 +24,61 @@ class MyGameTile extends StatelessWidget {
   }
 
   String _score() {
-    if (game.resultHome == null || game.resultAway == null) return '—';
-    return '${game.resultHome} - ${game.resultAway}';
+    final home = game.resultHome;
+    final away = game.resultAway;
+    if (home == null || away == null) return '—';
+    // Shown from the player's perspective (los tuyos - los rivales) so the
+    // score reads consistently with the outcome chip: si ganaste, tu número
+    // va primero y es el más alto.
+    if (game.teamSide == 'away') return '$away - $home';
+    return '$home - $away';
   }
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      title: Text(game.name),
-      subtitle: Text(_subtitle()),
-      trailing: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          Text(_score(), style: Theme.of(context).textTheme.titleMedium),
-          const SizedBox(height: 4),
-          OutcomeChip(outcome: game.outcome ?? 'pending'),
-        ],
-      ),
+    final theme = Theme.of(context);
+    // Custom row (not ListTile.trailing) so the two-line score + outcome chip
+    // on the right always has room — the ListTile trailing slot clipped it.
+    return InkWell(
       onTap: () => context.push('/games/${game.id}'),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    game.name,
+                    style: theme.textTheme.titleMedium,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    _subtitle(),
+                    style: theme.textTheme.bodySmall,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 12),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(_score(), style: theme.textTheme.titleMedium),
+                const SizedBox(height: 4),
+                OutcomeChip(outcome: game.outcome ?? 'pending'),
+              ],
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

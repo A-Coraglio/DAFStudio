@@ -13,6 +13,7 @@ class GameResultConfirmationDDO(BaseModel):
     player_id: int
     reported_home: int
     reported_away: int
+    sets: str | None = None
     created_at: datetime
 
 
@@ -22,6 +23,7 @@ def _row_to_ddo(row) -> GameResultConfirmationDDO:
         player_id=row["player_id"],
         reported_home=row["reported_home"],
         reported_away=row["reported_away"],
+        sets=row.get("sets"),
         created_at=row["created_at"],
     )
 
@@ -47,23 +49,25 @@ class GameResultConfirmationModel(GeneralModel):
         player_id: int,
         reported_home: int,
         reported_away: int,
+        sets: str | None = None,
     ) -> GameResultConfirmationDDO:
         async with self.get_db_connection() as connection:
             connection: PoolConnectionProxy = cast(PoolConnectionProxy, connection)
             # Players can change their vote before the game finalizes.
             query = (
                 f"INSERT INTO {self.__table_name__} "
-                "(game_id, player_id, reported_home, reported_away) "
-                "VALUES ($1, $2, $3, $4) "
+                "(game_id, player_id, reported_home, reported_away, sets) "
+                "VALUES ($1, $2, $3, $4, $5) "
                 "ON CONFLICT (game_id, player_id) DO UPDATE SET "
                 "reported_home = EXCLUDED.reported_home, "
                 "reported_away = EXCLUDED.reported_away, "
+                "sets = EXCLUDED.sets, "
                 "created_at = now() "
                 "RETURNING *"
             )
             try:
                 result = await connection.fetchrow(
-                    query, game_id, player_id, reported_home, reported_away
+                    query, game_id, player_id, reported_home, reported_away, sets
                 )
                 return _row_to_ddo(result)
             except Exception as e:

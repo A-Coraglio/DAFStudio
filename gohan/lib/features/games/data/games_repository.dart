@@ -109,14 +109,25 @@ class GamesRepository {
     return Game.fromJson(res.data!);
   }
 
+  /// Reports a result. Single-score sports pass [home]/[away]; set-based
+  /// sports pass [sets] (a list of per-set scores) and the backend derives the
+  /// sets-won winner.
   Future<Game> reportResult(
     int gameId, {
-    required int home,
-    required int away,
+    int? home,
+    int? away,
+    List<({int home, int away})>? sets,
   }) async {
     final res = await _dio.post<Map<String, dynamic>>(
       '/api/games/$gameId/report-result/',
-      data: {'reported_home': home, 'reported_away': away},
+      data: {
+        if (home != null) 'reported_home': home,
+        if (away != null) 'reported_away': away,
+        if (sets != null)
+          'sets': [
+            for (final s in sets) {'home': s.home, 'away': s.away},
+          ],
+      },
     );
     return Game.fromJson(res.data!);
   }

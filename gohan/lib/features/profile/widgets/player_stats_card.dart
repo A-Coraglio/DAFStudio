@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/theme/app_colors.dart';
+import '../../sports/providers/sports_providers.dart';
 import '../providers/profile_providers.dart';
 
 /// Compact W/L/D + ranking strip shown above the user's profile actions.
@@ -19,13 +20,21 @@ class PlayerStatsCard extends ConsumerWidget {
       data: (stats) {
         final theme = Theme.of(context);
         final colors = theme.extension<AppColors>()!;
+        final sports = ref.watch(sportsListProvider).valueOrNull ?? const [];
+        String? sportName;
+        for (final s in sports) {
+          if (s.id == stats.sportId) sportName = s.name;
+        }
+        final title = sportName == null
+            ? 'Tus números'
+            : 'Tus números · $sportName';
         return Card(
           child: Padding(
             padding: const EdgeInsets.all(16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Tus números', style: theme.textTheme.titleMedium),
+                Text(title, style: theme.textTheme.titleMedium),
                 const SizedBox(height: 12),
                 Row(
                   children: [

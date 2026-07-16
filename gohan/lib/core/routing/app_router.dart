@@ -16,6 +16,8 @@ import '../../features/profile/screens/my_games_screen.dart';
 import '../../features/profile/screens/players_discovery_screen.dart';
 import '../../features/profile/screens/profile_screen.dart';
 import '../../features/profile/screens/public_profile_screen.dart';
+import '../../features/tournaments/screens/tournaments_screen.dart';
+import '../../features/classes/screens/classes_screen.dart';
 import '../providers/core_providers.dart';
 import 'scaffold_with_nav.dart';
 
@@ -77,6 +79,11 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (_, _) => const PlayersDiscoveryScreen(),
       ),
       GoRoute(path: '/my-games', builder: (_, _) => const MyGamesScreen()),
+      GoRoute(
+        path: '/tournaments',
+        builder: (_, _) => const TournamentsScreen(),
+      ),
+      GoRoute(path: '/classes', builder: (_, _) => const ClassesScreen()),
       GoRoute(
         path: '/players/:id',
         builder: (_, state) => PublicProfileScreen(

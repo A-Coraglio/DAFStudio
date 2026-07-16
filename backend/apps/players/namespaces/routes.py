@@ -70,8 +70,11 @@ async def my_games(
     401: {"description": "Unauthorized"},
     404: {"description": "Player profile not found"},
 })
-async def my_stats(current_user_id: int = Depends(get_current_user_id)):
-    return await AppService().my_stats(user_id=current_user_id)
+async def my_stats(
+    sport_id: int | None = Query(default=None, description="Scope stats to a sport"),
+    current_user_id: int = Depends(get_current_user_id),
+):
+    return await AppService().my_stats(user_id=current_user_id, sport_id=sport_id)
 
 
 @router.put("/players/me/", responses={
@@ -131,9 +134,10 @@ async def get_player(
 })
 async def player_stats(
     player_id: int,
+    sport_id: int | None = Query(default=None, description="Scope stats to a sport"),
     current_user_id: int = Depends(get_current_user_id),
 ):
-    return await AppService().player_stats(player_id=player_id)
+    return await AppService().player_stats(player_id=player_id, sport_id=sport_id)
 
 
 @router.get("/players/{player_id}/games/", responses={

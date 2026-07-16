@@ -49,6 +49,7 @@ class GamesOutputDTO(BaseModel):
     scheduled_at: str | None = None
     result_home: int | None = None
     result_away: int | None = None
+    sets: str | None = None  # "6-4,6-3" for set sports; null otherwise
     created_at: str
     # Result-reporting progress: how many of the participants have already
     # submitted a confirmation. Only populated on the detail endpoint
@@ -63,9 +64,20 @@ class JoinGameInputDTO(BaseModel):
     )
 
 
+class SetScoreDTO(BaseModel):
+    home: int = Field(ge=0, description="Games won by home in this set")
+    away: int = Field(ge=0, description="Games won by away in this set")
+
+
 class ReportResultInputDTO(BaseModel):
-    reported_home: int = Field(description="Score for home team")
-    reported_away: int = Field(description="Score for away team")
+    # Single-score sports (fútbol, básquet) send reported_home/reported_away.
+    # Set-based sports (pádel, tenis, vóley) send `sets`; the backend derives
+    # the sets-won that go into reported_home/reported_away.
+    reported_home: int | None = Field(default=None, description="Score/sets for home")
+    reported_away: int | None = Field(default=None, description="Score/sets for away")
+    sets: list[SetScoreDTO] | None = Field(
+        default=None, description="Per-set scores for set-based sports"
+    )
 
 
 class GamePlayerOutputDTO(BaseModel):

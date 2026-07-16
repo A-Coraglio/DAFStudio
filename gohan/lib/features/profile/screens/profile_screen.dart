@@ -28,14 +28,14 @@ class ProfileScreen extends ConsumerWidget {
     if (context.mounted) context.go('/login');
   }
 
-  String? _favoriteSportName(WidgetRef ref, int? favoriteSportId) {
-    if (favoriteSportId == null) return null;
+  String? _sportName(WidgetRef ref, int? sportId) {
+    if (sportId == null) return null;
     return ref
         .watch(sportsListProvider)
         .maybeWhen(
           data: (sports) {
             try {
-              return sports.firstWhere((s) => s.id == favoriteSportId).name;
+              return sports.firstWhere((s) => s.id == sportId).name;
             } on StateError {
               return null;
             }
@@ -47,6 +47,10 @@ class ProfileScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final profileAsync = ref.watch(myProfileProvider);
+    // Ranking + stats are per the currently-selected sport.
+    final stats = ref.watch(myStatsProvider).valueOrNull;
+    final activeSportId = ref.watch(activeSportIdProvider);
+    final activeSportName = _sportName(ref, activeSportId);
 
     return Scaffold(
       appBar: AppBar(
@@ -70,10 +74,8 @@ class ProfileScreen extends ConsumerWidget {
           children: [
             ProfileCard(
               profile: profile,
-              favoriteSportName: _favoriteSportName(
-                ref,
-                profile.favoriteSportId,
-              ),
+              rankingPoints: stats?.rankingPoints ?? profile.rankingPoints,
+              sportName: activeSportName,
             ),
             const SizedBox(height: 16),
             const PlayerStatsCard(),

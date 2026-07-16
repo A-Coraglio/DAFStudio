@@ -13,3 +13,6 @@ class Tournament(SQLModel, table=True):
     end_date: datetime
     max_participants: int
     status: str = Field(default="upcoming")  # upcoming, ongoing, finished
+    level: str | None = Field(default=None, max_length=20)  # beginner/intermediate/advanced
+    lat: float | None = None
+    lon: float | None = None

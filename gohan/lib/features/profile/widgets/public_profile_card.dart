@@ -1,13 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/format/labels.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../sports/providers/sports_providers.dart';
 import '../data/player_profile.dart';
+import '../providers/profile_providers.dart';
 import 'profile_avatar.dart';
 
 /// Read-only profile card for another player. Mirrors [ProfileCard] but uses
-/// a non-editable [ProfileAvatar] and drops the owner-only actions.
-class PublicProfileCard extends StatelessWidget {
+/// a non-editable [ProfileAvatar] and drops the owner-only actions. The
+/// ranking shown is for the currently-selected sport.
+class PublicProfileCard extends ConsumerWidget {
   const PublicProfileCard({
     super.key,
     required this.profile,
@@ -27,9 +31,17 @@ class PublicProfileCard extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final accent = Theme.of(context).extension<AppColors>()!.accent;
     final gradient = brandGradient(Theme.of(context).brightness);
+    // Ranking for the currently-selected sport (falls back to the overall).
+    final stats = ref.watch(playerStatsProvider(profile.id)).valueOrNull;
+    final ranking = stats?.rankingPoints ?? profile.rankingPoints;
+    final sports = ref.watch(sportsListProvider).valueOrNull ?? const [];
+    String? sportName;
+    for (final s in sports) {
+      if (s.id == stats?.sportId) sportName = s.name;
+    }
     return Card(
       child: Column(
         children: [
@@ -70,8 +82,8 @@ class PublicProfileCard extends StatelessWidget {
           ),
           ListTile(
             leading: const Icon(Icons.emoji_events),
-            title: const Text('Ranking'),
-            trailing: Text('${profile.rankingPoints} puntos'),
+            title: Text(sportName == null ? 'Ranking' : 'Ranking · $sportName'),
+            trailing: Text('$ranking puntos'),
           ),
           const Divider(height: 1),
           ListTile(

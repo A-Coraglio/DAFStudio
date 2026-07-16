@@ -224,3 +224,60 @@ class PlayerModel(GeneralModel):
                 return _row_to_ddo(result) if result else None
             except Exception as e:
                 raise DatabaseException(message=f"Database error: {e}")
+
+    # --- Per-sport ranking (player_sport_stat) -----------------------------
+
+    async def get_sport_ranking(self, player_id: int, sport_id: int) -> int:
+        """Ranking of a player in one sport. A (player, sport) pair that has
+        never played ranked in that sport defaults to the 1000 base."""
+        async with self.get_db_connection() as connection:
+            connection: PoolConnectionProxy = cast(PoolConnectionProxy, connection)
+            try:
+                value = await connection.fetchval(
+                    "SELECT ranking_points FROM player_sport_stat "
+                    "WHERE player_id = $1 AND sport_id = $2",
+                    player_id, sport_id,
+                )
+                return value if value is not None else 1000
+            except Exception as e:
+                raise DatabaseException(message=f"Database error: {e}")
+
+    async def list_sport_rankings(
+        self, sport_id: int, player_ids: list[int]
+    ) -> dict[int, int]:
+        """Batch {player_id: ranking} for one sport. Missing rows default to
+        1000 so callers can index every requested player."""
+        result = {pid: 1000 for pid in player_ids}
+        if not player_ids:
+            return result
+        async with self.get_db_connection() as connection:
+            connection: PoolConnectionProxy = cast(PoolConnectionProxy, connection)
+            try:
+                rows = await connection.fetch(
+                    "SELECT player_id, ranking_points FROM player_sport_stat "
+                    "WHERE sport_id = $1 AND player_id = ANY($2::int[])",
+                    sport_id, player_ids,
+                )
+                for r in rows:
+                    result[r["player_id"]] = r["ranking_points"]
+                return result
+            except Exception as e:
+                raise DatabaseException(message=f"Database error: {e}")
+
+    async def adjust_sport_ranking(
+        self, player_id: int, sport_id: int, delta: int
+    ) -> None:
+        """Applies an ELO delta to a (player, sport) ranking, creating the row
+        at 1000 + delta on the player's first ranked game in that sport."""
+        async with self.get_db_connection() as connection:
+            connection: PoolConnectionProxy = cast(PoolConnectionProxy, connection)
+            try:
+                await connection.execute(
+                    "INSERT INTO player_sport_stat "
+                    "(player_id, sport_id, ranking_points) VALUES ($1, $2, 1000 + $3) "
+                    "ON CONFLICT (player_id, sport_id) DO UPDATE "
+                    "SET ranking_points = player_sport_stat.ranking_points + $3",
+                    player_id, sport_id, delta,
+                )
+            except Exception as e:
+                raise DatabaseException(message=f"Database error: {e}")

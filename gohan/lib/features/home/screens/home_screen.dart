@@ -7,6 +7,10 @@ import '../../../core/widgets/error_view.dart';
 import '../../games/providers/games_providers.dart';
 import '../../profile/providers/profile_providers.dart';
 import '../../sports/providers/sports_providers.dart';
+import '../../classes/providers/classes_providers.dart';
+import '../../classes/widgets/classes_carousel.dart';
+import '../../tournaments/providers/tournaments_providers.dart';
+import '../../tournaments/widgets/tournaments_carousel.dart';
 import '../providers/home_providers.dart';
 import '../widgets/home_header.dart';
 import '../widgets/home_skeleton.dart';
@@ -58,6 +62,8 @@ class HomeScreen extends ConsumerWidget {
                 ref.invalidate(myGamesProvider);
                 ref.invalidate(nextGameProvider);
                 ref.invalidate(feedGamesProvider);
+                ref.invalidate(recommendedTournamentsProvider);
+                ref.invalidate(recommendedClassesProvider);
                 await ref.read(nextGameProvider.future);
               },
               child: ListView(
@@ -71,6 +77,10 @@ class HomeScreen extends ConsumerWidget {
                   QuickActionsRow(),
                   SizedBox(height: 20),
                   NearbyGamesCarousel(),
+                  SizedBox(height: 20),
+                  TournamentsCarousel(),
+                  SizedBox(height: 20),
+                  ClassesCarousel(),
                 ],
               ),
             ),

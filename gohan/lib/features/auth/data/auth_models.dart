@@ -1,10 +1,14 @@
 /// Input for `POST /api/auth/login/`.
 class LoginRequest {
-  final String email;
+  /// Email or username — the backend accepts either.
+  final String identifier;
   final String password;
-  const LoginRequest({required this.email, required this.password});
+  const LoginRequest({required this.identifier, required this.password});
 
-  Map<String, dynamic> toJson() => {'email': email, 'password': password};
+  Map<String, dynamic> toJson() => {
+    'identifier': identifier,
+    'password': password,
+  };
 }
 
 /// Input for `POST /api/auth/google/`.

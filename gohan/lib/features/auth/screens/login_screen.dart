@@ -47,7 +47,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           .read(authRepositoryProvider)
           .login(
             LoginRequest(
-              email: _emailCtrl.text.trim(),
+              identifier: _emailCtrl.text.trim(),
               password: _passCtrl.text,
             ),
           );
@@ -90,6 +90,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       ),
                       EmailField(
                         controller: _emailCtrl,
+                        label: 'Email o usuario',
+                        requireEmail: false,
                         onSubmitted: (_) => _passFocus.requestFocus(),
                       ),
                       const SizedBox(height: 12),

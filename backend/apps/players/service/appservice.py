@@ -129,22 +129,27 @@ class AppService:
             for g in games
         ]
 
-    async def my_stats(self, user_id: int) -> PlayerStatsOutputDTO:
-        """Aggregate W/L/D + ranking. Walks all finished games where the user
+    async def my_stats(
+        self, user_id: int, sport_id: int | None = None
+    ) -> PlayerStatsOutputDTO:
+        """Per-sport W/L/D + ranking when `sport_id` is given, otherwise an
+        all-sports aggregate. Walks all finished games where the user
         participated and tallies based on the same home/away split rule that
-        ELO uses, so the stats and the ranking are consistent."""
+        ELO uses, so the stats and the ranking stay consistent."""
         player = await PlayerModel().get_player_by_user_id(user_id=user_id)
         if player is None:
             raise PlayerNotFoundException(
                 message=f"No player profile for user {user_id}"
             )
-        return await self._stats_for_player(player)
+        return await self._stats_for_player(player, sport_id=sport_id)
 
-    async def player_stats(self, player_id: int) -> PlayerStatsOutputDTO:
+    async def player_stats(
+        self, player_id: int, sport_id: int | None = None
+    ) -> PlayerStatsOutputDTO:
         """Public W/L/D of any player — same tally as my_stats. Backs the
         public profile screen."""
         player = await PlayerModel().get_player_by_id(player_id=player_id)
-        return await self._stats_for_player(player)
+        return await self._stats_for_player(player, sport_id=sport_id)
 
     async def player_games(
         self, player_id: int, limit: int = 10, offset: int = 0,
@@ -161,15 +166,20 @@ class AppService:
             for g in games
         ]
 
-    async def _stats_for_player(self, player) -> PlayerStatsOutputDTO:
+    async def _stats_for_player(
+        self, player, sport_id: int | None = None
+    ) -> PlayerStatsOutputDTO:
         # Pull everything finished — no limit. If the per-user history ever
         # explodes we can switch to a per-mode aggregate query, but for now
-        # this is the simplest correct version.
+        # this is the simplest correct version. When `sport_id` is given, only
+        # games of that sport count and the ranking is that sport's ranking.
         finished = await GamesModel().list_games_for_player(
             player_id=player.id, status="finished", limit=10_000, offset=0,
         )
         wins = losses = draws = casual = total_with_result = 0
         for game in finished:
+            if sport_id is not None and game.sport_id != sport_id:
+                continue
             if game.mode == "casual":
                 casual += 1
                 continue
@@ -185,8 +195,14 @@ class AppService:
                 losses += 1
             elif outcome == "draw":
                 draws += 1
+        ranking = (
+            await PlayerModel().get_sport_ranking(player.id, sport_id)
+            if sport_id is not None
+            else player.ranking_points
+        )
         return PlayerStatsOutputDTO(
-            ranking_points=player.ranking_points,
+            sport_id=sport_id,
+            ranking_points=ranking,
             total_played=total_with_result,
             wins=wins,
             losses=losses,

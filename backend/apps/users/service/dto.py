@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 class RegisterInputDTO(BaseModel):
     username: str
@@ -6,8 +6,15 @@ class RegisterInputDTO(BaseModel):
     password: str
 
 class LoginInputDTO(BaseModel):
-    email: str
+    # Either the email or the username works. `email` is kept as a legacy
+    # alias so older clients keep logging in.
+    identifier: str | None = Field(default=None, description="Email or username")
+    email: str | None = Field(default=None, description="Legacy alias for identifier")
     password: str
+
+    @property
+    def login_id(self) -> str:
+        return (self.identifier or self.email or "").strip()
 
 class GoogleLoginInputDTO(BaseModel):
     """The Flutter client signs in with Google natively, gets back an id_token,

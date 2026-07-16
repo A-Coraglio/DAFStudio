@@ -40,7 +40,11 @@ class PlayerStatsOutputDTO(BaseModel):
     """Aggregate stats for the current player. Only `finished` games with a
     final result contribute to W/L/D; cancelled and result-less finished games
     are not counted."""
-    ranking_points: int
+    sport_id: int | None = Field(
+        default=None,
+        description="Sport these stats are scoped to; null = all sports",
+    )
+    ranking_points: int = Field(description="Ranking in this sport (or overall)")
     total_played: int = Field(description="Finished games WITH a final score")
     wins: int = Field(description="Competitive wins")
     losses: int = Field(description="Competitive losses")

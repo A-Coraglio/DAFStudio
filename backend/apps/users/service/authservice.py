@@ -73,7 +73,10 @@ class AuthService():
         return self._to_output_dto(user)
 
     async def users_login(self, data: LoginInputDTO) -> TokenOutputDTO:
-        user = await UserModel().get_user_by_email(email=data.email)
+        # Accept either the email or the username as the login identifier.
+        user = await UserModel().get_user_by_email_or_username(
+            identifier=data.login_id
+        )
         if not user or not self._verify_password(data.password, user.password_hash):
             raise InvalidCredentialsException()
         token = self._create_token(user.id)

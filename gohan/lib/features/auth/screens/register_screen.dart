@@ -57,7 +57,10 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       // Auto-login after register, then route to onboarding. The router's
       // profile-completion guard will handle /complete-profile vs /home.
       final login = await repo.login(
-        LoginRequest(email: _emailCtrl.text.trim(), password: _passCtrl.text),
+        LoginRequest(
+          identifier: _emailCtrl.text.trim(),
+          password: _passCtrl.text,
+        ),
       );
       await ref.read(sessionProvider.notifier).setToken(login.accessToken);
       if (!mounted) return;

@@ -167,4 +167,5 @@ async def report_result(
         current_user_id=current_user_id,
         reported_home=body.reported_home,
         reported_away=body.reported_away,
+        sets=body.sets,
     )

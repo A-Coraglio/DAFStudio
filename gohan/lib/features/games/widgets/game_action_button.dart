@@ -109,8 +109,15 @@ class _GameActionButtonState extends ConsumerState<GameActionButton> {
   /// Estar fuera del rango no bloquea — solo avisa antes de unirse.
   Future<void> _join(Game game, dynamic repo) async {
     final anchor = game.organizerRankingPoints;
-    final mine = ref.read(myProfileProvider).valueOrNull?.rankingPoints;
-    if (anchor != null && mine != null && (mine - anchor).abs() > kLevelRange) {
+    // Compare my ranking IN THIS GAME'S SPORT against the game's anchor.
+    int mine;
+    try {
+      mine = await ref.read(mySportRankingProvider(game.sportId).future);
+    } catch (_) {
+      mine = anchor ?? 1000; // on failure, don't block with a bogus warning
+    }
+    if (!mounted) return;
+    if (anchor != null && (mine - anchor).abs() > kLevelRange) {
       final above = mine > anchor;
       final ok = await showConfirmDialog(
         context,
