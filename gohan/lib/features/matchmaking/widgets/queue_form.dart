@@ -1,11 +1,10 @@
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/http/api_client.dart';
 import '../../../core/providers/location_provider.dart';
 import '../../../core/storage/mode_prefs.dart';
 import '../../../core/widgets/primary_submit_button.dart';
+import '../../../core/errors/error_snackbar.dart';
 import '../../games/widgets/game_mode_picker.dart';
 import '../../profile/providers/profile_providers.dart';
 import '../../sports/providers/sports_providers.dart';
@@ -41,7 +40,7 @@ class _QueueFormState extends ConsumerState<QueueForm> {
     ModePrefs.readLastMatchmakingMode().then((m) {
       if (!mounted || m == null) return;
       setState(() => _mode = m);
-    });
+    }).catchError((_) {}); // prefs failing just keeps the default mode
   }
 
   Future<void> _submit() async {
@@ -73,11 +72,9 @@ class _QueueFormState extends ConsumerState<QueueForm> {
           );
       await ModePrefs.writeLastMatchmakingMode(_mode);
       ref.invalidate(matchmakingStatusStreamProvider);
-    } on DioException catch (e) {
+    } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(dioErrorMessage(e))));
+      showErrorSnack(context, e);
     } finally {
       if (mounted) setState(() => _loading = false);
     }

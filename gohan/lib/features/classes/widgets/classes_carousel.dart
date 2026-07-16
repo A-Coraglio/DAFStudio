@@ -2,16 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/widgets/see_more_card.dart';
 import '../../../core/widgets/skeleton_box.dart';
 import '../providers/classes_providers.dart';
 import 'class_card.dart';
 
-/// Home carousel of recommended classes + a "Ver todas" action that opens the
-/// full classes search screen.
+/// Home carousel of recommended classes. The trailing "Ver más" card opens
+/// the full classes search screen.
 class ClassesCarousel extends ConsumerWidget {
   const ClassesCarousel({super.key});
 
-  static const _maxItems = 8;
+  static const _maxItems = 10;
   static const _cardWidth = 300.0;
   static const _stripHeight = 128.0;
 
@@ -21,42 +22,41 @@ class ClassesCarousel extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          children: [
-            Expanded(
-              child: Text(
-                'Clases cerca tuyo',
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-            ),
-            TextButton(
-              onPressed: () => context.push('/classes'),
-              child: const Text('Ver todas'),
-            ),
-          ],
+        Padding(
+          padding: const EdgeInsets.only(bottom: 10),
+          child: Text(
+            'Clases cerca tuyo',
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
         ),
-        const SizedBox(height: 4),
         async.when(
           loading: () => const SkeletonBox(height: _stripHeight, radius: 16),
           error: (_, _) => const _ErrorStrip(),
-          data: (items) => items.isEmpty
-              ? const _EmptyStrip()
-              : SizedBox(
-                  height: _stripHeight,
-                  child: ListView.separated(
-                    scrollDirection: Axis.horizontal,
-                    itemCount:
-                        items.length > _maxItems ? _maxItems : items.length,
-                    separatorBuilder: (_, _) => const SizedBox(width: 10),
-                    itemBuilder: (_, i) => SizedBox(
-                      width: _cardWidth,
-                      child: ClassCard(
-                        offering: items[i],
-                        onTap: () => context.push('/classes'),
-                      ),
+          data: (items) {
+            if (items.isEmpty) return const _EmptyStrip();
+            final count =
+                items.length > _maxItems ? _maxItems : items.length;
+            return SizedBox(
+              height: _stripHeight,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                itemCount: count + 1,
+                separatorBuilder: (_, _) => const SizedBox(width: 10),
+                itemBuilder: (_, i) {
+                  if (i == count) {
+                    return SeeMoreCard(onTap: () => context.push('/classes'));
+                  }
+                  return SizedBox(
+                    width: _cardWidth,
+                    child: ClassCard(
+                      offering: items[i],
+                      onTap: () => context.push('/classes'),
                     ),
-                  ),
-                ),
+                  );
+                },
+              ),
+            );
+          },
         ),
       ],
     );
@@ -68,11 +68,12 @@ class _EmptyStrip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Card(
+    return Card(
       child: ListTile(
-        leading: Icon(Icons.school_outlined),
-        title: Text('Todavía no hay clases cerca'),
-        subtitle: Text('Mirá todas las opciones en "Ver todas"'),
+        leading: const Icon(Icons.school_outlined),
+        title: const Text('Todavía no hay clases cerca'),
+        subtitle: const Text('Tocá para ver todas las opciones'),
+        onTap: () => context.push('/classes'),
       ),
     );
   }

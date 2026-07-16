@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/providers/core_providers.dart';
 import '../../../core/providers/location_provider.dart';
+import '../../sports/providers/sports_providers.dart';
 import '../data/class_model.dart';
 import '../data/classes_repository.dart';
 
@@ -10,14 +11,20 @@ final classesRepositoryProvider = Provider<ClassesRepository>((ref) {
 });
 
 /// Recommended classes for the home carousel — ranked server-side by the
-/// user's favorite sport and (best-effort) location.
+/// user's favorite sport and (best-effort) location. Hard-filtered to the
+/// active sport (home selector); changing sport refetches the strip.
 final recommendedClassesProvider = FutureProvider<List<ClassOffering>>((
   ref,
 ) async {
+  final sportId = ref.watch(activeSportIdProvider);
   final location = await ref.watch(currentLocationProvider.future);
   return ref
       .read(classesRepositoryProvider)
-      .recommended(nearLat: location?.lat, nearLon: location?.lon);
+      .recommended(
+        nearLat: location?.lat,
+        nearLon: location?.lon,
+        sportId: sportId,
+      );
 });
 
 // --- Search screen filters ---------------------------------------------------

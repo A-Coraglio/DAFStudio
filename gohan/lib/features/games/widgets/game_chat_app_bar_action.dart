@@ -1,10 +1,9 @@
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../core/http/api_client.dart';
 import '../../chats/providers/chats_providers.dart';
+import '../../../core/errors/error_snackbar.dart';
 
 /// AppBar icon that opens the game's chat. Same `ensureForGame` behavior as
 /// [GameChatButton] but rendered compact so the detail screen's body keeps a
@@ -30,11 +29,9 @@ class _GameChatAppBarActionState extends ConsumerState<GameChatAppBarAction> {
           .ensureForGame(widget.gameId);
       if (!mounted) return;
       context.push('/chats/${chat.id}');
-    } on DioException catch (e) {
+    } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(dioErrorMessage(e))));
+      showErrorSnack(context, e);
     } finally {
       if (mounted) setState(() => _loading = false);
     }

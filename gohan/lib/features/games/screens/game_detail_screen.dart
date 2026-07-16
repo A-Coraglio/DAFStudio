@@ -10,6 +10,7 @@ import '../widgets/game_info_card.dart';
 import '../widgets/game_organizer_menu.dart';
 import '../widgets/game_players_list.dart';
 import '../widgets/game_share_action.dart';
+import '../widgets/position_board.dart';
 import '../widgets/report_progress_hint.dart';
 import '../widgets/report_result_button.dart';
 
@@ -53,6 +54,8 @@ class GameDetailScreen extends ConsumerWidget {
             padding: const EdgeInsets.all(16),
             children: [
               GameInfoCard(game: game),
+              const SizedBox(height: 16),
+              PositionBoard(game: game),
               const SizedBox(height: 16),
               Text('Jugadores', style: Theme.of(context).textTheme.titleMedium),
               const SizedBox(height: 8),

@@ -198,15 +198,18 @@ class AppService:
         result: list[GamePlayerOutputDTO] = []
         for row in rows:
             profile = profile_by_id.get(row.player_id)
+            avatar_path = profile.avatar_path if profile else None
             result.append(GamePlayerOutputDTO(
                 game_id=row.game_id,
                 player_id=row.player_id,
                 team_id=row.team_id,
+                position=row.position,
                 created_at=iso_utc(row.created_at),
                 first_name=profile.first_name if profile else None,
                 last_name=profile.last_name if profile else None,
                 level=profile.level if profile else None,
                 ranking_points=sport_ranking.get(row.player_id, 1000),
+                avatar_url=f"/uploads/{avatar_path}" if avatar_path else None,
             ))
         return result
 
@@ -225,6 +228,7 @@ class AppService:
         game_id: int,
         current_user_id: int,
         team_id: int | None = None,
+        position: int | None = None,
     ) -> GamesOutputDTO:
         game = await GamesModel().get_game_by_id(game_id=game_id)
         if game.status != "open":
@@ -243,8 +247,18 @@ class AppService:
         if current_count >= game.max_players:
             raise GameStateException(message="Game is full")
 
+        if position is not None:
+            if position >= game.max_players:
+                raise GameStateException(
+                    message="Position is out of range", error_code=400
+                )
+            taken = await GamePlayerModel().taken_positions(game_id=game_id)
+            if position in taken:
+                raise GameStateException(message="Position already taken")
+
         await GamePlayerModel().add_player(
-            game_id=game_id, player_id=player.id, team_id=team_id
+            game_id=game_id, player_id=player.id, team_id=team_id,
+            position=position,
         )
 
         # Flip to 'full' if we just filled the last slot.
@@ -356,8 +370,10 @@ class AppService:
     async def _apply_elo(self, game: GameDDO) -> None:
         """Adjusts ranking_points for all participants after a ranked-mode
         game finalizes. Uses classic chess ELO per team (avg of team's
-        rankings). Home team = first half of players by join order; away =
-        rest. Casual games skip ranking entirely.
+        rankings). Home team = players whose chosen position falls in the
+        first half of the slots; players without a position are balanced in
+        by join order (which keeps the legacy join-order split for games
+        where nobody picked a spot). Casual games skip ranking entirely.
         """
         if game.mode not in _RANKED_MODES:
             return
@@ -368,11 +384,22 @@ class AppService:
         if len(game_players) < 2:
             return
 
-        # Split by join order. For odd player counts (user-created games),
-        # the larger team goes away.
+        home_slots = game.max_players // 2
+        home_gps = [
+            gp for gp in game_players
+            if gp.position is not None and gp.position < home_slots
+        ]
+        away_gps = [
+            gp for gp in game_players
+            if gp.position is not None and gp.position >= home_slots
+        ]
+        # Unpositioned players fill home up to half the roster (join order),
+        # then away — for odd counts the larger team goes away, as before.
         mid = len(game_players) // 2
-        home_gps = game_players[:mid]
-        away_gps = game_players[mid:]
+        for gp in game_players:
+            if gp.position is not None:
+                continue
+            (home_gps if len(home_gps) < mid else away_gps).append(gp)
         if not home_gps or not away_gps:
             return
 

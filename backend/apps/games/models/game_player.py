@@ -12,6 +12,9 @@ class GamePlayerDDO(BaseModel):
     game_id: int
     player_id: int
     team_id: int | None = Field(default=None)
+    # Chosen slot (0..max_players-1); first half = home side. None = joined
+    # without picking a spot (matchmaking / legacy rows).
+    position: int | None = Field(default=None)
     created_at: datetime
 
 
@@ -20,6 +23,7 @@ def _row_to_ddo(row) -> GamePlayerDDO:
         game_id=row["game_id"],
         player_id=row["player_id"],
         team_id=row["team_id"],
+        position=row["position"],
         created_at=row["created_at"],
     )
 
@@ -84,21 +88,37 @@ class GamePlayerModel(GeneralModel):
             except Exception as e:
                 raise DatabaseException(message=f"Database error: {e}")
 
+    async def taken_positions(self, game_id: int) -> set[int]:
+        async with self.get_db_connection() as connection:
+            connection: PoolConnectionProxy = cast(PoolConnectionProxy, connection)
+            query = (
+                f"SELECT position FROM {self.__table_name__} "
+                "WHERE game_id = $1 AND position IS NOT NULL"
+            )
+            try:
+                results = await connection.fetch(query, game_id)
+                return {int(r["position"]) for r in results}
+            except Exception as e:
+                raise DatabaseException(message=f"Database error: {e}")
+
     async def add_player(
         self,
         game_id: int,
         player_id: int,
         team_id: int | None = None,
+        position: int | None = None,
     ) -> GamePlayerDDO:
         async with self.get_db_connection() as connection:
             connection: PoolConnectionProxy = cast(PoolConnectionProxy, connection)
             query = (
                 f"INSERT INTO {self.__table_name__} "
-                "(game_id, player_id, team_id) "
-                "VALUES ($1, $2, $3) RETURNING *"
+                "(game_id, player_id, team_id, position) "
+                "VALUES ($1, $2, $3, $4) RETURNING *"
             )
             try:
-                result = await connection.fetchrow(query, game_id, player_id, team_id)
+                result = await connection.fetchrow(
+                    query, game_id, player_id, team_id, position
+                )
                 return _row_to_ddo(result)
             except Exception as e:
                 raise DatabaseException(message=f"Database error: {e}")

@@ -11,6 +11,7 @@ class TournamentsRepository {
   Future<List<Tournament>> recommended({
     double? nearLat,
     double? nearLon,
+    int? sportId,
     int limit = 8,
   }) async {
     final res = await _dio.get<List<dynamic>>(
@@ -19,6 +20,7 @@ class TournamentsRepository {
         'limit': limit,
         if (nearLat != null) 'near_lat': nearLat,
         if (nearLon != null) 'near_lon': nearLon,
+        if (sportId != null) 'sport_id': sportId,
       },
     );
     return _parse(res.data);

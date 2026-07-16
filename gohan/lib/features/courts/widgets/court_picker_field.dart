@@ -25,7 +25,7 @@ class CourtPickerField extends ConsumerWidget {
     return courtsAsync.when(
       loading: () => const LinearProgressIndicator(),
       error: (err, _) => Text(
-        'No pudimos cargar canchas: $err',
+        'No pudimos cargar las canchas.',
         style: TextStyle(color: Theme.of(context).colorScheme.error),
       ),
       data: (courts) => DropdownButtonFormField<int?>(

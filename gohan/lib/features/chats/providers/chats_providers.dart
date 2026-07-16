@@ -26,21 +26,36 @@ final chatForGameProvider = FutureProvider.autoDispose.family<Chat, int>((
 
 /// Poll-based message stream for a chat. Polls every 3s while something is
 /// watching it. Cheap because the query is id-indexed and capped to 50.
+/// If the very first fetch fails the error surfaces (ErrorView with retry);
+/// once there's data, transient network blips are swallowed and polling
+/// continues — otherwise a single blip would kill the open conversation.
 final chatMessagesStreamProvider = StreamProvider.autoDispose
     .family<List<ChatMessage>, int>((ref, chatId) async* {
       final repo = ref.read(chatsRepositoryProvider);
+      var hasData = false;
       while (true) {
-        yield await repo.listMessages(chatId);
+        try {
+          yield await repo.listMessages(chatId);
+          hasData = true;
+        } catch (_) {
+          if (!hasData) rethrow;
+        }
         await Future.delayed(const Duration(seconds: 3));
       }
     });
 
 /// Total unread messages, polled every 15s. Backs the Chats tab badge in the
-/// bottom navigation; the always-mounted nav shell keeps it alive.
+/// bottom navigation; the always-mounted nav shell keeps it alive, so a
+/// failure must never end the stream — it would kill the badge for the
+/// whole session. Errors just skip the tick.
 final unreadTotalProvider = StreamProvider<int>((ref) async* {
   final repo = ref.read(chatsRepositoryProvider);
   while (true) {
-    yield await repo.unreadTotal();
+    try {
+      yield await repo.unreadTotal();
+    } catch (_) {
+      // keep polling; the badge shows the last known value (or 0)
+    }
     await Future.delayed(const Duration(seconds: 15));
   }
 });

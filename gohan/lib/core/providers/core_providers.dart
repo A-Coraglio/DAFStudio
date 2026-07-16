@@ -31,7 +31,14 @@ class SessionNotifier extends StateNotifier<SessionState> {
   }
 
   Future<void> _restore() async {
-    final token = await AuthStorage.readToken();
+    // A secure-storage failure must fall back to the login screen, never
+    // leave the app stuck on the splash (loading) state forever.
+    String? token;
+    try {
+      token = await AuthStorage.readToken();
+    } catch (_) {
+      token = null;
+    }
     state = (token != null && token.isNotEmpty)
         ? SessionState.authenticated(token)
         : SessionState.unauthenticated;

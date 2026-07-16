@@ -22,7 +22,7 @@ class GamePlayersList extends ConsumerWidget {
         loading: () => const TileListSkeleton(rows: 3, shrinkWrap: true),
         error: (err, _) => Padding(
           padding: const EdgeInsets.all(16),
-          child: Text('No pudimos cargar los jugadores: $err'),
+          child: Text('No pudimos cargar los jugadores.'),
         ),
         data: (players) {
           if (players.isEmpty) {

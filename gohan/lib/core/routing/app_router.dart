@@ -64,13 +64,19 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (_, _) => const CompleteProfileScreen(),
       ),
       GoRoute(path: '/games/new', builder: (_, _) => const CreateGameScreen()),
+      // :id routes guard against non-numeric ids (hand-edited URLs on web)
+      // by bouncing back to the section list instead of crashing the build.
       GoRoute(
         path: '/games/:id',
+        redirect: (_, state) =>
+            int.tryParse(state.pathParameters['id']!) == null ? '/games' : null,
         builder: (_, state) =>
             GameDetailScreen(gameId: int.parse(state.pathParameters['id']!)),
       ),
       GoRoute(
         path: '/chats/:id',
+        redirect: (_, state) =>
+            int.tryParse(state.pathParameters['id']!) == null ? '/chats' : null,
         builder: (_, state) =>
             ChatScreen(chatId: int.parse(state.pathParameters['id']!)),
       ),
@@ -86,6 +92,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/classes', builder: (_, _) => const ClassesScreen()),
       GoRoute(
         path: '/players/:id',
+        redirect: (_, state) =>
+            int.tryParse(state.pathParameters['id']!) == null
+            ? '/players'
+            : null,
         builder: (_, state) => PublicProfileScreen(
           playerId: int.parse(state.pathParameters['id']!),
         ),

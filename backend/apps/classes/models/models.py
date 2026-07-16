@@ -124,17 +124,27 @@ class ClassModel(GeneralModel):
         near_lat: float | None = None,
         near_lon: float | None = None,
         limit: int = 8,
+        sport_id: int | None = None,
     ) -> list[ClassDDO]:
         """Carousel feed: all teachers, softly ranked by whether they teach the
-        user's favorite sport and by proximity."""
+        user's favorite sport and by proximity. [sport_id] is a HARD filter:
+        when the client pins a sport (home selector) only teachers of that
+        sport come back."""
         async with self.get_db_connection() as connection:
             connection: PoolConnectionProxy = cast(PoolConnectionProxy, connection)
 
             params: list = []
             idx = 1
             order_parts: list[str] = []
+            where: list[str] = []
             select_distance = ", NULL::float AS distance_km"
 
+            if sport_id is not None:
+                where.append(
+                    "EXISTS (SELECT 1 FROM teacher_sport tsf "
+                    f"WHERE tsf.teacher_id = t.id AND tsf.sport_id = ${idx})"
+                )
+                params.append(sport_id); idx += 1
             if favorite_sport_id is not None:
                 order_parts.append(
                     "(EXISTS (SELECT 1 FROM teacher_sport tsr "
@@ -148,10 +158,12 @@ class ClassModel(GeneralModel):
                 order_parts.append(f"{dist} ASC NULLS LAST")
             order_parts.append("t.price_per_hour ASC")
 
+            where_sql = f"WHERE {' AND '.join(where)}" if where else ""
             params.append(limit)
             query = (
                 f"{self._BASE_SELECT}{select_distance} {self._BASE_FROM} "
-                f"{self._GROUP_BY} ORDER BY {', '.join(order_parts)} LIMIT ${idx}"
+                f"{where_sql} {self._GROUP_BY} "
+                f"ORDER BY {', '.join(order_parts)} LIMIT ${idx}"
             )
             try:
                 results = await connection.fetch(query, *params)

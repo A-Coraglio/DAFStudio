@@ -1,9 +1,8 @@
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/http/api_client.dart';
 import '../../../core/widgets/confirm_dialog.dart';
+import '../../../core/errors/error_snackbar.dart';
 import '../../profile/providers/profile_providers.dart';
 import '../data/game.dart';
 import '../data/game_player.dart';
@@ -45,11 +44,9 @@ class _GameActionButtonState extends ConsumerState<GameActionButton> {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text(successMessage)));
-    } on DioException catch (e) {
+    } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(dioErrorMessage(e))));
+      showErrorSnack(context, e);
     } finally {
       if (mounted) setState(() => _loading = false);
     }

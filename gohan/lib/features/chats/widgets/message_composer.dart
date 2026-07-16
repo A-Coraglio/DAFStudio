@@ -1,10 +1,9 @@
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/http/api_client.dart';
 import '../providers/chats_providers.dart';
+import '../../../core/errors/error_snackbar.dart';
 
 /// Text field + send button pinned at the bottom of a chat panel. Invalidates
 /// the messages stream after a successful send so the new message shows up
@@ -33,11 +32,9 @@ class _MessageComposerState extends ConsumerState<MessageComposer> {
       _controller.clear();
       ref.invalidate(chatMessagesStreamProvider(widget.chatId));
       widget.onSent?.call();
-    } on DioException catch (e) {
+    } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(dioErrorMessage(e))));
+      showErrorSnack(context, e);
     } finally {
       if (mounted) setState(() => _sending = false);
     }

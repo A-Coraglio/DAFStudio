@@ -112,18 +112,25 @@ class TournamentModel(GeneralModel):
         near_lat: float | None = None,
         near_lon: float | None = None,
         limit: int = 8,
+        sport_id: int | None = None,
     ) -> list[TournamentDDO]:
         """Carousel feed: only future/ongoing tournaments, softly ranked by the
         user's favorite sport, matching level and proximity — none of them a
-        hard filter, so the strip is never empty when data exists."""
+        hard filter, so the strip is never empty when data exists. [sport_id]
+        is the exception: when the client pins a sport (home selector) only
+        that sport's tournaments come back."""
         async with self.get_db_connection() as connection:
             connection: PoolConnectionProxy = cast(PoolConnectionProxy, connection)
 
             params: list = []
             idx = 1
             order_parts: list[str] = []
+            where = "WHERE t.status IN ('upcoming', 'ongoing')"
             select_distance = ", NULL::float AS distance_km"
 
+            if sport_id is not None:
+                where += f" AND t.sport_id = ${idx}"
+                params.append(sport_id); idx += 1
             if favorite_sport_id is not None:
                 order_parts.append(f"(t.sport_id = ${idx}) DESC")
                 params.append(favorite_sport_id); idx += 1
@@ -141,7 +148,7 @@ class TournamentModel(GeneralModel):
             query = (
                 f"{self._BASE_SELECT}{select_distance} "
                 f"FROM {self.__table_name__} t "
-                "WHERE t.status IN ('upcoming', 'ongoing') "
+                f"{where} "
                 f"ORDER BY {', '.join(order_parts)} LIMIT ${idx}"
             )
             try:

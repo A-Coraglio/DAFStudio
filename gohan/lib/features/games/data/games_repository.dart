@@ -86,10 +86,15 @@ class GamesRepository {
         .toList();
   }
 
-  Future<Game> join(int gameId, {int? teamId}) async {
+  /// [position] is the chosen slot (0..max_players-1, first half = home
+  /// side); omit it to join without picking a spot.
+  Future<Game> join(int gameId, {int? teamId, int? position}) async {
     final res = await _dio.post<Map<String, dynamic>>(
       '/api/games/$gameId/join/',
-      data: {if (teamId != null) 'team_id': teamId},
+      data: {
+        if (teamId != null) 'team_id': teamId,
+        if (position != null) 'position': position,
+      },
     );
     return Game.fromJson(res.data!);
   }

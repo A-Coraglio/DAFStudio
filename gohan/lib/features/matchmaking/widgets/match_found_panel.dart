@@ -1,10 +1,9 @@
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/http/api_client.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/confirm_dialog.dart';
+import '../../../core/errors/error_snackbar.dart';
 import '../../games/data/game.dart';
 import '../../games/widgets/game_info_card.dart';
 import '../data/matchmaking_ticket.dart';
@@ -32,11 +31,9 @@ class _MatchFoundPanelState extends ConsumerState<MatchFoundPanel> {
     try {
       await op();
       ref.invalidate(matchmakingStatusStreamProvider);
-    } on DioException catch (e) {
+    } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(dioErrorMessage(e))));
+      showErrorSnack(context, e);
     } finally {
       if (mounted) setState(() => _loading = false);
     }

@@ -1,11 +1,11 @@
-import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
-import '../http/api_client.dart';
+import '../errors/error_messages.dart';
 
 /// Error state with an optional retry button. Pass the raw [error] and it
-/// renders a human headline; the technical detail stays behind a "Ver
-/// detalle" toggle. [message] overrides the derived headline.
+/// renders a friendly Spanish headline; the technical detail stays behind a
+/// "Ver detalle" toggle (debug builds only). [message] overrides the headline.
 class ErrorView extends StatefulWidget {
   const ErrorView({super.key, this.error, this.message, this.onRetry});
 
@@ -20,26 +20,12 @@ class ErrorView extends StatefulWidget {
 class _ErrorViewState extends State<ErrorView> {
   bool _showDetail = false;
 
-  String get _headline {
-    if (widget.message != null) return widget.message!;
-    final e = widget.error;
-    if (e is DioException) {
-      return switch (e.type) {
-        DioExceptionType.connectionError ||
-        DioExceptionType.connectionTimeout ||
-        DioExceptionType.receiveTimeout ||
-        DioExceptionType.sendTimeout =>
-          'No pudimos conectar con el servidor.\n'
-              'Revisá tu conexión e intentá de nuevo.',
-        _ => dioErrorMessage(e),
-      };
-    }
-    return 'Algo salió mal.';
-  }
+  String get _headline =>
+      widget.message ?? friendlyErrorMessage(widget.error);
 
   @override
   Widget build(BuildContext context) {
-    final detail = widget.error?.toString();
+    final detail = kDebugMode ? widget.error?.toString() : null;
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24),

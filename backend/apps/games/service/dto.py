@@ -62,6 +62,13 @@ class JoinGameInputDTO(BaseModel):
     team_id: int | None = Field(
         default=None, description="Optional team assignment"
     )
+    position: int | None = Field(
+        default=None, ge=0,
+        description=(
+            "Chosen slot (0..max_players-1). First half of the slots is the "
+            "home side, the rest is away. Omit to join without a spot."
+        ),
+    )
 
 
 class SetScoreDTO(BaseModel):
@@ -86,8 +93,10 @@ class GamePlayerOutputDTO(BaseModel):
     game_id: int
     player_id: int
     team_id: int | None = None
+    position: int | None = None
     created_at: str
     first_name: str | None = None
     last_name: str | None = None
     level: str | None = None
     ranking_points: int = 0
+    avatar_url: str | None = None

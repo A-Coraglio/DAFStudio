@@ -1,12 +1,11 @@
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 
-import '../../../core/http/api_client.dart';
 import '../data/player_profile.dart';
 import '../providers/profile_providers.dart';
 import 'profile_avatar.dart';
+import '../../../core/errors/error_snackbar.dart';
 
 /// Tappable avatar that opens the OS image picker and uploads the chosen
 /// image to /api/players/me/avatar/. Invalidates the profile provider on
@@ -35,12 +34,18 @@ class _AvatarPickerState extends ConsumerState<AvatarPicker> {
   }
 
   Future<void> _pickAndUpload() async {
-    final picker = ImagePicker();
-    final picked = await picker.pickImage(
-      source: ImageSource.gallery,
-      maxWidth: 1024,
-      imageQuality: 85,
-    );
+    final XFile? picked;
+    try {
+      picked = await ImagePicker().pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 1024,
+        imageQuality: 85,
+      );
+    } catch (e) {
+      if (!mounted) return;
+      showErrorSnack(context, e);
+      return;
+    }
     if (picked == null) return;
     setState(() => _uploading = true);
     try {
@@ -49,11 +54,9 @@ class _AvatarPickerState extends ConsumerState<AvatarPicker> {
           .read(profileRepositoryProvider)
           .uploadAvatar(bytes: bytes, filename: picked.name);
       ref.invalidate(myProfileProvider);
-    } on DioException catch (e) {
+    } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(dioErrorMessage(e))));
+      showErrorSnack(context, e);
     } finally {
       if (mounted) setState(() => _uploading = false);
     }

@@ -41,6 +41,10 @@ class ClassesScreen extends ConsumerWidget {
                         separatorBuilder: (_, _) => const SizedBox(height: 10),
                         itemBuilder: (_, i) => ClassCard(
                           offering: items[i],
+                          // Lead each card with the screen's sport filter.
+                          preferredSportId: ref.watch(
+                            classFilterProvider.select((f) => f.sportId),
+                          ),
                           // No dedicated teacher detail screen yet.
                           onTap: () {},
                         ),

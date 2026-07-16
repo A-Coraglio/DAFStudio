@@ -2,16 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/widgets/see_more_card.dart';
 import '../../../core/widgets/skeleton_box.dart';
 import '../providers/tournaments_providers.dart';
 import 'tournament_card.dart';
 
-/// Home carousel of recommended tournaments + a "Ver todos" action that opens
-/// the full tournaments search screen.
+/// Home carousel of recommended tournaments. The trailing "Ver más" card
+/// opens the full tournaments search screen.
 class TournamentsCarousel extends ConsumerWidget {
   const TournamentsCarousel({super.key});
 
-  static const _maxItems = 8;
+  static const _maxItems = 10;
   static const _cardWidth = 300.0;
   static const _stripHeight = 116.0;
 
@@ -21,42 +22,43 @@ class TournamentsCarousel extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          children: [
-            Expanded(
-              child: Text(
-                'Torneos para vos',
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-            ),
-            TextButton(
-              onPressed: () => context.push('/tournaments'),
-              child: const Text('Ver todos'),
-            ),
-          ],
+        Padding(
+          padding: const EdgeInsets.only(bottom: 10),
+          child: Text(
+            'Torneos para vos',
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
         ),
-        const SizedBox(height: 4),
         async.when(
           loading: () => const SkeletonBox(height: _stripHeight, radius: 16),
           error: (_, _) => const _ErrorStrip(),
-          data: (items) => items.isEmpty
-              ? const _EmptyStrip()
-              : SizedBox(
-                  height: _stripHeight,
-                  child: ListView.separated(
-                    scrollDirection: Axis.horizontal,
-                    itemCount:
-                        items.length > _maxItems ? _maxItems : items.length,
-                    separatorBuilder: (_, _) => const SizedBox(width: 10),
-                    itemBuilder: (_, i) => SizedBox(
-                      width: _cardWidth,
-                      child: TournamentCard(
-                        tournament: items[i],
-                        onTap: () => context.push('/tournaments'),
-                      ),
+          data: (items) {
+            if (items.isEmpty) return const _EmptyStrip();
+            final count =
+                items.length > _maxItems ? _maxItems : items.length;
+            return SizedBox(
+              height: _stripHeight,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                itemCount: count + 1,
+                separatorBuilder: (_, _) => const SizedBox(width: 10),
+                itemBuilder: (_, i) {
+                  if (i == count) {
+                    return SeeMoreCard(
+                      onTap: () => context.push('/tournaments'),
+                    );
+                  }
+                  return SizedBox(
+                    width: _cardWidth,
+                    child: TournamentCard(
+                      tournament: items[i],
+                      onTap: () => context.push('/tournaments'),
                     ),
-                  ),
-                ),
+                  );
+                },
+              ),
+            );
+          },
         ),
       ],
     );
@@ -68,11 +70,12 @@ class _EmptyStrip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Card(
+    return Card(
       child: ListTile(
-        leading: Icon(Icons.emoji_events_outlined),
-        title: Text('No hay torneos cerca todavía'),
-        subtitle: Text('Probá ampliar la búsqueda desde "Ver todos"'),
+        leading: const Icon(Icons.emoji_events_outlined),
+        title: const Text('No hay torneos cerca todavía'),
+        subtitle: const Text('Tocá para ampliar la búsqueda'),
+        onTap: () => context.push('/tournaments'),
       ),
     );
   }

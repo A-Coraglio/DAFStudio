@@ -44,10 +44,12 @@ class AppService:
         near_lat: float | None = None,
         near_lon: float | None = None,
         limit: int = 8,
+        sport_id: int | None = None,
     ) -> list[TournamentOutputDTO]:
         """Personalised strip: reads the user's favorite sport + level from
         their player profile and ranks upcoming tournaments by that plus the
-        (client-provided) location."""
+        (client-provided) location. [sport_id] (the home sport selector) is a
+        hard filter on top of the soft ranking."""
         player = await PlayerModel().get_player_by_user_id(user_id=current_user_id)
         favorite_sport_id = player.favorite_sport_id if player else None
         level = player.level if player else None
@@ -57,5 +59,6 @@ class AppService:
             near_lat=near_lat,
             near_lon=near_lon,
             limit=limit,
+            sport_id=sport_id,
         )
         return [self._to_output_dto(t) for t in rows]

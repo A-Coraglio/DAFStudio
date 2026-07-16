@@ -24,7 +24,7 @@ class SportDropdownField extends ConsumerWidget {
     return sportsAsync.when(
       loading: () => const LinearProgressIndicator(),
       error: (err, _) => Text(
-        'No pudimos cargar los deportes: $err',
+        'No pudimos cargar los deportes.',
         style: TextStyle(color: Theme.of(context).colorScheme.error),
       ),
       data: (sports) => DropdownButtonFormField<int>(

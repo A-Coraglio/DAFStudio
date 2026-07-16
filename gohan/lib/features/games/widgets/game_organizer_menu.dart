@@ -1,9 +1,8 @@
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/http/api_client.dart';
 import '../../../core/widgets/confirm_dialog.dart';
+import '../../../core/errors/error_snackbar.dart';
 import '../../profile/providers/profile_providers.dart';
 import '../data/game.dart';
 import '../providers/games_providers.dart';
@@ -35,11 +34,9 @@ class GameOrganizerMenu extends ConsumerWidget {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('Partido cancelado')));
-    } on DioException catch (e) {
+    } catch (e) {
       if (!context.mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(dioErrorMessage(e))));
+      showErrorSnack(context, e);
     }
   }
 

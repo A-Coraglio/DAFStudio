@@ -1,9 +1,7 @@
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../core/http/api_client.dart';
 import '../data/player_profile.dart';
 import '../providers/profile_providers.dart';
 import '../widgets/onboarding_avatar_step.dart';
@@ -11,6 +9,7 @@ import '../widgets/onboarding_level_step.dart';
 import '../widgets/onboarding_name_step.dart';
 import '../widgets/onboarding_progress.dart';
 import '../widgets/onboarding_sport_step.dart';
+import '../../../core/errors/error_snackbar.dart';
 
 /// Shown right after register / login when the player profile is missing
 /// first_name, last_name or favorite_sport_id. Four steps — name, favorite
@@ -72,11 +71,9 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
       ref.invalidate(myProfileProvider);
       if (!mounted) return;
       context.go('/home');
-    } on DioException catch (e) {
+    } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(dioErrorMessage(e))));
+      showErrorSnack(context, e);
     } finally {
       if (mounted) setState(() => _loading = false);
     }

@@ -16,11 +16,20 @@ const defaultOriginLon = -58.3816;
 /// Polls `GET /api/matchmaking/status/` every 3 seconds while something is
 /// listening. `autoDispose` cancels the loop the moment the matchmaking
 /// screen leaves the tree.
+/// First fetch failing surfaces the error (retry screen); after that,
+/// transient blips are swallowed so a user waiting in queue never sees the
+/// panel replaced by an error mid-wait.
 final matchmakingStatusStreamProvider =
     StreamProvider.autoDispose<MatchmakingStatus>((ref) async* {
       final repo = ref.read(matchmakingRepositoryProvider);
+      var hasData = false;
       while (true) {
-        yield await repo.status();
+        try {
+          yield await repo.status();
+          hasData = true;
+        } catch (_) {
+          if (!hasData) rethrow;
+        }
         await Future.delayed(const Duration(seconds: 3));
       }
     });

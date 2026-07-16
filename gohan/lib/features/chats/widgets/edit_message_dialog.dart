@@ -1,10 +1,9 @@
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/http/api_client.dart';
 import '../data/chat.dart';
 import '../providers/chats_providers.dart';
+import '../../../core/errors/error_snackbar.dart';
 
 /// Dialog to edit an own message. Saves via PATCH and refreshes the
 /// messages stream + chat list preview.
@@ -39,11 +38,9 @@ class _EditMessageDialogState extends ConsumerState<EditMessageDialog> {
       ref.invalidate(chatMessagesStreamProvider(widget.message.chatId));
       ref.invalidate(myChatsProvider); // last-message preview may change
       if (mounted) Navigator.of(context).pop();
-    } on DioException catch (e) {
+    } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(dioErrorMessage(e))));
+      showErrorSnack(context, e);
     } finally {
       if (mounted) setState(() => _saving = false);
     }

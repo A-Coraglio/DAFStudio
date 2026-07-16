@@ -10,24 +10,38 @@ import '../data/class_model.dart';
 /// Card for a class offering (a teacher) — used in the home carousel and the
 /// classes search list.
 class ClassCard extends ConsumerWidget {
-  const ClassCard({super.key, required this.offering, required this.onTap});
+  const ClassCard({
+    super.key,
+    required this.offering,
+    required this.onTap,
+    this.preferredSportId,
+  });
 
   final ClassOffering offering;
   final VoidCallback onTap;
 
+  /// Sport to lead the card with (the screen's own filter). Defaults to the
+  /// global active sport (home selector) when null.
+  final int? preferredSportId;
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final sports = ref.watch(sportsListProvider).valueOrNull ?? const [];
-    final firstSportId = offering.sportIds.isNotEmpty
-        ? offering.sportIds.first
-        : null;
+    final leadSportId = preferredSportId ?? ref.watch(activeSportIdProvider);
+    // Lead with that sport when the teacher offers it: with Pádel selected,
+    // a tenis+pádel teacher must read as a pádel class, not show whatever
+    // sport the backend array happens to list first.
+    final orderedIds = [...offering.sportIds];
+    if (leadSportId != null && orderedIds.remove(leadSportId)) {
+      orderedIds.insert(0, leadSportId);
+    }
     String? sportName;
     final sportNames = <String>[];
-    for (final id in offering.sportIds) {
+    for (final id in orderedIds) {
       for (final s in sports) {
         if (s.id == id) {
           sportNames.add(s.name);
-          if (id == firstSportId) sportName = s.name;
+          sportName ??= s.name;
         }
       }
     }

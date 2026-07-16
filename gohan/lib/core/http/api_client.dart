@@ -21,17 +21,3 @@ Dio buildApiClient({required Future<void> Function() onUnauthorized}) {
   dio.interceptors.add(AuthInterceptor(onUnauthorized: onUnauthorized));
   return dio;
 }
-
-/// Extracts a human-readable error from a DioException. The backend returns
-/// either `{detail: ...}` (FastAPI HTTPException) or `{error: ..., type_exception, trace}`
-/// (our custom middleware).
-String dioErrorMessage(DioException err) {
-  final data = err.response?.data;
-  if (data is Map) {
-    final detail = data['detail'];
-    if (detail is String) return detail;
-    final error = data['error'];
-    if (error is String) return error;
-  }
-  return err.message ?? 'Error de red';
-}

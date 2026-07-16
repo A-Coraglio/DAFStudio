@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/widgets/see_more_card.dart';
 import '../../../core/widgets/skeleton_box.dart';
 import '../../games/data/game.dart';
 import '../../games/providers/games_providers.dart';
@@ -12,9 +13,14 @@ import '../../games/widgets/game_card.dart';
 class NearbyGamesCarousel extends ConsumerWidget {
   const NearbyGamesCarousel({super.key});
 
-  static const _maxItems = 6;
+  static const _maxItems = 10;
   static const _cardWidth = 280.0;
-  static const _stripHeight = 140.0;
+
+  /// Tall enough for a card with the position-slots row (racket games show
+  /// selectable slots on the card since 2026-07). Cards are top-aligned and
+  /// keep their natural height, so shorter ones don't stretch with blank
+  /// space.
+  static const _stripHeight = 160.0;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -52,15 +58,26 @@ class _Strip extends StatelessWidget {
       height: NearbyGamesCarousel._stripHeight,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
-        itemCount: games.length,
+        itemCount: games.length + 1,
         separatorBuilder: (_, _) => const SizedBox(width: 10),
-        itemBuilder: (_, i) => SizedBox(
-          width: NearbyGamesCarousel._cardWidth,
-          child: GameCard(
-            game: games[i],
-            onTap: () => context.push('/games/${games[i].id}'),
-          ),
-        ),
+        itemBuilder: (_, i) {
+          if (i == games.length) {
+            return SeeMoreCard(onTap: () => context.push('/games'));
+          }
+          // Align.topCenter keeps each card at its natural height instead
+          // of stretching to the strip (a horizontal ListView passes tight
+          // height constraints).
+          return SizedBox(
+            width: NearbyGamesCarousel._cardWidth,
+            child: Align(
+              alignment: Alignment.topCenter,
+              child: GameCard(
+                game: games[i],
+                onTap: () => context.push('/games/${games[i].id}'),
+              ),
+            ),
+          );
+        },
       ),
     );
   }

@@ -1,12 +1,11 @@
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/format/dates.dart';
-import '../../../core/http/api_client.dart';
 import '../../../core/storage/mode_prefs.dart';
 import '../../../core/widgets/primary_submit_button.dart';
+import '../../../core/errors/error_snackbar.dart';
 import '../../courts/data/court.dart';
 import '../../courts/screens/court_picker_screen.dart';
 import '../../profile/providers/profile_providers.dart';
@@ -130,11 +129,9 @@ class _CreateGameScreenState extends ConsumerState<CreateGameScreen> {
       ref.invalidate(feedGamesProvider);
       if (!mounted) return;
       context.go('/games/${game.id}');
-    } on DioException catch (e) {
+    } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(dioErrorMessage(e))));
+      showErrorSnack(context, e);
     } finally {
       if (mounted) setState(() => _loading = false);
     }

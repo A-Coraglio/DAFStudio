@@ -1,9 +1,8 @@
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/http/api_client.dart';
 import '../../../core/widgets/primary_submit_button.dart';
+import '../../../core/errors/error_snackbar.dart';
 import '../data/game.dart';
 import '../providers/games_providers.dart';
 import 'game_datetime_picker.dart';
@@ -66,11 +65,9 @@ class _EditGameSheetState extends ConsumerState<EditGameSheet> {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('Partido actualizado')));
-    } on DioException catch (e) {
+    } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(dioErrorMessage(e))));
+      showErrorSnack(context, e);
     } finally {
       if (mounted) setState(() => _loading = false);
     }

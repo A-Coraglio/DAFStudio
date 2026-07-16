@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/providers/core_providers.dart';
 import '../../../core/providers/location_provider.dart';
+import '../../sports/providers/sports_providers.dart';
 import '../data/tournament_model.dart';
 import '../data/tournaments_repository.dart';
 
@@ -10,14 +11,20 @@ final tournamentsRepositoryProvider = Provider<TournamentsRepository>((ref) {
 });
 
 /// Recommended tournaments for the home carousel — ranked server-side by the
-/// user's favorite sport, level and (best-effort) location.
+/// user's favorite sport, level and (best-effort) location. Hard-filtered to
+/// the active sport (home selector); changing sport refetches the strip.
 final recommendedTournamentsProvider = FutureProvider<List<Tournament>>((
   ref,
 ) async {
+  final sportId = ref.watch(activeSportIdProvider);
   final location = await ref.watch(currentLocationProvider.future);
   return ref
       .read(tournamentsRepositoryProvider)
-      .recommended(nearLat: location?.lat, nearLon: location?.lon);
+      .recommended(
+        nearLat: location?.lat,
+        nearLon: location?.lon,
+        sportId: sportId,
+      );
 });
 
 // --- Search screen filters ---------------------------------------------------

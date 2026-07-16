@@ -133,6 +133,7 @@ async def join_game(
         game_id=game_id,
         current_user_id=current_user_id,
         team_id=body.team_id,
+        position=body.position,
     )
 
 

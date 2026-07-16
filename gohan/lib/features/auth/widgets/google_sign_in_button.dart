@@ -5,7 +5,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
-import '../../../core/http/api_client.dart';
+import '../../../core/errors/error_messages.dart';
 import '../../../core/providers/core_providers.dart';
 import '../data/auth_models.dart';
 import '../providers/auth_providers.dart';
@@ -43,11 +43,11 @@ class _GoogleSignInButtonState extends ConsumerState<GoogleSignInButton> {
       if (!mounted) return;
       context.go('/home');
     } on DioException catch (e) {
-      _snack(dioErrorMessage(e));
+      _snack(friendlyErrorMessage(e));
     } on _MissingIdTokenException {
       _snack('Google no devolvió un id_token. Revisá la config OAuth.');
-    } catch (e) {
-      _snack('No se pudo iniciar sesión con Google: $e');
+    } catch (_) {
+      _snack('No se pudo iniciar sesión con Google.');
     } finally {
       if (mounted) setState(() => _busy = false);
     }

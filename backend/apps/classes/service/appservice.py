@@ -40,6 +40,7 @@ class AppService:
         near_lat: float | None = None,
         near_lon: float | None = None,
         limit: int = 8,
+        sport_id: int | None = None,
     ) -> list[ClassOutputDTO]:
         player = await PlayerModel().get_player_by_user_id(user_id=current_user_id)
         favorite_sport_id = player.favorite_sport_id if player else None
@@ -48,5 +49,6 @@ class AppService:
             near_lat=near_lat,
             near_lon=near_lon,
             limit=limit,
+            sport_id=sport_id,
         )
         return [self._to_output_dto(c) for c in rows]

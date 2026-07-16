@@ -46,6 +46,9 @@ async def list_tournaments(
 async def recommended_tournaments(
     near_lat: float | None = Query(default=None, description="Origin latitude"),
     near_lon: float | None = Query(default=None, description="Origin longitude"),
+    sport_id: int | None = Query(
+        default=None, description="Hard-filter to this sport (home selector)"
+    ),
     limit: int = Query(default=8, ge=1, le=30),
     current_user_id: int = Depends(get_current_user_id),
 ):
@@ -54,6 +57,7 @@ async def recommended_tournaments(
         near_lat=near_lat,
         near_lon=near_lon,
         limit=limit,
+        sport_id=sport_id,
     )
 
 
