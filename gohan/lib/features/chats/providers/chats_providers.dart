@@ -15,15 +15,6 @@ final myChatsProvider = FutureProvider.autoDispose<List<Chat>>((ref) async {
   return ref.read(chatsRepositoryProvider).listMine();
 });
 
-/// The chat metadata for a specific game — the panel auto-creates it on
-/// first access via `ensureForGame`.
-final chatForGameProvider = FutureProvider.autoDispose.family<Chat, int>((
-  ref,
-  gameId,
-) async {
-  return ref.read(chatsRepositoryProvider).ensureForGame(gameId);
-});
-
 /// Poll-based message stream for a chat. Polls every 3s while something is
 /// watching it. Cheap because the query is id-indexed and capped to 50.
 /// If the very first fetch fails the error surfaces (ErrorView with retry);

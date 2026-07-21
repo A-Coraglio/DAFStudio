@@ -7,6 +7,7 @@ import '../data/player_profile.dart';
 import '../data/player_search_query.dart';
 import '../data/player_stats.dart';
 import '../data/profile_repository.dart';
+import '../data/user_account.dart';
 
 final profileRepositoryProvider = Provider<ProfileRepository>((ref) {
   return ProfileRepository(ref.read(apiClientProvider));
@@ -16,6 +17,13 @@ final profileRepositoryProvider = Provider<ProfileRepository>((ref) {
 /// that shows ranking_points / level.
 final myProfileProvider = FutureProvider<PlayerProfile>((ref) async {
   return ref.read(profileRepositoryProvider).getMyProfile();
+});
+
+/// The auth account behind the current user (email, has_password, casa).
+/// Backs the "ubicación de casa" tile in the profile.
+final myAccountProvider = FutureProvider<UserAccount>((ref) async {
+  final profile = await ref.watch(myProfileProvider.future);
+  return ref.read(profileRepositoryProvider).getAccount(profile.userId);
 });
 
 /// Public profile of an arbitrary player by id. Backs the `/players/:id`

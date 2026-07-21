@@ -52,7 +52,8 @@ class TournamentsCarousel extends ConsumerWidget {
                     width: _cardWidth,
                     child: TournamentCard(
                       tournament: items[i],
-                      onTap: () => context.push('/tournaments'),
+                      onTap: () =>
+                          context.push('/tournaments/${items[i].id}'),
                     ),
                   );
                 },

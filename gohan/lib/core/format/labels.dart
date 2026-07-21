@@ -17,6 +17,20 @@ String modeLabel(String mode) => switch (mode) {
   final other => other,
 };
 
+String tournamentStatusLabel(String status) => switch (status) {
+  'upcoming' => 'Inscripción abierta',
+  'ongoing' => 'En juego',
+  'finished' => 'Finalizado',
+  final other => other,
+};
+
+String lessonStatusLabel(String status) => switch (status) {
+  'pending' => 'Pendiente',
+  'confirmed' => 'Confirmada',
+  'cancelled' => 'Cancelada',
+  final other => other,
+};
+
 /// "a 2,3 km" style distance label, or null when there's no distance to show.
 String? distanceLabel(double? km) {
   if (km == null) return null;

@@ -11,7 +11,13 @@ ORGANIZER_SETTABLE_STATUSES = ("cancelled",)
 
 
 class GameCreateInputDTO(BaseModel):
-    name: str = Field(description="Game name / title")
+    name: str | None = Field(
+        default=None,
+        description=(
+            "Game name / title. Optional: when omitted the backend derives "
+            "one from the sport and the scheduled date."
+        ),
+    )
     sport_id: int = Field(description="The sport id")
     max_players: int = Field(description="Max players allowed")
     mode: str = Field(default="casual", description="casual or competitive")
@@ -61,17 +67,28 @@ class GamesOutputDTO(BaseModel):
     # (games_getter); list_games leaves these null to avoid N+1 queries.
     confirmations_count: int | None = None
     confirmations_total: int | None = None
+    # Roster with positions, joined server-side. Populated ONLY by the list
+    # endpoint so the feed cards can render position slots without one
+    # /players/ request per card. Null elsewhere (detail uses /players/).
+    players: list["GamePlayerOutputDTO"] | None = None
 
 
 class JoinGameInputDTO(BaseModel):
-    team_id: int | None = Field(
-        default=None, description="Optional team assignment"
-    )
     position: int | None = Field(
         default=None, ge=0,
         description=(
             "Chosen slot (0..max_players-1). First half of the slots is the "
             "home side, the rest is away. Omit to join without a spot."
+        ),
+    )
+
+
+class MovePositionInputDTO(BaseModel):
+    position: int = Field(
+        ge=0,
+        description=(
+            "New slot (0..max_players-1) for an already-joined player. "
+            "First half of the slots is the home side."
         ),
     )
 
@@ -97,7 +114,6 @@ class GamePlayerOutputDTO(BaseModel):
     detail screen can render "Juan Pérez · 1250 pts" without N+1 lookups."""
     game_id: int
     player_id: int
-    team_id: int | None = None
     position: int | None = None
     created_at: str
     first_name: str | None = None

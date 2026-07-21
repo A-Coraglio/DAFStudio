@@ -38,11 +38,28 @@ final feedModeFilterProvider =
       FeedModeFilterNotifier.new,
     );
 
-/// The games feed — reacts automatically to the active sport and the mode
-/// filter. Only shows `status == 'open'` (joinable) games.
+/// Date-range filter for the feed, applied server-side via
+/// `scheduled_after`/`scheduled_before`. Games without a date only appear
+/// under `all` (a SQL date comparison excludes NULL scheduled_at).
+enum FeedDateFilter { all, today, week }
+
+final feedDateFilterProvider = StateProvider<FeedDateFilter>(
+  (_) => FeedDateFilter.all,
+);
+
+/// The games feed — reacts automatically to the active sport, the mode
+/// filter and the date filter. Only shows `status == 'open'` games.
 final feedGamesProvider = FutureProvider<List<Game>>((ref) async {
   final sportId = ref.watch(activeSportIdProvider);
   final mode = ref.watch(feedModeFilterProvider);
+  final date = ref.watch(feedDateFilterProvider);
+  final today = DateTime.now();
+  final dayStart = DateTime(today.year, today.month, today.day);
+  final (after, before) = switch (date) {
+    FeedDateFilter.all => (null, null),
+    FeedDateFilter.today => (dayStart, dayStart.add(const Duration(days: 1))),
+    FeedDateFilter.week => (dayStart, dayStart.add(const Duration(days: 7))),
+  };
   // Location is best-effort: when available it's passed so the feed shows
   // distances and sorts nearest-first. No radius → nothing is filtered out.
   final location = await ref.watch(currentLocationProvider.future);
@@ -52,44 +69,11 @@ final feedGamesProvider = FutureProvider<List<Game>>((ref) async {
         sportId: sportId,
         mode: mode,
         status: 'open',
+        scheduledAfter: after,
+        scheduledBefore: before,
         nearLat: location?.lat,
         nearLon: location?.lon,
       );
-});
-
-/// Date-range filter for the feed. Frontend-only — the backend list endpoint
-/// has no date param yet, so [filteredFeedGamesProvider] applies it on the
-/// already-fetched list.
-enum FeedDateFilter { all, today, week }
-
-final feedDateFilterProvider = StateProvider<FeedDateFilter>(
-  (_) => FeedDateFilter.all,
-);
-
-/// The feed after applying the date filter on top of [feedGamesProvider].
-/// Games without a `scheduledAt` only appear under `FeedDateFilter.all` —
-/// they can't be placed on a day.
-final filteredFeedGamesProvider = FutureProvider<List<Game>>((ref) async {
-  final games = await ref.watch(feedGamesProvider.future);
-  final filter = ref.watch(feedDateFilterProvider);
-  if (filter == FeedDateFilter.all) return games;
-
-  final now = DateTime.now();
-  final weekEnd = now.add(const Duration(days: 7));
-  bool matches(Game g) {
-    final at = g.scheduledAt;
-    if (at == null) return false;
-    return switch (filter) {
-      FeedDateFilter.today =>
-        at.year == now.year && at.month == now.month && at.day == now.day,
-      FeedDateFilter.week =>
-        at.isAfter(now.subtract(const Duration(days: 1))) &&
-            at.isBefore(weekEnd),
-      FeedDateFilter.all => true,
-    };
-  }
-
-  return games.where(matches).toList();
 });
 
 /// Details for a single game, keyed by id. Invalidated after join/leave so

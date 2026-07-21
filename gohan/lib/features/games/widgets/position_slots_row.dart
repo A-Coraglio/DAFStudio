@@ -7,11 +7,12 @@ import '../data/game_player.dart';
 import '../data/game_positions.dart';
 import '../providers/games_providers.dart';
 import 'join_at_position.dart';
+import 'move_to_position.dart';
 import 'position_slot.dart';
 
 /// Playtomic-style slot picker rendered on the feed card for racket-sized
 /// games (2-4 players): home slots · "VS" · away slots. Tapping a free slot
-/// joins the game at that position without leaving the feed.
+/// joins the game right there — or, if you're already in, moves you to it.
 class PositionSlotsRow extends ConsumerWidget {
   const PositionSlotsRow({super.key, required this.game});
 
@@ -19,25 +20,33 @@ class PositionSlotsRow extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final playersAsync = ref.watch(gamePlayersProvider(game.id));
+    // The list endpoint joins the roster into the card payload; the per-card
+    // fetch only remains as a fallback for callers without it (e.g. detail
+    // responses reused in cards).
+    final players =
+        game.players ?? ref.watch(gamePlayersProvider(game.id)).valueOrNull;
     final myPlayerId = ref.watch(myProfileProvider).valueOrNull?.id;
-    final players = playersAsync.valueOrNull;
-    // While the roster loads (or on error) show non-selectable placeholders
-    // so the card doesn't jump; the pill above still shows the count.
     final bySlot = players == null
         ? const <int, GamePlayer>{}
         : GamePositions.bySlot(players);
     final iAmIn =
         game.isJoined == true ||
         (players?.any((p) => p.playerId == myPlayerId) ?? false);
-    final canPick = players != null && game.status == 'open' && !iAmIn;
+    final open = game.status == 'open';
+    final canJoin = players != null && open && !iAmIn;
+    final canMove =
+        players != null && (open || game.status == 'full') && iAmIn;
     final home = GamePositions.homeSlots(game.maxPlayers);
 
     Widget slot(int pos) => PositionSlot(
       player: bySlot[pos],
       isMine: bySlot[pos]?.playerId == myPlayerId,
-      onTap: canPick && bySlot[pos] == null
+      onTap: bySlot[pos] != null
+          ? null
+          : canJoin
           ? () => joinGameAtPosition(context, ref, game, pos)
+          : canMove
+          ? () => moveToPosition(context, ref, game, pos)
           : null,
     );
 

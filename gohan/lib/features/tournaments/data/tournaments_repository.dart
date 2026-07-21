@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 
 import '../../../core/http/response_data.dart';
 import 'tournament_model.dart';
+import 'tournament_participant.dart';
 
 class TournamentsRepository {
   TournamentsRepository(this._dio);
@@ -54,6 +55,32 @@ class TournamentsRepository {
 
   Future<Tournament> getById(int id) async {
     final res = await _dio.get<Map<String, dynamic>>('/api/tournaments/$id/');
+    return Tournament.fromJson(requireData(res));
+  }
+
+  Future<List<TournamentParticipant>> participants(int id) async {
+    final res = await _dio.get<List<dynamic>>(
+      '/api/tournaments/$id/participants/',
+    );
+    return (res.data ?? const [])
+        .cast<Map<String, dynamic>>()
+        .map(TournamentParticipant.fromJson)
+        .toList();
+  }
+
+  /// Enroll the current user. Returns the updated tournament (fresh count).
+  Future<Tournament> join(int id) async {
+    final res = await _dio.post<Map<String, dynamic>>(
+      '/api/tournaments/$id/join/',
+    );
+    return Tournament.fromJson(requireData(res));
+  }
+
+  /// Unenroll the current user (only while the tournament is upcoming).
+  Future<Tournament> leave(int id) async {
+    final res = await _dio.post<Map<String, dynamic>>(
+      '/api/tournaments/$id/leave/',
+    );
     return Tournament.fromJson(requireData(res));
   }
 

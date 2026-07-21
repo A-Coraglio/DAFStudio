@@ -23,6 +23,7 @@ from apps.games.exceptions.exceptions import (
 )
 from apps.players.models.models import PlayerModel
 from apps.players.exceptions.exceptions import PlayerNotFoundException
+from apps.sports.models.models import SportModel
 
 
 _settle_logger = logging.getLogger("dafstudio.settle")
@@ -47,6 +48,7 @@ class AppService:
         current_players: int = 0,
         confirmations_count: int | None = None,
         confirmations_total: int | None = None,
+        players: list[GamePlayerOutputDTO] | None = None,
     ) -> GamesOutputDTO:
         return GamesOutputDTO(
             id=game.id,
@@ -75,6 +77,7 @@ class AppService:
             created_at=iso_utc(game.created_at),
             confirmations_count=confirmations_count,
             confirmations_total=confirmations_total,
+            players=players,
         )
 
     async def _game_to_dto_with_count(self, game: GameDDO) -> GamesOutputDTO:
@@ -131,11 +134,43 @@ class AppService:
             limit=limit,
             offset=offset,
         )
-        counts = await GamePlayerModel().counts_by_game_ids(
+        # One bulk rosters query + one bulk profiles query: the feed cards
+        # render position slots straight from this payload instead of firing
+        # GET /players/ per card (the old N+1). Counts fall out for free.
+        rosters = await GamePlayerModel().list_players_by_game_ids(
             [g.id for g in games]
         )
+        profile_ids = {
+            gp.player_id for roster in rosters.values() for gp in roster
+        }
+        profiles = await PlayerModel().list_players_by_ids(list(profile_ids))
+        profile_by_id = {p.id: p for p in profiles}
+
+        def roster_dto(game_id: int) -> list[GamePlayerOutputDTO]:
+            result = []
+            for gp in rosters.get(game_id, []):
+                profile = profile_by_id.get(gp.player_id)
+                avatar_path = profile.avatar_path if profile else None
+                result.append(GamePlayerOutputDTO(
+                    game_id=gp.game_id,
+                    player_id=gp.player_id,
+                    position=gp.position,
+                    created_at=iso_utc(gp.created_at),
+                    first_name=profile.first_name if profile else None,
+                    last_name=profile.last_name if profile else None,
+                    level=profile.level if profile else None,
+                    avatar_url=(
+                        f"/uploads/{avatar_path}" if avatar_path else None
+                    ),
+                ))
+            return result
+
         return [
-            self._to_output_dto(g, current_players=counts.get(g.id, 0))
+            self._to_output_dto(
+                g,
+                current_players=len(rosters.get(g.id, [])),
+                players=roster_dto(g.id),
+            )
             for g in games
         ]
 
@@ -164,8 +199,14 @@ class AppService:
                 message="La cantidad de jugadores debe ser entre 2 y 50",
                 error_code=400,
             )
+        # The organizer joins their own game — validates their player profile
+        # BEFORE creating so a failure can't leave an organizer-less game.
+        player = await self._player_for_user(organizer_id)
+        name = (data.name or "").strip() or await self._derive_game_name(
+            sport_id=data.sport_id, scheduled_at=data.scheduled_at
+        )
         result: GameDDO = await GamesModel().create_game(
-            name=data.name,
+            name=name,
             sport_id=data.sport_id,
             max_players=data.max_players,
             organizer_id=organizer_id,
@@ -174,7 +215,24 @@ class AppService:
             court_id=data.court_id,
             scheduled_at=data.scheduled_at,
         )
-        return self._to_output_dto(result)
+        # Auto-join at slot 0 (home side): the organizer always plays, and
+        # having a spot lets them re-position later via /move/ instead of
+        # having to join their own game by hand.
+        await GamePlayerModel().add_player(
+            game_id=result.id, player_id=player.id, position=0
+        )
+        return self._to_output_dto(result, current_players=1)
+
+    async def _derive_game_name(
+        self, sport_id: int, scheduled_at: datetime | None
+    ) -> str:
+        """"Pádel — 21/7 18:00" (or "Partido de Pádel" without a date). Used
+        when the client sends no name; also keeps API-created games named."""
+        sport = await SportModel().get_sport_by_id(sport_id=sport_id)
+        if scheduled_at is None:
+            return f"Partido de {sport.name}"
+        d = scheduled_at
+        return f"{sport.name} — {d.day}/{d.month} {d.hour:02d}:{d.minute:02d}"
 
     async def games_updater(
         self,
@@ -255,7 +313,6 @@ class AppService:
             result.append(GamePlayerOutputDTO(
                 game_id=row.game_id,
                 player_id=row.player_id,
-                team_id=row.team_id,
                 position=row.position,
                 created_at=iso_utc(row.created_at),
                 first_name=profile.first_name if profile else None,
@@ -280,7 +337,6 @@ class AppService:
         self,
         game_id: int,
         current_user_id: int,
-        team_id: int | None = None,
         position: int | None = None,
     ) -> GamesOutputDTO:
         player = await self._player_for_user(current_user_id)
@@ -288,8 +344,19 @@ class AppService:
         # join_atomic: they must run under the same row lock as the insert,
         # or two concurrent joins can overbook / share a slot.
         await GamePlayerModel().join_atomic(
-            game_id=game_id, player_id=player.id, team_id=team_id,
-            position=position,
+            game_id=game_id, player_id=player.id, position=position,
+        )
+        game = await GamesModel().get_game_by_id(game_id=game_id)
+        return await self._game_to_dto_with_count(game)
+
+    async def game_move(
+        self, game_id: int, current_user_id: int, position: int
+    ) -> GamesOutputDTO:
+        """Re-position an already-joined player. Slot/status validations run
+        inside move_atomic, under the same game row lock as the update."""
+        player = await self._player_for_user(current_user_id)
+        await GamePlayerModel().move_atomic(
+            game_id=game_id, player_id=player.id, position=position
         )
         game = await GamesModel().get_game_by_id(game_id=game_id)
         return await self._game_to_dto_with_count(game)

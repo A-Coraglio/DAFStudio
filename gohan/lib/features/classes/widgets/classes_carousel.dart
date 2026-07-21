@@ -50,7 +50,7 @@ class ClassesCarousel extends ConsumerWidget {
                     width: _cardWidth,
                     child: ClassCard(
                       offering: items[i],
-                      onTap: () => context.push('/classes'),
+                      onTap: () => context.push('/classes/${items[i].id}'),
                     ),
                   );
                 },

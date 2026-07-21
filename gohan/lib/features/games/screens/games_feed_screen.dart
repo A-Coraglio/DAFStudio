@@ -22,7 +22,7 @@ class GamesFeedScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final gamesAsync = ref.watch(filteredFeedGamesProvider);
+    final gamesAsync = ref.watch(feedGamesProvider);
     final hasActiveSport = ref.watch(activeSportIdProvider) != null;
 
     return Scaffold(

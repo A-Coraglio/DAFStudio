@@ -8,6 +8,7 @@ from apps.games.service.dto import (
     GameUpdateInputDTO,
     GamePlayerOutputDTO,
     JoinGameInputDTO,
+    MovePositionInputDTO,
     ReportResultInputDTO,
 )
 from apps.games.service.appservice import AppService
@@ -136,7 +137,25 @@ async def join_game(
     return await AppService().game_join(
         game_id=game_id,
         current_user_id=current_user_id,
-        team_id=body.team_id,
+        position=body.position,
+    )
+
+
+@router.post("/games/{game_id}/move/", responses={
+    200: {"model": GamesOutputDTO, "description": "Updated game after re-positioning"},
+    400: {"description": "Position out of range"},
+    401: {"description": "Unauthorized"},
+    404: {"description": "Game or player not found"},
+    409: {"description": "Game not open/full, user not in it, or slot taken"},
+})
+async def move_position(
+    game_id: int,
+    body: MovePositionInputDTO,
+    current_user_id: int = Depends(get_current_user_id),
+):
+    return await AppService().game_move(
+        game_id=game_id,
+        current_user_id=current_user_id,
         position=body.position,
     )
 

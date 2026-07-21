@@ -22,6 +22,7 @@ from apps.sport_modes.namespaces.routes import router as sport_modes_router
 from apps.chats.namespaces.routes import router as chats_router
 from apps.tournaments.namespaces.routes import router as tournaments_router
 from apps.classes.namespaces.routes import router as classes_router
+from apps.lessons.namespaces.routes import router as lessons_router
 from traceback import format_exc  # solo para el trace opt-in del handler
 
 
@@ -112,6 +113,7 @@ app.include_router(sport_modes_router)
 app.include_router(chats_router)
 app.include_router(tournaments_router)
 app.include_router(classes_router)
+app.include_router(lessons_router)
 
 # User uploads (avatars, future attachments). Directory is created on demand
 # by the upload path — we just mount it so GET /uploads/<file> resolves.

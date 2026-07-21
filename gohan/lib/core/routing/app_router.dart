@@ -16,8 +16,11 @@ import '../../features/profile/screens/my_games_screen.dart';
 import '../../features/profile/screens/players_discovery_screen.dart';
 import '../../features/profile/screens/profile_screen.dart';
 import '../../features/profile/screens/public_profile_screen.dart';
+import '../../features/tournaments/screens/tournament_detail_screen.dart';
 import '../../features/tournaments/screens/tournaments_screen.dart';
+import '../../features/classes/screens/class_detail_screen.dart';
 import '../../features/classes/screens/classes_screen.dart';
+import '../../features/lessons/screens/my_lessons_screen.dart';
 import '../providers/core_providers.dart';
 import 'scaffold_with_nav.dart';
 
@@ -89,7 +92,31 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/tournaments',
         builder: (_, _) => const TournamentsScreen(),
       ),
+      GoRoute(
+        path: '/tournaments/:id',
+        redirect: (_, state) =>
+            int.tryParse(state.pathParameters['id']!) == null
+            ? '/tournaments'
+            : null,
+        builder: (_, state) => TournamentDetailScreen(
+          tournamentId: int.parse(state.pathParameters['id']!),
+        ),
+      ),
       GoRoute(path: '/classes', builder: (_, _) => const ClassesScreen()),
+      GoRoute(
+        path: '/classes/:id',
+        redirect: (_, state) =>
+            int.tryParse(state.pathParameters['id']!) == null
+            ? '/classes'
+            : null,
+        builder: (_, state) => ClassDetailScreen(
+          teacherId: int.parse(state.pathParameters['id']!),
+        ),
+      ),
+      GoRoute(
+        path: '/my-lessons',
+        builder: (_, _) => const MyLessonsScreen(),
+      ),
       GoRoute(
         path: '/players/:id',
         redirect: (_, state) =>

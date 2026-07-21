@@ -16,7 +16,6 @@ from apps.games.exceptions.exceptions import GameStateException
 class GamePlayerDDO(BaseModel):
     game_id: int
     player_id: int
-    team_id: int | None = Field(default=None)
     # Chosen slot (0..max_players-1); first half = home side. None = joined
     # without picking a spot (matchmaking / legacy rows).
     position: int | None = Field(default=None)
@@ -27,7 +26,6 @@ def _row_to_ddo(row) -> GamePlayerDDO:
     return GamePlayerDDO(
         game_id=row["game_id"],
         player_id=row["player_id"],
-        team_id=row["team_id"],
         position=row["position"],
         created_at=row["created_at"],
     )
@@ -147,19 +145,18 @@ class GamePlayerModel(GeneralModel):
         self,
         game_id: int,
         player_id: int,
-        team_id: int | None = None,
         position: int | None = None,
     ) -> GamePlayerDDO:
         async with self.get_db_connection() as connection:
             connection: PoolConnectionProxy = cast(PoolConnectionProxy, connection)
             query = (
                 f"INSERT INTO {self.__table_name__} "
-                "(game_id, player_id, team_id, position) "
-                "VALUES ($1, $2, $3, $4) RETURNING *"
+                "(game_id, player_id, position) "
+                "VALUES ($1, $2, $3) RETURNING *"
             )
             try:
                 result = await connection.fetchrow(
-                    query, game_id, player_id, team_id, position
+                    query, game_id, player_id, position
                 )
                 return _row_to_ddo(result)
             except Exception as e:
@@ -169,7 +166,6 @@ class GamePlayerModel(GeneralModel):
         self,
         game_id: int,
         player_id: int,
-        team_id: int | None = None,
         position: int | None = None,
     ) -> bool:
         """Single-transaction join. Locks the game row (FOR UPDATE) so two
@@ -229,9 +225,9 @@ class GamePlayerModel(GeneralModel):
                             )
                     await connection.execute(
                         f"INSERT INTO {self.__table_name__} "
-                        "(game_id, player_id, team_id, position) "
-                        "VALUES ($1, $2, $3, $4)",
-                        game_id, player_id, team_id, position,
+                        "(game_id, player_id, position) "
+                        "VALUES ($1, $2, $3)",
+                        game_id, player_id, position,
                     )
                     filled = count + 1 >= game["max_players"]
                     if filled:
@@ -240,6 +236,66 @@ class GamePlayerModel(GeneralModel):
                             game_id,
                         )
                     return filled
+            except AppException:
+                raise
+            except Exception as e:
+                raise DatabaseException(message=f"Database error: {e}")
+
+    async def move_atomic(
+        self, game_id: int, player_id: int, position: int
+    ) -> None:
+        """Re-position an already-joined player. Same locking discipline as
+        join_atomic: the game row lock freezes the board so two concurrent
+        moves (or a move racing a join) can't land on the same slot. Works
+        while the game is open OR full — moving doesn't change the roster."""
+        async with self.get_db_connection() as connection:
+            connection: PoolConnectionProxy = cast(PoolConnectionProxy, connection)
+            try:
+                async with connection.transaction():
+                    game = await connection.fetchrow(
+                        "SELECT status, max_players FROM game "
+                        "WHERE id = $1 FOR UPDATE",
+                        game_id,
+                    )
+                    if game is None:
+                        raise NotFoundException(
+                            message=f"No encontramos el partido {game_id}"
+                        )
+                    if game["status"] not in ("open", "full"):
+                        raise GameStateException(
+                            message="Ya no es posible cambiar de posición en este partido"
+                        )
+                    mine = await connection.fetchrow(
+                        f"SELECT position FROM {self.__table_name__} "
+                        "WHERE game_id = $1 AND player_id = $2",
+                        game_id, player_id,
+                    )
+                    if mine is None:
+                        raise GameStateException(
+                            message="No estás anotado en este partido"
+                        )
+                    if position >= game["max_players"]:
+                        raise GameStateException(
+                            message="Esa posición no existe en este partido",
+                            error_code=400,
+                        )
+                    if mine["position"] == position:
+                        return
+                    taken = await connection.fetchrow(
+                        f"SELECT 1 FROM {self.__table_name__} "
+                        "WHERE game_id = $1 AND position = $2 "
+                        "AND player_id <> $3",
+                        game_id, position, player_id,
+                    )
+                    if taken:
+                        raise GameStateException(
+                            message="Esa posición ya está ocupada"
+                        )
+                    await connection.execute(
+                        f"UPDATE {self.__table_name__} SET position = $3 "
+                        "WHERE game_id = $1 AND player_id = $2",
+                        game_id, player_id, position,
+                    )
             except AppException:
                 raise
             except Exception as e:

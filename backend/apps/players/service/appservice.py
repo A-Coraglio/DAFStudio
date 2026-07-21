@@ -53,9 +53,24 @@ class AppService:
             avatar_url=f"/uploads/{player.avatar_path}" if player.avatar_path else None,
         )
 
+    async def _to_output_dto_with_elo(
+        self, player: PlayerDDO
+    ) -> PlayerOutputDTO:
+        """Profile DTO whose ranking is the real per-sport ELO (favorite
+        sport, 1000 default) instead of the legacy 0-based overall — keeps
+        the profile headline consistent with search and stats."""
+        dto = self._to_output_dto(player)
+        if player.favorite_sport_id is not None:
+            dto.ranking_points = await PlayerModel().get_sport_ranking(
+                player_id=player.id, sport_id=player.favorite_sport_id
+            )
+        else:
+            dto.ranking_points = 1000
+        return dto
+
     async def players_getter_by_id(self, player_id: int) -> PlayerOutputDTO:
         player = await PlayerModel().get_player_by_id(player_id=player_id)
-        return self._to_output_dto(player)
+        return await self._to_output_dto_with_elo(player)
 
     async def players_search(
         self,
@@ -82,7 +97,7 @@ class AppService:
             raise PlayerNotFoundException(
                 message=f"El usuario {user_id} no tiene perfil de jugador"
             )
-        return self._to_output_dto(player)
+        return await self._to_output_dto_with_elo(player)
 
     async def players_creator(self, user_id: int) -> PlayerOutputDTO:
         """Creates an empty player profile paired to a freshly-registered user.
@@ -110,7 +125,7 @@ class AppService:
             level=data.level,
             favorite_sport_id=data.favorite_sport_id,
         )
-        return self._to_output_dto(updated or existing)
+        return await self._to_output_dto_with_elo(updated or existing)
 
     async def my_games(
         self,
@@ -326,4 +341,4 @@ class AppService:
         updated = await PlayerModel().set_avatar_path(
             player_id=existing.id, avatar_path=rel
         )
-        return self._to_output_dto(updated or existing)
+        return await self._to_output_dto_with_elo(updated or existing)

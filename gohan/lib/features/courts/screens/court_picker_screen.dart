@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/widgets/error_view.dart';
+import '../../../core/widgets/illustrated_empty_state.dart';
+import '../../../core/widgets/tile_list_skeleton.dart';
 import '../data/club.dart';
 import '../data/court.dart';
 import '../providers/courts_providers.dart';
@@ -51,7 +53,7 @@ class CourtPickerScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(title: const Text('Elegir cancha')),
       body: courtsAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
+        loading: () => const TileListSkeleton(rows: 6),
         error: (err, _) => ErrorView(
           error: err,
           onRetry: () => ref.invalidate(courtsForSportProvider(sportId)),
@@ -107,6 +109,15 @@ class _CourtsList extends StatelessWidget {
           subtitle: const Text('La definimos después'),
           onTap: () => Navigator.of(context).pop(const CourtSelection(null)),
         ),
+        if (courts.isEmpty) ...[
+          const SizedBox(height: 24),
+          const IllustratedEmptyState(
+            icon: Icons.stadium_outlined,
+            title: 'No hay canchas para este deporte',
+            body:
+                'Podés crear el partido sin cancha y definirla más adelante.',
+          ),
+        ],
         if (byClub.isNotEmpty) ...[
           const SizedBox(height: 8),
           Text('Clubes', style: Theme.of(context).textTheme.titleMedium),

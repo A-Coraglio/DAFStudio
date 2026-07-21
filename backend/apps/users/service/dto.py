@@ -29,6 +29,10 @@ class UpdateUserInputDTO(BaseModel):
     # Required whenever `password` is sent: changing the password proves you
     # know the current one (a stolen 60-min token must not take the account).
     current_password: str | None = None
+    # "Casa" del usuario para distancias (classes/tournaments). Van en pareja:
+    # mandar una sola de las dos es 400.
+    home_lat: float | None = None
+    home_lon: float | None = None
 
 class UserOutputDTO(BaseModel):
     id: int
@@ -37,6 +41,8 @@ class UserOutputDTO(BaseModel):
     # False → cuenta creada con Google que todavía no seteó contraseña propia;
     # el frontend puede ofrecer "Crear contraseña" en vez de "Cambiar".
     has_password: bool = True
+    home_lat: float | None = None
+    home_lon: float | None = None
 
 class RefreshInputDTO(BaseModel):
     refresh_token: str

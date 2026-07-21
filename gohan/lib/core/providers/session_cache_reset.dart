@@ -3,9 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../features/chats/providers/chats_providers.dart';
 import '../../features/classes/providers/classes_providers.dart';
 import '../../features/games/providers/games_providers.dart';
+import '../../features/classes/providers/class_detail_providers.dart';
 import '../../features/home/providers/home_providers.dart';
+import '../../features/lessons/providers/lessons_providers.dart';
 import '../../features/profile/providers/profile_providers.dart';
 import '../../features/sports/providers/sports_providers.dart';
+import '../../features/tournaments/providers/tournament_detail_providers.dart';
 import '../../features/tournaments/providers/tournaments_providers.dart';
 
 /// Wipes every keep-alive provider that caches data belonging to (or scoped
@@ -18,6 +21,7 @@ import '../../features/tournaments/providers/tournaments_providers.dart';
 void resetUserScopedCaches(WidgetRef ref) {
   // Profile — own and browsed public profiles.
   ref.invalidate(myProfileProvider);
+  ref.invalidate(myAccountProvider);
   ref.invalidate(myStatsProvider);
   ref.invalidate(myGamesProvider);
   ref.invalidate(mySportRankingProvider);
@@ -34,6 +38,11 @@ void resetUserScopedCaches(WidgetRef ref) {
   ref.invalidate(tournamentsFetchProvider);
   ref.invalidate(recommendedClassesProvider);
   ref.invalidate(classesFetchProvider);
+  // Tournaments/classes detail + the user's booked lessons.
+  ref.invalidate(tournamentDetailProvider);
+  ref.invalidate(tournamentParticipantsProvider);
+  ref.invalidate(classDetailProvider);
+  ref.invalidate(myLessonsProvider);
   // Chats badge + active sport (persisted per userId).
   ref.invalidate(unreadTotalProvider);
   ref.invalidate(activeSportIdProvider);

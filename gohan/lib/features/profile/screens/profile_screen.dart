@@ -7,6 +7,7 @@ import '../../../core/widgets/confirm_dialog.dart';
 import '../../../core/widgets/error_view.dart';
 import '../../sports/providers/sports_providers.dart';
 import '../providers/profile_providers.dart';
+import '../widgets/home_location_tile.dart';
 import '../widgets/player_stats_card.dart';
 import '../widgets/profile_skeleton.dart';
 import '../widgets/profile_card.dart';
@@ -88,6 +89,17 @@ class ProfileScreen extends ConsumerWidget {
                 onTap: () => context.push('/my-games'),
               ),
             ),
+            const SizedBox(height: 8),
+            Card(
+              child: ListTile(
+                leading: const Icon(Icons.school_outlined),
+                title: const Text('Mis clases'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => context.push('/my-lessons'),
+              ),
+            ),
+            const SizedBox(height: 8),
+            const HomeLocationTile(),
             const SizedBox(height: 16),
             const ThemeModeTile(),
           ],

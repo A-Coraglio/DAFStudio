@@ -1,4 +1,5 @@
 import '../../../core/format/labels.dart';
+import 'game_player.dart';
 
 /// Rango de nivel de un partido alrededor del ranking del organizador.
 /// Quien se une con ranking fuera de ±kLevelRange ve un aviso (pero puede
@@ -63,6 +64,11 @@ class Game {
   /// Values: home / away / null (unsplittable game).
   final String? teamSide;
 
+  /// Roster with positions, joined server-side. Populated ONLY by the list
+  /// endpoint (feed cards render slots from here without one request per
+  /// card); null elsewhere — the detail screen uses gamePlayersProvider.
+  final List<GamePlayer>? players;
+
   const Game({
     required this.id,
     required this.name,
@@ -90,6 +96,7 @@ class Game {
     this.confirmationsTotal,
     this.outcome,
     this.teamSide,
+    this.players,
   });
 
   factory Game.fromJson(Map<String, dynamic> json) => Game(
@@ -119,6 +126,10 @@ class Game {
     confirmationsTotal: json['confirmations_total'] as int?,
     outcome: json['outcome'] as String?,
     teamSide: json['team_side'] as String?,
+    players: (json['players'] as List<dynamic>?)
+        ?.cast<Map<String, dynamic>>()
+        .map(GamePlayer.fromJson)
+        .toList(),
   );
 
   static DateTime? _parseIso(Object? v) =>

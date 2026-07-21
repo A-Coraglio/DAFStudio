@@ -4,6 +4,7 @@ import '../../../core/http/response_data.dart';
 import '../../games/data/game.dart';
 import 'player_profile.dart';
 import 'player_stats.dart';
+import 'user_account.dart';
 
 class ProfileRepository {
   ProfileRepository(this._dio);
@@ -94,6 +95,27 @@ class ProfileRepository {
         .cast<Map<String, dynamic>>()
         .map(PlayerProfile.fromJson)
         .toList(growable: false);
+  }
+
+  /// The auth account behind the profile (email, has_password, home).
+  Future<UserAccount> getAccount(int userId) async {
+    final res = await _dio.get<Map<String, dynamic>>(
+      '/api/auth/users/$userId/',
+    );
+    return UserAccount.fromJson(requireData(res));
+  }
+
+  /// Sets the user's "casa" — classes/tournaments use it for distances.
+  Future<UserAccount> setHomeLocation(
+    int userId, {
+    required double lat,
+    required double lon,
+  }) async {
+    final res = await _dio.put<Map<String, dynamic>>(
+      '/api/auth/users/$userId/',
+      data: {'home_lat': lat, 'home_lon': lon},
+    );
+    return UserAccount.fromJson(requireData(res));
   }
 
   Future<PlayerProfile> updateMyProfile(UpdatePlayerRequest req) async {

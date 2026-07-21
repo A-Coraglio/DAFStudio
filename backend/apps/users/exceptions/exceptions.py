@@ -29,6 +29,15 @@ class UserNotFoundException(NotFoundException):
         super().__init__(message=message)
 
 
+class InvalidHomeLocationException(AppException):
+    def __init__(
+        self,
+        message: str = "La ubicación de casa no es válida",
+        error_code: int = 400,
+    ) -> None:
+        super().__init__(message=message, error_code=error_code)
+
+
 class EmailAlreadyRegisteredException(AppException):
     def __init__(
         self,

@@ -30,6 +30,10 @@ String formatSchedule(DateTime? at) {
   return '${d.day}/${d.month} ${_hhmm(d)}';
 }
 
+/// Bare hour "18:30" — the end of a time range whose start already carries
+/// the date ("vie 21 18:00 – 19:30").
+String formatHour(DateTime at) => _hhmm(at.toLocal());
+
 /// Message bubbles: "14:05" for today, "20/4 14:05" for older messages —
 /// a bare hour on an old message would read as sent today.
 String formatMessageTime(DateTime at) {

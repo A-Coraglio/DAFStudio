@@ -21,3 +21,14 @@ class TournamentOutputDTO(BaseModel):
     distance_km: float | None = Field(
         default=None, description="Km from the query origin, when provided"
     )
+
+
+class TournamentParticipantOutputDTO(BaseModel):
+    player_id: int
+    user_id: int
+    display_name: str
+    level: str | None = None
+    avatar_url: str | None = Field(
+        default=None, description="Relative /uploads/ URL, when the player has one"
+    )
+    joined_at: datetime

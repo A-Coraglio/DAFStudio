@@ -5,8 +5,7 @@ import '../../../core/widgets/error_view.dart';
 import '../../profile/providers/profile_providers.dart';
 import '../data/chat.dart';
 import '../providers/chats_providers.dart';
-import 'chat_day_separator.dart';
-import 'message_bubble.dart';
+import 'chat_history.dart';
 import 'message_composer.dart';
 import 'messages_skeleton.dart';
 
@@ -60,33 +59,6 @@ class _ChatPanelState extends ConsumerState<ChatPanel> {
     );
   }
 
-  /// Newest-first bubbles with a day pill above the oldest message of each
-  /// day (in a reversed list that means: appended after it).
-  List<Widget> _items(List<ChatMessage> messages, int? myUserId) {
-    bool sameDay(DateTime a, DateTime b) {
-      final la = a.toLocal();
-      final lb = b.toLocal();
-      return la.year == lb.year && la.month == lb.month && la.day == lb.day;
-    }
-
-    final items = <Widget>[];
-    for (var i = 0; i < messages.length; i++) {
-      items.add(
-        MessageBubble(
-          message: messages[i],
-          mine: messages[i].userId == myUserId,
-        ),
-      );
-      final lastOfDay =
-          i == messages.length - 1 ||
-          !sameDay(messages[i].createdAt, messages[i + 1].createdAt);
-      if (lastOfDay) {
-        items.add(ChatDaySeparator(day: messages[i].createdAt));
-      }
-    }
-    return items;
-  }
-
   @override
   Widget build(BuildContext context) {
     final messagesAsync = ref.watch(chatMessagesStreamProvider(widget.chatId));
@@ -107,14 +79,11 @@ class _ChatPanelState extends ConsumerState<ChatPanel> {
             ),
             data: (messages) => messages.isEmpty
                 ? const Center(child: Text('Todavía no hay mensajes.'))
-                : ListView(
+                : ChatHistory(
+                    chatId: widget.chatId,
+                    window: messages,
+                    myUserId: myUserId,
                     controller: _scroll,
-                    reverse: true,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 8,
-                    ),
-                    children: _items(messages, myUserId),
                   ),
           ),
         ),

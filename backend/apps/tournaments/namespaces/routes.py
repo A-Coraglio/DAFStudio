@@ -1,6 +1,9 @@
 from fastapi import APIRouter, Depends, Query
 
-from apps.tournaments.service.dto import TournamentOutputDTO
+from apps.tournaments.service.dto import (
+    TournamentOutputDTO,
+    TournamentParticipantOutputDTO,
+)
 from apps.tournaments.service.appservice import AppService
 from apps.users.service.auth_dependency import get_current_user_id
 
@@ -71,3 +74,50 @@ async def get_tournament(
     current_user_id: int = Depends(get_current_user_id),
 ):
     return await AppService().tournaments_getter(tournament_id=tournament_id)
+
+
+@router.get("/tournaments/{tournament_id}/participants/", responses={
+    200: {
+        "model": list[TournamentParticipantOutputDTO],
+        "description": "Players enrolled in the tournament, join order",
+    },
+    401: {"description": "Unauthorized"},
+    404: {"description": "Tournament not found"},
+})
+async def list_tournament_participants(
+    tournament_id: int,
+    current_user_id: int = Depends(get_current_user_id),
+):
+    return await AppService().tournament_participants_lister(
+        tournament_id=tournament_id
+    )
+
+
+@router.post("/tournaments/{tournament_id}/join/", responses={
+    200: {"model": TournamentOutputDTO, "description": "Updated tournament after enrolling"},
+    401: {"description": "Unauthorized"},
+    404: {"description": "Tournament or player not found"},
+    409: {"description": "Registration closed, tournament full, or already enrolled"},
+})
+async def join_tournament(
+    tournament_id: int,
+    current_user_id: int = Depends(get_current_user_id),
+):
+    return await AppService().tournament_joiner(
+        tournament_id=tournament_id, current_user_id=current_user_id
+    )
+
+
+@router.post("/tournaments/{tournament_id}/leave/", responses={
+    200: {"model": TournamentOutputDTO, "description": "Updated tournament after unenrolling"},
+    401: {"description": "Unauthorized"},
+    404: {"description": "Tournament or player not found"},
+    409: {"description": "Tournament already started, or user not enrolled"},
+})
+async def leave_tournament(
+    tournament_id: int,
+    current_user_id: int = Depends(get_current_user_id),
+):
+    return await AppService().tournament_leaver(
+        tournament_id=tournament_id, current_user_id=current_user_id
+    )

@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../core/utils/safe_refresh.dart';
 import '../../../core/widgets/error_view.dart';
+import '../../../core/widgets/illustrated_empty_state.dart';
+import '../../../core/widgets/tile_list_skeleton.dart';
 import '../providers/classes_providers.dart';
 import '../widgets/class_card.dart';
 import '../widgets/classes_filter_bar.dart';
@@ -26,7 +29,7 @@ class ClassesScreen extends ConsumerWidget {
           const ClassesFilterBar(),
           Expanded(
             child: async.when(
-              loading: () => const Center(child: CircularProgressIndicator()),
+              loading: () => const TileListSkeleton(),
               error: (err, _) => ErrorView(
                 error: err,
                 message: 'No pudimos cargar las clases.',
@@ -35,7 +38,20 @@ class ClassesScreen extends ConsumerWidget {
               data: (items) => RefreshIndicator(
                 onRefresh: () => _refresh(ref),
                 child: items.isEmpty
-                    ? const _Empty()
+                    ? ListView(
+                        // Scrollable so pull-to-refresh still works when the
+                        // filtered list is empty.
+                        children: const [
+                          SizedBox(height: 40),
+                          IllustratedEmptyState(
+                            icon: Icons.school_outlined,
+                            title: 'No hay clases',
+                            body:
+                                'Probá con otros filtros, o volvé más '
+                                'adelante: siempre se suman profes nuevos.',
+                          ),
+                        ],
+                      )
                     : ListView.separated(
                         padding: const EdgeInsets.all(16),
                         itemCount: items.length,
@@ -46,8 +62,8 @@ class ClassesScreen extends ConsumerWidget {
                           preferredSportId: ref.watch(
                             classFilterProvider.select((f) => f.sportId),
                           ),
-                          // No dedicated teacher detail screen yet.
-                          onTap: () {},
+                          onTap: () =>
+                              context.push('/classes/${items[i].id}'),
                         ),
                       ),
               ),
@@ -55,28 +71,6 @@ class ClassesScreen extends ConsumerWidget {
           ),
         ],
       ),
-    );
-  }
-}
-
-class _Empty extends StatelessWidget {
-  const _Empty();
-
-  @override
-  Widget build(BuildContext context) {
-    return ListView(
-      children: const [
-        Padding(
-          padding: EdgeInsets.only(top: 80),
-          child: Column(
-            children: [
-              Icon(Icons.school_outlined, size: 48),
-              SizedBox(height: 12),
-              Text('No hay clases con esos filtros'),
-            ],
-          ),
-        ),
-      ],
     );
   }
 }

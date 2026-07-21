@@ -59,18 +59,28 @@ async def _get_or_create_game(conn, name, **fields):
 
 
 async def _add_players(conn, game_id, player_ids, base_time):
-    """Adds participants in order; created_at increments per player so the
-    backend's join-order team split (first half = home) is deterministic."""
+    """Adds participants in order with a position (slot = join index, so the
+    first half lands on the home side — same split as join order). created_at
+    also increments per player so legacy join-order logic stays deterministic.
+    Re-running the seed backfills positions on rows that predate them."""
     for i, pid in enumerate(player_ids):
         exists = await conn.fetchval(
             "SELECT 1 FROM game_player WHERE game_id = $1 AND player_id = $2",
             game_id, pid,
         )
         if exists:
+            await conn.execute(
+                "UPDATE game_player SET position = $3 "
+                "WHERE game_id = $1 AND player_id = $2 AND position IS NULL "
+                "AND NOT EXISTS (SELECT 1 FROM game_player t "
+                "WHERE t.game_id = $1 AND t.position = $3)",
+                game_id, pid, i,
+            )
             continue
         await conn.execute(
-            "INSERT INTO game_player (game_id, player_id, created_at) VALUES ($1, $2, $3)",
-            game_id, pid, base_time + timedelta(seconds=i),
+            "INSERT INTO game_player (game_id, player_id, position, created_at) "
+            "VALUES ($1, $2, $3, $4)",
+            game_id, pid, i, base_time + timedelta(seconds=i),
         )
 
 

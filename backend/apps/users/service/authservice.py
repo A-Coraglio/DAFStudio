@@ -22,6 +22,7 @@ from apps.users.exceptions.exceptions import (
     GoogleAuthNotConfiguredException,
     InvalidCredentialsException,
     InvalidGoogleTokenException,
+    InvalidHomeLocationException,
     InvalidPasswordChangeException,
     InvalidRegistrationException,
     UnauthorizedException,
@@ -116,6 +117,8 @@ class AuthService():
             username=user.username,
             email=user.email,
             has_password=user.has_password,
+            home_lat=user.home_lat,
+            home_lon=user.home_lon,
         )
 
     async def users_register(self, data: RegisterInputDTO) -> UserOutputDTO:
@@ -256,11 +259,21 @@ class AuthService():
             self._validate_password(data.password)
             password_hash = self._hash_password(data.password)
 
+        if (data.home_lat is None) != (data.home_lon is None):
+            raise InvalidHomeLocationException(
+                message="La ubicación de casa necesita latitud y longitud juntas"
+            )
+        if data.home_lat is not None and data.home_lon is not None:
+            if not (-90 <= data.home_lat <= 90 and -180 <= data.home_lon <= 180):
+                raise InvalidHomeLocationException()
+
         updated = await UserModel().update_user(
             user_id=user_id,
             username=username,
             email=email,
-            password_hash=password_hash
+            password_hash=password_hash,
+            home_lat=data.home_lat,
+            home_lon=data.home_lon,
         )
         # If no fields were provided, the model returns None → keep user unchanged.
         return self._to_output_dto(updated or user)

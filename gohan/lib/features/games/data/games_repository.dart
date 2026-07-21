@@ -89,13 +89,19 @@ class GamesRepository {
 
   /// [position] is the chosen slot (0..max_players-1, first half = home
   /// side); omit it to join without picking a spot.
-  Future<Game> join(int gameId, {int? teamId, int? position}) async {
+  Future<Game> join(int gameId, {int? position}) async {
     final res = await _dio.post<Map<String, dynamic>>(
       '/api/games/$gameId/join/',
-      data: {
-        if (teamId != null) 'team_id': teamId,
-        if (position != null) 'position': position,
-      },
+      data: {if (position != null) 'position': position},
+    );
+    return Game.fromJson(requireData(res));
+  }
+
+  /// Re-positions an already-joined player to [position] (0..max_players-1).
+  Future<Game> move(int gameId, {required int position}) async {
+    final res = await _dio.post<Map<String, dynamic>>(
+      '/api/games/$gameId/move/',
+      data: {'position': position},
     );
     return Game.fromJson(requireData(res));
   }

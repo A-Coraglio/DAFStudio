@@ -14,6 +14,8 @@ def _row_to_ddo(row) -> UserDDO:
         password_hash=row["password_hash"],
         # .get() keeps this working if the column is missing (pre-migration).
         has_password=bool(row.get("has_password", True)),
+        home_lat=row.get("home_lat"),
+        home_lon=row.get("home_lon"),
         created_at=row["created_at"],
     )
 
@@ -127,6 +129,8 @@ class UserModel(GeneralModel):
         username: str | None = None,
         email: str | None = None,
         password_hash: str | None = None,
+        home_lat: float | None = None,
+        home_lon: float | None = None,
     ) -> UserDDO | None:
         async with self.get_db_connection() as connection:
             connection: PoolConnectionProxy = cast(PoolConnectionProxy, connection)
@@ -149,6 +153,14 @@ class UserModel(GeneralModel):
                 # Setting any password makes it a "real" one from now on —
                 # future changes will require knowing it.
                 fields.append("has_password = TRUE")
+            # Home moves as a pair — the service validates both-or-neither.
+            if home_lat is not None and home_lon is not None:
+                fields.append(f"home_lat = ${idx}")
+                values.append(home_lat)
+                idx += 1
+                fields.append(f"home_lon = ${idx}")
+                values.append(home_lon)
+                idx += 1
 
             if not fields:
                 return None

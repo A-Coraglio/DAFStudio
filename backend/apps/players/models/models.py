@@ -76,7 +76,11 @@ class PlayerModel(GeneralModel):
     ) -> list[PlayerDDO]:
         """Discovery feed: list players matching optional filters, ordered by
         ranking so "interesting" players surface first. `query` matches a
-        case-insensitive substring against first_name OR last_name."""
+        case-insensitive substring against first_name OR last_name.
+
+        Ranking source is player_sport_stat (the real ELO): the sport filter
+        when given, the player's favorite sport otherwise, 1000 default —
+        never the legacy 0-based player.ranking_points."""
         async with self.get_db_connection() as connection:
             connection: PoolConnectionProxy = cast(PoolConnectionProxy, connection)
 
@@ -84,35 +88,49 @@ class PlayerModel(GeneralModel):
             params: list = []
             idx = 1
 
+            # LEFT JOIN against the ranking sport: $1 (sport filter, nullable)
+            # falls back to the player's own favorite sport.
+            join_sql = (
+                "LEFT JOIN player_sport_stat pss ON pss.player_id = p.id "
+                f"AND pss.sport_id = COALESCE(${idx}::int, p.favorite_sport_id)"
+            )
+            params.append(sport_id); idx += 1
+
             if query is not None and query.strip():
                 where_clauses.append(
-                    f"(first_name ILIKE ${idx} OR last_name ILIKE ${idx})"
+                    f"(p.first_name ILIKE ${idx} OR p.last_name ILIKE ${idx})"
                 )
                 params.append(f"%{query.strip()}%"); idx += 1
             if sport_id is not None:
-                where_clauses.append(f"favorite_sport_id = ${idx}")
+                where_clauses.append(f"p.favorite_sport_id = ${idx}")
                 params.append(sport_id); idx += 1
             if level is not None:
-                where_clauses.append(f"level = ${idx}")
+                where_clauses.append(f"p.level = ${idx}")
                 params.append(level); idx += 1
             if exclude_user_id is not None:
-                where_clauses.append(f"user_id <> ${idx}")
+                where_clauses.append(f"p.user_id <> ${idx}")
                 params.append(exclude_user_id); idx += 1
 
             where_sql = (
                 f"WHERE {' AND '.join(where_clauses)}" if where_clauses else ""
             )
             # ORDER ranking DESC, then by id so the order is stable across
-            # pages when many players share the bootstrap 0 ranking.
+            # pages when many players share the 1000 bootstrap.
             params.extend([limit, offset])
             query_sql = (
-                f"SELECT * FROM {self.__table_name__} {where_sql} "
-                f"ORDER BY ranking_points DESC, id ASC "
+                "SELECT p.*, COALESCE(pss.ranking_points, 1000) AS sport_ranking "
+                f"FROM {self.__table_name__} p {join_sql} {where_sql} "
+                f"ORDER BY sport_ranking DESC, p.id ASC "
                 f"LIMIT ${idx} OFFSET ${idx + 1}"
             )
             try:
                 results = await connection.fetch(query_sql, *params)
-                return [_row_to_ddo(r) for r in results]
+                ddos = []
+                for r in results:
+                    ddo = _row_to_ddo(r)
+                    ddo.ranking_points = r["sport_ranking"]
+                    ddos.append(ddo)
+                return ddos
             except Exception as e:
                 raise DatabaseException(message=f"Database error: {e}")
 
