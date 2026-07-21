@@ -7,8 +7,11 @@ import '../../../core/widgets/confirm_dialog.dart';
 import '../../../core/widgets/error_view.dart';
 import '../../sports/providers/sports_providers.dart';
 import '../providers/profile_providers.dart';
+import '../widgets/admin_tile.dart';
 import '../widgets/home_location_tile.dart';
+import '../widgets/my_club_tile.dart';
 import '../widgets/password_tile.dart';
+import '../widgets/teacher_tile.dart';
 import '../widgets/player_stats_card.dart';
 import '../widgets/profile_skeleton.dart';
 import '../widgets/profile_card.dart';
@@ -100,9 +103,21 @@ class ProfileScreen extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: 8),
+            Card(
+              child: ListTile(
+                leading: const Icon(Icons.event_available_outlined),
+                title: const Text('Mis turnos'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => context.push('/my-bookings'),
+              ),
+            ),
+            const TeacherTile(),
+            const MyClubTile(),
+            const SizedBox(height: 8),
             const HomeLocationTile(),
             const SizedBox(height: 8),
             const PasswordTile(),
+            const AdminTile(),
             const SizedBox(height: 16),
             const ThemeModeTile(),
           ],

@@ -32,6 +32,28 @@ class AppService:
         clubs = await ClubModel().list_clubs(city=city)
         return [self._to_output_dto(c) for c in clubs]
 
+    async def my_clubs_lister(self, owner_id: int) -> list[ClubOutputDTO]:
+        clubs = await ClubModel().list_by_owner(owner_id=owner_id)
+        return [self._to_output_dto(c) for c in clubs]
+
+    async def clubs_creator_admin(
+        self, data: CreateClubInputDTO, admin_user_id: int
+    ) -> ClubOutputDTO:
+        """Alta de club (solo admin, decisión 2026-07-21): valida que el
+        dueño exista y deja la acción auditada."""
+        from apps.admin.models.models import AuditModel
+        from apps.users.service.authservice import AuthService
+        await AuthService().users_getter(user_id=data.owner_user_id)
+        club = await self.clubs_creator(data=data, owner_id=data.owner_user_id)
+        await AuditModel().record(
+            admin_user_id=admin_user_id,
+            action="create_club",
+            target_type="user",
+            target_id=data.owner_user_id,
+            detail=f"club {club.id}: {club.name}",
+        )
+        return club
+
     async def clubs_getter(self, club_id: int) -> ClubOutputDTO:
         club = await ClubModel().get_club_by_id(club_id=club_id)
         return self._to_output_dto(club)

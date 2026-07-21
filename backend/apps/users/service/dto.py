@@ -43,6 +43,9 @@ class UserOutputDTO(BaseModel):
     has_password: bool = True
     home_lat: float | None = None
     home_lon: float | None = None
+    # True si el usuario tiene fila en la tabla `admin`. Solo lo llena
+    # GET /api/auth/users/{id}/ — el frontend gatea la UI de admin con esto.
+    is_admin: bool = False
 
 class RefreshInputDTO(BaseModel):
     refresh_token: str

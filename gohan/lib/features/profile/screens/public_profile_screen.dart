@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/widgets/error_view.dart';
+import '../../admin/widgets/admin_profile_menu.dart';
 import '../../sports/providers/sports_providers.dart';
 import '../providers/profile_providers.dart';
 import '../widgets/my_game_tile.dart';
@@ -44,6 +45,13 @@ class PublicProfileScreen extends ConsumerWidget {
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
         ),
+        actions: [
+          if (profileAsync.valueOrNull != null)
+            AdminProfileMenu(
+              targetUserId: profileAsync.valueOrNull!.userId,
+              displayName: profileAsync.valueOrNull!.displayName,
+            ),
+        ],
       ),
       body: profileAsync.when(
         loading: () => const ProfileSkeleton(),

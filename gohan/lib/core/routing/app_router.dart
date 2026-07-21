@@ -2,7 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../features/admin/screens/admin_audit_screen.dart';
+import '../../features/admin/screens/admin_create_club_screen.dart';
+import '../../features/admin/screens/admin_logs_screen.dart';
+import '../../features/admin/screens/admin_screen.dart';
+import '../../features/admin/screens/admin_teacher_requests_screen.dart';
+import '../../features/admin/screens/admin_users_screen.dart';
 import '../../features/auth/screens/login_screen.dart';
+import '../../features/courts/screens/book_court_screen.dart';
+import '../../features/courts/screens/club_manage_screen.dart';
+import '../../features/courts/screens/manage_court_screen.dart';
+import '../../features/courts/screens/my_bookings_screen.dart';
+import '../../features/courts/screens/my_club_screen.dart';
+import '../../features/teacher/screens/teacher_apply_screen.dart';
+import '../../features/teacher/screens/teacher_panel_screen.dart';
 import '../../features/auth/screens/register_screen.dart';
 import '../../features/chats/screens/chat_list_screen.dart';
 import '../../features/chats/screens/chat_screen.dart';
@@ -121,6 +134,63 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/change-password',
         builder: (_, _) => const ChangePasswordScreen(),
+      ),
+      // Panel de administración: la UI solo lo linkea para admins y el
+      // backend rechaza con 403 a cualquier no-admin que fuerce la URL.
+      GoRoute(path: '/admin', builder: (_, _) => const AdminScreen()),
+      GoRoute(
+        path: '/admin/users',
+        builder: (_, _) => const AdminUsersScreen(),
+      ),
+      GoRoute(
+        path: '/admin/audit',
+        builder: (_, _) => const AdminAuditScreen(),
+      ),
+      GoRoute(
+        path: '/admin/logs',
+        builder: (_, _) => const AdminLogsScreen(),
+      ),
+      GoRoute(
+        path: '/admin/teacher-requests',
+        builder: (_, _) => const AdminTeacherRequestsScreen(),
+      ),
+      GoRoute(
+        path: '/admin/create-club',
+        builder: (_, _) => const AdminCreateClubScreen(),
+      ),
+      GoRoute(path: '/teacher', builder: (_, _) => const TeacherPanelScreen()),
+      GoRoute(
+        path: '/teacher/apply',
+        builder: (_, _) => const TeacherApplyScreen(),
+      ),
+      GoRoute(path: '/my-club', builder: (_, _) => const MyClubScreen()),
+      GoRoute(
+        path: '/manage-club/:id',
+        redirect: (_, state) =>
+            int.tryParse(state.pathParameters['id']!) == null
+            ? '/my-club'
+            : null,
+        builder: (_, state) => ClubManageScreen(
+          clubId: int.parse(state.pathParameters['id']!),
+        ),
+      ),
+      GoRoute(
+        path: '/manage-court/:id',
+        redirect: (_, state) =>
+            int.tryParse(state.pathParameters['id']!) == null
+            ? '/my-club'
+            : null,
+        builder: (_, state) => ManageCourtScreen(
+          courtId: int.parse(state.pathParameters['id']!),
+        ),
+      ),
+      GoRoute(
+        path: '/book-court',
+        builder: (_, _) => const BookCourtScreen(),
+      ),
+      GoRoute(
+        path: '/my-bookings',
+        builder: (_, _) => const MyBookingsScreen(),
       ),
       GoRoute(
         path: '/players/:id',

@@ -35,6 +35,11 @@ class QuickActionsRow extends StatelessWidget {
           label: 'Jugadores',
           onTap: () => context.push('/players'),
         ),
+        _QuickAction(
+          icon: Icons.stadium_outlined,
+          label: 'Reservar',
+          onTap: () => context.push('/book-court'),
+        ),
       ],
     );
   }

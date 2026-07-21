@@ -1,4 +1,6 @@
-from pydantic import BaseModel, Field
+from datetime import datetime
+
+from pydantic import BaseModel, Field, field_validator
 
 
 class CourtOutputDTO(BaseModel):
@@ -29,3 +31,29 @@ class UpdatePrivateCourtInputDTO(BaseModel):
     is_indoor: bool | None = Field(default=None)
     lat: float | None = Field(default=None)
     lon: float | None = Field(default=None)
+
+
+class CreateSlotInputDTO(BaseModel):
+    start_time: datetime = Field(description="User-local naive start time")
+    end_time: datetime = Field(description="User-local naive end time")
+
+    # Misma convención naive user-local que lessons/scheduled_at.
+    @field_validator("start_time", "end_time")
+    @classmethod
+    def _naive(cls, value: datetime) -> datetime:
+        return value.replace(tzinfo=None)
+
+
+class CourtSlotOutputDTO(BaseModel):
+    id: int
+    court_id: int
+    start_time: datetime
+    end_time: datetime
+    status: str = Field(description="free / booked / blocked")
+    booked_by_player_id: int | None = None
+    # Nombre del que reservó — solo lo ve el dueño de la cancha/club.
+    booked_by_name: str | None = None
+    # Contexto — solo en /courts/my-bookings/.
+    court_name: str | None = None
+    club_name: str | None = None
+    sport_id: int | None = None

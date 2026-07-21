@@ -18,7 +18,18 @@ MAX_DURATION = timedelta(hours=4)
 class AppService:
 
     def _to_output_dto(self, lesson: LessonDDO) -> LessonOutputDTO:
-        return LessonOutputDTO(**lesson.model_dump())
+        data = lesson.model_dump()
+        data.pop("teacher_user_id", None)
+        return LessonOutputDTO(**data)
+
+    async def _teacher_for_user(self, user_id: int):
+        from apps.teachers.models.models import TeacherModel
+        teacher = await TeacherModel().get_teacher_by_user_id(user_id=user_id)
+        if teacher is None:
+            raise LessonValidationException(
+                message="No sos profesor", error_code=403
+            )
+        return teacher
 
     async def _player_for_user(self, user_id: int):
         player = await PlayerModel().get_player_by_user_id(user_id=user_id)
@@ -89,6 +100,35 @@ class AppService:
         player = await self._player_for_user(current_user_id)
         await LessonModel().cancel_atomic(
             lesson_id=lesson_id, student_id=player.id
+        )
+        lesson = await LessonModel().get_by_id(lesson_id=lesson_id)
+        return self._to_output_dto(lesson)
+
+    # -------- lado profe --------
+
+    async def teaching_lister(
+        self, current_user_id: int
+    ) -> list[LessonOutputDTO]:
+        teacher = await self._teacher_for_user(current_user_id)
+        rows = await LessonModel().list_for_teacher(teacher_id=teacher.id)
+        return [self._to_output_dto(lesson) for lesson in rows]
+
+    async def teacher_status_setter(
+        self, current_user_id: int, lesson_id: int, action: str
+    ) -> LessonOutputDTO:
+        """confirm: pending→confirmed · reject: pending→rejected ·
+        cancel: pending/confirmed→cancelled (siempre el profe, solo futuras)."""
+        transitions = {
+            "confirm": (("pending",), "confirmed"),
+            "reject": (("pending",), "rejected"),
+            "cancel": (("pending", "confirmed"), "cancelled"),
+        }
+        allowed_from, new_status = transitions[action]
+        await LessonModel().teacher_set_status_atomic(
+            lesson_id=lesson_id,
+            teacher_user_id=current_user_id,
+            allowed_from=allowed_from,
+            new_status=new_status,
         )
         lesson = await LessonModel().get_by_id(lesson_id=lesson_id)
         return self._to_output_dto(lesson)

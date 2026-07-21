@@ -16,6 +16,7 @@ def _row_to_ddo(row) -> UserDDO:
         has_password=bool(row.get("has_password", True)),
         home_lat=row.get("home_lat"),
         home_lon=row.get("home_lon"),
+        banned_at=row.get("banned_at"),
         created_at=row["created_at"],
     )
 

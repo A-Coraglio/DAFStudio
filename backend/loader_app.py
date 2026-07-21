@@ -23,6 +23,9 @@ from apps.chats.namespaces.routes import router as chats_router
 from apps.tournaments.namespaces.routes import router as tournaments_router
 from apps.classes.namespaces.routes import router as classes_router
 from apps.lessons.namespaces.routes import router as lessons_router
+from apps.admin.namespaces.routes import router as admin_router
+from apps.teachers.namespaces.routes import router as teachers_router
+from apps.common.log_file import attach_file_handler
 from traceback import format_exc  # solo para el trace opt-in del handler
 
 
@@ -33,6 +36,8 @@ logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s %(levelname)-7s %(name)s: %(message)s",
 )
+# Espejo a logs/server.log (rotativo) — lo lee el visor del panel de admin.
+attach_file_handler()
 logger = logging.getLogger("dafstudio")
 
 
@@ -114,6 +119,8 @@ app.include_router(chats_router)
 app.include_router(tournaments_router)
 app.include_router(classes_router)
 app.include_router(lessons_router)
+app.include_router(admin_router)
+app.include_router(teachers_router)
 
 # User uploads (avatars, future attachments). Directory is created on demand
 # by the upload path — we just mount it so GET /uploads/<file> resolves.

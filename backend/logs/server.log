@@ -1,0 +1,215 @@
+2026-07-21 14:07:21,038 INFO    apscheduler.scheduler: Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-07-21 14:07:21,038 INFO    apscheduler.scheduler: Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-07-21 14:07:21,038 INFO    apscheduler.scheduler: Added job "_run_matcher_job" to job store "default"
+2026-07-21 14:07:21,038 INFO    apscheduler.scheduler: Added job "_run_settle_job" to job store "default"
+2026-07-21 14:07:21,038 INFO    apscheduler.scheduler: Scheduler started
+2026-07-21 14:07:41,049 INFO    apscheduler.executors.default: Running job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:08:01 CEST)" (scheduled at 2026-07-21 14:07:41.037953+02:00)
+2026-07-21 14:07:41,065 INFO    apscheduler.executors.default: Job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:08:01 CEST)" executed successfully
+2026-07-21 14:08:01,042 INFO    apscheduler.executors.default: Running job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:08:21 CEST)" (scheduled at 2026-07-21 14:08:01.037953+02:00)
+2026-07-21 14:08:01,055 INFO    apscheduler.executors.default: Job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:08:21 CEST)" executed successfully
+2026-07-21 14:08:21,040 INFO    apscheduler.executors.default: Running job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:08:41 CEST)" (scheduled at 2026-07-21 14:08:21.037953+02:00)
+2026-07-21 14:08:21,052 INFO    apscheduler.executors.default: Job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:08:41 CEST)" executed successfully
+2026-07-21 14:08:41,048 INFO    apscheduler.executors.default: Running job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:09:01 CEST)" (scheduled at 2026-07-21 14:08:41.037953+02:00)
+2026-07-21 14:08:41,061 INFO    apscheduler.executors.default: Job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:09:01 CEST)" executed successfully
+2026-07-21 14:09:01,040 INFO    apscheduler.executors.default: Running job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:09:21 CEST)" (scheduled at 2026-07-21 14:09:01.037953+02:00)
+2026-07-21 14:09:01,052 INFO    apscheduler.executors.default: Job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:09:21 CEST)" executed successfully
+2026-07-21 14:09:21,040 INFO    apscheduler.executors.default: Running job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:09:41 CEST)" (scheduled at 2026-07-21 14:09:21.037953+02:00)
+2026-07-21 14:09:21,052 INFO    apscheduler.executors.default: Job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:09:41 CEST)" executed successfully
+2026-07-21 14:09:41,045 INFO    apscheduler.executors.default: Running job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:10:01 CEST)" (scheduled at 2026-07-21 14:09:41.037953+02:00)
+2026-07-21 14:09:41,057 INFO    apscheduler.executors.default: Job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:10:01 CEST)" executed successfully
+2026-07-21 14:10:01,048 INFO    apscheduler.executors.default: Running job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:10:21 CEST)" (scheduled at 2026-07-21 14:10:01.037953+02:00)
+2026-07-21 14:10:01,060 INFO    apscheduler.executors.default: Job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:10:21 CEST)" executed successfully
+2026-07-21 14:10:21,049 INFO    apscheduler.executors.default: Running job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:10:41 CEST)" (scheduled at 2026-07-21 14:10:21.037953+02:00)
+2026-07-21 14:10:21,061 INFO    apscheduler.executors.default: Job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:10:41 CEST)" executed successfully
+2026-07-21 14:10:41,039 INFO    apscheduler.executors.default: Running job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:11:01 CEST)" (scheduled at 2026-07-21 14:10:41.037953+02:00)
+2026-07-21 14:10:41,051 INFO    apscheduler.executors.default: Job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:11:01 CEST)" executed successfully
+2026-07-21 14:11:01,049 INFO    apscheduler.executors.default: Running job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:11:21 CEST)" (scheduled at 2026-07-21 14:11:01.037953+02:00)
+2026-07-21 14:11:01,062 INFO    apscheduler.executors.default: Job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:11:21 CEST)" executed successfully
+2026-07-21 14:11:21,050 INFO    apscheduler.executors.default: Running job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:11:41 CEST)" (scheduled at 2026-07-21 14:11:21.037953+02:00)
+2026-07-21 14:11:21,062 INFO    apscheduler.executors.default: Job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:11:41 CEST)" executed successfully
+2026-07-21 14:11:41,051 INFO    apscheduler.executors.default: Running job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:12:01 CEST)" (scheduled at 2026-07-21 14:11:41.037953+02:00)
+2026-07-21 14:11:41,063 INFO    apscheduler.executors.default: Job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:12:01 CEST)" executed successfully
+2026-07-21 14:12:01,047 INFO    apscheduler.executors.default: Running job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:12:21 CEST)" (scheduled at 2026-07-21 14:12:01.037953+02:00)
+2026-07-21 14:12:01,059 INFO    apscheduler.executors.default: Job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:12:21 CEST)" executed successfully
+2026-07-21 14:12:21,039 INFO    apscheduler.executors.default: Running job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:12:41 CEST)" (scheduled at 2026-07-21 14:12:21.037953+02:00)
+2026-07-21 14:12:21,051 INFO    apscheduler.executors.default: Job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:12:41 CEST)" executed successfully
+2026-07-21 14:12:41,041 INFO    apscheduler.executors.default: Running job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:13:01 CEST)" (scheduled at 2026-07-21 14:12:41.037953+02:00)
+2026-07-21 14:12:41,053 INFO    apscheduler.executors.default: Job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:13:01 CEST)" executed successfully
+2026-07-21 14:13:01,039 INFO    apscheduler.executors.default: Running job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:13:21 CEST)" (scheduled at 2026-07-21 14:13:01.037953+02:00)
+2026-07-21 14:13:01,054 INFO    apscheduler.executors.default: Job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:13:21 CEST)" executed successfully
+2026-07-21 14:13:21,050 INFO    apscheduler.executors.default: Running job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:13:41 CEST)" (scheduled at 2026-07-21 14:13:21.037953+02:00)
+2026-07-21 14:13:21,062 INFO    apscheduler.executors.default: Job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:13:41 CEST)" executed successfully
+2026-07-21 14:13:41,040 INFO    apscheduler.executors.default: Running job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:14:01 CEST)" (scheduled at 2026-07-21 14:13:41.037953+02:00)
+2026-07-21 14:13:41,052 INFO    apscheduler.executors.default: Job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:14:01 CEST)" executed successfully
+2026-07-21 14:14:01,046 INFO    apscheduler.executors.default: Running job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:14:21 CEST)" (scheduled at 2026-07-21 14:14:01.037953+02:00)
+2026-07-21 14:14:01,058 INFO    apscheduler.executors.default: Job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:14:21 CEST)" executed successfully
+2026-07-21 14:14:21,050 INFO    apscheduler.executors.default: Running job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:14:41 CEST)" (scheduled at 2026-07-21 14:14:21.037953+02:00)
+2026-07-21 14:14:21,062 INFO    apscheduler.executors.default: Job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:14:41 CEST)" executed successfully
+2026-07-21 14:14:41,051 INFO    apscheduler.executors.default: Running job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:15:01 CEST)" (scheduled at 2026-07-21 14:14:41.037953+02:00)
+2026-07-21 14:14:41,064 INFO    apscheduler.executors.default: Job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:15:01 CEST)" executed successfully
+2026-07-21 14:15:01,039 INFO    apscheduler.executors.default: Running job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:15:21 CEST)" (scheduled at 2026-07-21 14:15:01.037953+02:00)
+2026-07-21 14:15:01,051 INFO    apscheduler.executors.default: Job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:15:21 CEST)" executed successfully
+2026-07-21 14:15:21,042 INFO    apscheduler.executors.default: Running job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:15:41 CEST)" (scheduled at 2026-07-21 14:15:21.037953+02:00)
+2026-07-21 14:15:21,054 INFO    apscheduler.executors.default: Job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:15:41 CEST)" executed successfully
+2026-07-21 14:15:41,048 INFO    apscheduler.executors.default: Running job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:16:01 CEST)" (scheduled at 2026-07-21 14:15:41.037953+02:00)
+2026-07-21 14:15:41,060 INFO    apscheduler.executors.default: Job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:16:01 CEST)" executed successfully
+2026-07-21 14:16:01,050 INFO    apscheduler.executors.default: Running job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:16:21 CEST)" (scheduled at 2026-07-21 14:16:01.037953+02:00)
+2026-07-21 14:16:01,063 INFO    apscheduler.executors.default: Job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:16:21 CEST)" executed successfully
+2026-07-21 14:16:21,046 INFO    apscheduler.executors.default: Running job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:16:41 CEST)" (scheduled at 2026-07-21 14:16:21.037953+02:00)
+2026-07-21 14:16:21,058 INFO    apscheduler.executors.default: Job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:16:41 CEST)" executed successfully
+2026-07-21 14:16:41,052 INFO    apscheduler.executors.default: Running job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:17:01 CEST)" (scheduled at 2026-07-21 14:16:41.037953+02:00)
+2026-07-21 14:16:41,065 INFO    apscheduler.executors.default: Job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:17:01 CEST)" executed successfully
+2026-07-21 14:17:01,045 INFO    apscheduler.executors.default: Running job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:17:21 CEST)" (scheduled at 2026-07-21 14:17:01.037953+02:00)
+2026-07-21 14:17:01,057 INFO    apscheduler.executors.default: Job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:17:21 CEST)" executed successfully
+2026-07-21 14:17:21,046 INFO    apscheduler.executors.default: Running job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:17:41 CEST)" (scheduled at 2026-07-21 14:17:21.037953+02:00)
+2026-07-21 14:17:21,058 INFO    apscheduler.executors.default: Job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:17:41 CEST)" executed successfully
+2026-07-21 14:17:41,040 INFO    apscheduler.executors.default: Running job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:18:01 CEST)" (scheduled at 2026-07-21 14:17:41.037953+02:00)
+2026-07-21 14:17:41,052 INFO    apscheduler.executors.default: Job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:18:01 CEST)" executed successfully
+2026-07-21 14:18:01,047 INFO    apscheduler.executors.default: Running job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:18:21 CEST)" (scheduled at 2026-07-21 14:18:01.037953+02:00)
+2026-07-21 14:18:01,064 INFO    apscheduler.executors.default: Job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:18:21 CEST)" executed successfully
+2026-07-21 14:18:21,042 INFO    apscheduler.executors.default: Running job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:18:41 CEST)" (scheduled at 2026-07-21 14:18:21.037953+02:00)
+2026-07-21 14:18:21,055 INFO    apscheduler.executors.default: Job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:18:41 CEST)" executed successfully
+2026-07-21 14:18:41,050 INFO    apscheduler.executors.default: Running job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:19:01 CEST)" (scheduled at 2026-07-21 14:18:41.037953+02:00)
+2026-07-21 14:18:41,063 INFO    apscheduler.executors.default: Job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:19:01 CEST)" executed successfully
+2026-07-21 14:19:01,042 INFO    apscheduler.executors.default: Running job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:19:21 CEST)" (scheduled at 2026-07-21 14:19:01.037953+02:00)
+2026-07-21 14:19:01,054 INFO    apscheduler.executors.default: Job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:19:21 CEST)" executed successfully
+2026-07-21 14:19:21,047 INFO    apscheduler.executors.default: Running job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:19:41 CEST)" (scheduled at 2026-07-21 14:19:21.037953+02:00)
+2026-07-21 14:19:21,059 INFO    apscheduler.executors.default: Job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:19:41 CEST)" executed successfully
+2026-07-21 14:19:41,050 INFO    apscheduler.executors.default: Running job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:20:01 CEST)" (scheduled at 2026-07-21 14:19:41.037953+02:00)
+2026-07-21 14:19:41,062 INFO    apscheduler.executors.default: Job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:20:01 CEST)" executed successfully
+2026-07-21 14:20:01,044 INFO    apscheduler.executors.default: Running job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:20:21 CEST)" (scheduled at 2026-07-21 14:20:01.037953+02:00)
+2026-07-21 14:20:01,056 INFO    apscheduler.executors.default: Job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:20:21 CEST)" executed successfully
+2026-07-21 14:20:21,049 INFO    apscheduler.executors.default: Running job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:20:41 CEST)" (scheduled at 2026-07-21 14:20:21.037953+02:00)
+2026-07-21 14:20:21,062 INFO    apscheduler.executors.default: Job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:20:41 CEST)" executed successfully
+2026-07-21 14:20:41,040 INFO    apscheduler.executors.default: Running job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:21:01 CEST)" (scheduled at 2026-07-21 14:20:41.037953+02:00)
+2026-07-21 14:20:41,052 INFO    apscheduler.executors.default: Job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:21:01 CEST)" executed successfully
+2026-07-21 14:21:01,053 INFO    apscheduler.executors.default: Running job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:21:21 CEST)" (scheduled at 2026-07-21 14:21:01.037953+02:00)
+2026-07-21 14:21:01,065 INFO    apscheduler.executors.default: Job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:21:21 CEST)" executed successfully
+2026-07-21 14:21:21,047 INFO    apscheduler.executors.default: Running job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:21:41 CEST)" (scheduled at 2026-07-21 14:21:21.037953+02:00)
+2026-07-21 14:21:21,058 INFO    apscheduler.executors.default: Job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:21:41 CEST)" executed successfully
+2026-07-21 14:21:41,047 INFO    apscheduler.executors.default: Running job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:22:01 CEST)" (scheduled at 2026-07-21 14:21:41.037953+02:00)
+2026-07-21 14:21:41,059 INFO    apscheduler.executors.default: Job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:22:01 CEST)" executed successfully
+2026-07-21 14:22:01,046 INFO    apscheduler.executors.default: Running job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:22:21 CEST)" (scheduled at 2026-07-21 14:22:01.037953+02:00)
+2026-07-21 14:22:01,059 INFO    apscheduler.executors.default: Job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:22:21 CEST)" executed successfully
+2026-07-21 14:22:21,050 INFO    apscheduler.executors.default: Running job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:22:41 CEST)" (scheduled at 2026-07-21 14:22:21.037953+02:00)
+2026-07-21 14:22:21,050 INFO    apscheduler.executors.default: Running job "_run_settle_job (trigger: interval[0:15:00], next run at: 2026-07-21 14:37:21 CEST)" (scheduled at 2026-07-21 14:22:21.038196+02:00)
+2026-07-21 14:22:21,080 INFO    apscheduler.executors.default: Job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:22:41 CEST)" executed successfully
+2026-07-21 14:22:21,081 INFO    dafstudio: [settle cron] {'checked': 1, 'finalized': 0, 'no_result': 1}
+2026-07-21 14:22:21,081 INFO    apscheduler.executors.default: Job "_run_settle_job (trigger: interval[0:15:00], next run at: 2026-07-21 14:37:21 CEST)" executed successfully
+2026-07-21 14:22:41,048 INFO    apscheduler.executors.default: Running job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:23:01 CEST)" (scheduled at 2026-07-21 14:22:41.037953+02:00)
+2026-07-21 14:22:41,062 INFO    apscheduler.executors.default: Job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:23:01 CEST)" executed successfully
+2026-07-21 14:23:01,052 INFO    apscheduler.executors.default: Running job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:23:21 CEST)" (scheduled at 2026-07-21 14:23:01.037953+02:00)
+2026-07-21 14:23:01,064 INFO    apscheduler.executors.default: Job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:23:21 CEST)" executed successfully
+2026-07-21 14:23:21,050 INFO    apscheduler.executors.default: Running job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:23:41 CEST)" (scheduled at 2026-07-21 14:23:21.037953+02:00)
+2026-07-21 14:23:21,062 INFO    apscheduler.executors.default: Job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:23:41 CEST)" executed successfully
+2026-07-21 14:23:41,044 INFO    apscheduler.executors.default: Running job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:24:01 CEST)" (scheduled at 2026-07-21 14:23:41.037953+02:00)
+2026-07-21 14:23:41,056 INFO    apscheduler.executors.default: Job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:24:01 CEST)" executed successfully
+2026-07-21 14:24:01,040 INFO    apscheduler.executors.default: Running job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:24:21 CEST)" (scheduled at 2026-07-21 14:24:01.037953+02:00)
+2026-07-21 14:24:01,052 INFO    apscheduler.executors.default: Job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:24:21 CEST)" executed successfully
+2026-07-21 14:24:21,048 INFO    apscheduler.executors.default: Running job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:24:41 CEST)" (scheduled at 2026-07-21 14:24:21.037953+02:00)
+2026-07-21 14:24:21,060 INFO    apscheduler.executors.default: Job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:24:41 CEST)" executed successfully
+2026-07-21 14:24:41,042 INFO    apscheduler.executors.default: Running job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:25:01 CEST)" (scheduled at 2026-07-21 14:24:41.037953+02:00)
+2026-07-21 14:24:41,054 INFO    apscheduler.executors.default: Job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:25:01 CEST)" executed successfully
+2026-07-21 14:25:01,049 INFO    apscheduler.executors.default: Running job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:25:21 CEST)" (scheduled at 2026-07-21 14:25:01.037953+02:00)
+2026-07-21 14:25:01,061 INFO    apscheduler.executors.default: Job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:25:21 CEST)" executed successfully
+2026-07-21 14:25:21,044 INFO    apscheduler.executors.default: Running job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:25:41 CEST)" (scheduled at 2026-07-21 14:25:21.037953+02:00)
+2026-07-21 14:25:21,056 INFO    apscheduler.executors.default: Job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:25:41 CEST)" executed successfully
+2026-07-21 14:25:41,052 INFO    apscheduler.executors.default: Running job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:26:01 CEST)" (scheduled at 2026-07-21 14:25:41.037953+02:00)
+2026-07-21 14:25:41,064 INFO    apscheduler.executors.default: Job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:26:01 CEST)" executed successfully
+2026-07-21 14:26:01,051 INFO    apscheduler.executors.default: Running job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:26:21 CEST)" (scheduled at 2026-07-21 14:26:01.037953+02:00)
+2026-07-21 14:26:01,063 INFO    apscheduler.executors.default: Job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:26:21 CEST)" executed successfully
+2026-07-21 14:26:21,046 INFO    apscheduler.executors.default: Running job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:26:41 CEST)" (scheduled at 2026-07-21 14:26:21.037953+02:00)
+2026-07-21 14:26:21,058 INFO    apscheduler.executors.default: Job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:26:41 CEST)" executed successfully
+2026-07-21 14:26:41,051 INFO    apscheduler.executors.default: Running job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:27:01 CEST)" (scheduled at 2026-07-21 14:26:41.037953+02:00)
+2026-07-21 14:26:41,063 INFO    apscheduler.executors.default: Job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:27:01 CEST)" executed successfully
+2026-07-21 14:27:01,043 INFO    apscheduler.executors.default: Running job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:27:21 CEST)" (scheduled at 2026-07-21 14:27:01.037953+02:00)
+2026-07-21 14:27:01,056 INFO    apscheduler.executors.default: Job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:27:21 CEST)" executed successfully
+2026-07-21 14:27:21,047 INFO    apscheduler.executors.default: Running job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:27:41 CEST)" (scheduled at 2026-07-21 14:27:21.037953+02:00)
+2026-07-21 14:27:21,060 INFO    apscheduler.executors.default: Job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:27:41 CEST)" executed successfully
+2026-07-21 14:27:41,040 INFO    apscheduler.executors.default: Running job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:28:01 CEST)" (scheduled at 2026-07-21 14:27:41.037953+02:00)
+2026-07-21 14:27:41,052 INFO    apscheduler.executors.default: Job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:28:01 CEST)" executed successfully
+2026-07-21 14:28:01,045 INFO    apscheduler.executors.default: Running job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:28:21 CEST)" (scheduled at 2026-07-21 14:28:01.037953+02:00)
+2026-07-21 14:28:01,061 INFO    apscheduler.executors.default: Job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:28:21 CEST)" executed successfully
+2026-07-21 14:28:21,049 INFO    apscheduler.executors.default: Running job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:28:41 CEST)" (scheduled at 2026-07-21 14:28:21.037953+02:00)
+2026-07-21 14:28:21,062 INFO    apscheduler.executors.default: Job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:28:41 CEST)" executed successfully
+2026-07-21 14:28:41,044 INFO    apscheduler.executors.default: Running job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:29:01 CEST)" (scheduled at 2026-07-21 14:28:41.037953+02:00)
+2026-07-21 14:28:41,057 INFO    apscheduler.executors.default: Job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:29:01 CEST)" executed successfully
+2026-07-21 14:29:01,042 INFO    apscheduler.executors.default: Running job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:29:21 CEST)" (scheduled at 2026-07-21 14:29:01.037953+02:00)
+2026-07-21 14:29:01,055 INFO    apscheduler.executors.default: Job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:29:21 CEST)" executed successfully
+2026-07-21 14:29:21,041 INFO    apscheduler.executors.default: Running job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:29:41 CEST)" (scheduled at 2026-07-21 14:29:21.037953+02:00)
+2026-07-21 14:29:21,053 INFO    apscheduler.executors.default: Job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:29:41 CEST)" executed successfully
+2026-07-21 14:29:41,042 INFO    apscheduler.executors.default: Running job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:30:01 CEST)" (scheduled at 2026-07-21 14:29:41.037953+02:00)
+2026-07-21 14:29:41,054 INFO    apscheduler.executors.default: Job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:30:01 CEST)" executed successfully
+2026-07-21 14:30:01,047 INFO    apscheduler.executors.default: Running job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:30:21 CEST)" (scheduled at 2026-07-21 14:30:01.037953+02:00)
+2026-07-21 14:30:01,060 INFO    apscheduler.executors.default: Job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:30:21 CEST)" executed successfully
+2026-07-21 14:30:21,051 INFO    apscheduler.executors.default: Running job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:30:41 CEST)" (scheduled at 2026-07-21 14:30:21.037953+02:00)
+2026-07-21 14:30:21,063 INFO    apscheduler.executors.default: Job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:30:41 CEST)" executed successfully
+2026-07-21 14:30:41,040 INFO    apscheduler.executors.default: Running job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:31:01 CEST)" (scheduled at 2026-07-21 14:30:41.037953+02:00)
+2026-07-21 14:30:41,053 INFO    apscheduler.executors.default: Job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:31:01 CEST)" executed successfully
+2026-07-21 14:31:01,045 INFO    apscheduler.executors.default: Running job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:31:21 CEST)" (scheduled at 2026-07-21 14:31:01.037953+02:00)
+2026-07-21 14:31:01,057 INFO    apscheduler.executors.default: Job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:31:21 CEST)" executed successfully
+2026-07-21 14:31:21,041 INFO    apscheduler.executors.default: Running job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:31:41 CEST)" (scheduled at 2026-07-21 14:31:21.037953+02:00)
+2026-07-21 14:31:21,054 INFO    apscheduler.executors.default: Job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:31:41 CEST)" executed successfully
+2026-07-21 14:31:41,038 INFO    apscheduler.executors.default: Running job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:32:01 CEST)" (scheduled at 2026-07-21 14:31:41.037953+02:00)
+2026-07-21 14:31:41,050 INFO    apscheduler.executors.default: Job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:32:01 CEST)" executed successfully
+2026-07-21 14:32:01,049 INFO    apscheduler.executors.default: Running job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:32:21 CEST)" (scheduled at 2026-07-21 14:32:01.037953+02:00)
+2026-07-21 14:32:01,062 INFO    apscheduler.executors.default: Job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:32:21 CEST)" executed successfully
+2026-07-21 14:32:21,038 INFO    apscheduler.executors.default: Running job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:32:41 CEST)" (scheduled at 2026-07-21 14:32:21.037953+02:00)
+2026-07-21 14:32:21,051 INFO    apscheduler.executors.default: Job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:32:41 CEST)" executed successfully
+2026-07-21 14:32:41,047 INFO    apscheduler.executors.default: Running job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:33:01 CEST)" (scheduled at 2026-07-21 14:32:41.037953+02:00)
+2026-07-21 14:32:41,060 INFO    apscheduler.executors.default: Job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:33:01 CEST)" executed successfully
+2026-07-21 14:33:01,049 INFO    apscheduler.executors.default: Running job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:33:21 CEST)" (scheduled at 2026-07-21 14:33:01.037953+02:00)
+2026-07-21 14:33:01,064 INFO    apscheduler.executors.default: Job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:33:21 CEST)" executed successfully
+2026-07-21 14:33:21,053 INFO    apscheduler.executors.default: Running job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:33:41 CEST)" (scheduled at 2026-07-21 14:33:21.037953+02:00)
+2026-07-21 14:33:21,065 INFO    apscheduler.executors.default: Job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:33:41 CEST)" executed successfully
+2026-07-21 14:33:41,040 INFO    apscheduler.executors.default: Running job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:34:01 CEST)" (scheduled at 2026-07-21 14:33:41.037953+02:00)
+2026-07-21 14:33:41,053 INFO    apscheduler.executors.default: Job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:34:01 CEST)" executed successfully
+2026-07-21 14:34:01,045 INFO    apscheduler.executors.default: Running job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:34:21 CEST)" (scheduled at 2026-07-21 14:34:01.037953+02:00)
+2026-07-21 14:34:01,057 INFO    apscheduler.executors.default: Job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:34:21 CEST)" executed successfully
+2026-07-21 14:34:21,042 INFO    apscheduler.executors.default: Running job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:34:41 CEST)" (scheduled at 2026-07-21 14:34:21.037953+02:00)
+2026-07-21 14:34:21,055 INFO    apscheduler.executors.default: Job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:34:41 CEST)" executed successfully
+2026-07-21 14:34:41,041 INFO    apscheduler.executors.default: Running job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:35:01 CEST)" (scheduled at 2026-07-21 14:34:41.037953+02:00)
+2026-07-21 14:34:41,053 INFO    apscheduler.executors.default: Job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:35:01 CEST)" executed successfully
+2026-07-21 14:35:01,040 INFO    apscheduler.executors.default: Running job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:35:21 CEST)" (scheduled at 2026-07-21 14:35:01.037953+02:00)
+2026-07-21 14:35:01,053 INFO    apscheduler.executors.default: Job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:35:21 CEST)" executed successfully
+2026-07-21 14:35:21,044 INFO    apscheduler.executors.default: Running job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:35:41 CEST)" (scheduled at 2026-07-21 14:35:21.037953+02:00)
+2026-07-21 14:35:21,057 INFO    apscheduler.executors.default: Job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:35:41 CEST)" executed successfully
+2026-07-21 14:35:41,047 INFO    apscheduler.executors.default: Running job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:36:01 CEST)" (scheduled at 2026-07-21 14:35:41.037953+02:00)
+2026-07-21 14:35:41,059 INFO    apscheduler.executors.default: Job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:36:01 CEST)" executed successfully
+2026-07-21 14:36:01,041 INFO    apscheduler.executors.default: Running job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:36:21 CEST)" (scheduled at 2026-07-21 14:36:01.037953+02:00)
+2026-07-21 14:36:01,053 INFO    apscheduler.executors.default: Job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:36:21 CEST)" executed successfully
+2026-07-21 14:36:21,047 INFO    apscheduler.executors.default: Running job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:36:41 CEST)" (scheduled at 2026-07-21 14:36:21.037953+02:00)
+2026-07-21 14:36:21,060 INFO    apscheduler.executors.default: Job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:36:41 CEST)" executed successfully
+2026-07-21 14:36:51,951 INFO    apscheduler.scheduler: Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-07-21 14:36:51,951 INFO    apscheduler.scheduler: Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-07-21 14:36:51,952 INFO    apscheduler.scheduler: Added job "_run_matcher_job" to job store "default"
+2026-07-21 14:36:51,952 INFO    apscheduler.scheduler: Added job "_run_settle_job" to job store "default"
+2026-07-21 14:36:51,952 INFO    apscheduler.scheduler: Scheduler started
+2026-07-21 14:37:11,954 INFO    apscheduler.executors.default: Running job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:37:31 CEST)" (scheduled at 2026-07-21 14:37:11.951514+02:00)
+2026-07-21 14:37:11,969 INFO    apscheduler.executors.default: Job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:37:31 CEST)" executed successfully
+2026-07-21 14:37:31,963 INFO    apscheduler.executors.default: Running job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:37:51 CEST)" (scheduled at 2026-07-21 14:37:31.951514+02:00)
+2026-07-21 14:37:31,975 INFO    apscheduler.executors.default: Job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:37:51 CEST)" executed successfully
+2026-07-21 14:37:51,963 INFO    apscheduler.executors.default: Running job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:38:11 CEST)" (scheduled at 2026-07-21 14:37:51.951514+02:00)
+2026-07-21 14:37:51,975 INFO    apscheduler.executors.default: Job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:38:11 CEST)" executed successfully
+2026-07-21 14:38:11,955 INFO    apscheduler.executors.default: Running job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:38:31 CEST)" (scheduled at 2026-07-21 14:38:11.951514+02:00)
+2026-07-21 14:38:11,967 INFO    apscheduler.executors.default: Job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:38:31 CEST)" executed successfully
+2026-07-21 14:38:31,955 INFO    apscheduler.executors.default: Running job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:38:51 CEST)" (scheduled at 2026-07-21 14:38:31.951514+02:00)
+2026-07-21 14:38:31,967 INFO    apscheduler.executors.default: Job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:38:51 CEST)" executed successfully
+2026-07-21 14:38:51,962 INFO    apscheduler.executors.default: Running job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:39:11 CEST)" (scheduled at 2026-07-21 14:38:51.951514+02:00)
+2026-07-21 14:38:51,974 INFO    apscheduler.executors.default: Job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:39:11 CEST)" executed successfully
+2026-07-21 14:39:11,955 INFO    apscheduler.executors.default: Running job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:39:31 CEST)" (scheduled at 2026-07-21 14:39:11.951514+02:00)
+2026-07-21 14:39:11,968 INFO    apscheduler.executors.default: Job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:39:31 CEST)" executed successfully
+2026-07-21 14:39:31,966 INFO    apscheduler.executors.default: Running job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:39:51 CEST)" (scheduled at 2026-07-21 14:39:31.951514+02:00)
+2026-07-21 14:39:31,979 INFO    apscheduler.executors.default: Job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:39:51 CEST)" executed successfully
+2026-07-21 14:39:51,966 INFO    apscheduler.executors.default: Running job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:40:11 CEST)" (scheduled at 2026-07-21 14:39:51.951514+02:00)
+2026-07-21 14:39:51,979 INFO    apscheduler.executors.default: Job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:40:11 CEST)" executed successfully
+2026-07-21 14:40:11,960 INFO    apscheduler.executors.default: Running job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:40:31 CEST)" (scheduled at 2026-07-21 14:40:11.951514+02:00)
+2026-07-21 14:40:11,972 INFO    apscheduler.executors.default: Job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:40:31 CEST)" executed successfully
+2026-07-21 14:40:31,964 INFO    apscheduler.executors.default: Running job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:40:51 CEST)" (scheduled at 2026-07-21 14:40:31.951514+02:00)
+2026-07-21 14:40:31,976 INFO    apscheduler.executors.default: Job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:40:51 CEST)" executed successfully
+2026-07-21 14:40:51,958 INFO    apscheduler.executors.default: Running job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:41:11 CEST)" (scheduled at 2026-07-21 14:40:51.951514+02:00)
+2026-07-21 14:40:51,970 INFO    apscheduler.executors.default: Job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:41:11 CEST)" executed successfully
+2026-07-21 14:41:11,965 INFO    apscheduler.executors.default: Running job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:41:31 CEST)" (scheduled at 2026-07-21 14:41:11.951514+02:00)
+2026-07-21 14:41:11,978 INFO    apscheduler.executors.default: Job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:41:31 CEST)" executed successfully
+2026-07-21 14:41:31,964 INFO    apscheduler.executors.default: Running job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:41:51 CEST)" (scheduled at 2026-07-21 14:41:31.951514+02:00)
+2026-07-21 14:41:31,976 INFO    apscheduler.executors.default: Job "_run_matcher_job (trigger: interval[0:00:20], next run at: 2026-07-21 14:41:51 CEST)" executed successfully

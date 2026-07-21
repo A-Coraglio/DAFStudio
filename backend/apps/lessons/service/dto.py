@@ -28,10 +28,12 @@ class LessonOutputDTO(BaseModel):
     teacher_id: int
     teacher_name: str
     student_id: int
+    # Nombre del alumno — solo en el listado del profe (/lessons/teaching/).
+    student_name: str | None = None
     sport_id: int | None = None
     start_time: datetime
     end_time: datetime
-    status: str = Field(description="pending / confirmed / cancelled")
+    status: str = Field(description="pending / confirmed / rejected / cancelled")
     total_price: float
 
 

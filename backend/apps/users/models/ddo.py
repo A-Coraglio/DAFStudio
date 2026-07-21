@@ -12,4 +12,6 @@ class UserDDO(BaseModel):
     # "Casa" del usuario — la usan classes/tournaments para distancias.
     home_lat: float | None = Field(default=None)
     home_lon: float | None = Field(default=None)
+    # Ban de admin: con esto seteado no hay login, refresh ni requests.
+    banned_at: datetime | None = Field(default=None)
     created_at: datetime

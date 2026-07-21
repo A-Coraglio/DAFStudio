@@ -56,4 +56,29 @@ class LessonsRepository {
     );
     return Lesson.fromJson(requireData(res));
   }
+
+  // -------- lado profe --------
+
+  /// Agenda del profe (pendientes primero, con nombre del alumno).
+  Future<List<Lesson>> teaching() async {
+    final res = await _dio.get<List<dynamic>>('/api/lessons/teaching/');
+    return (res.data ?? const [])
+        .cast<Map<String, dynamic>>()
+        .map(Lesson.fromJson)
+        .toList();
+  }
+
+  Future<Lesson> _teacherAction(int lessonId, String action) async {
+    final res = await _dio.post<Map<String, dynamic>>(
+      '/api/lessons/$lessonId/$action/',
+    );
+    return Lesson.fromJson(requireData(res));
+  }
+
+  Future<Lesson> confirm(int lessonId) => _teacherAction(lessonId, 'confirm');
+
+  Future<Lesson> reject(int lessonId) => _teacherAction(lessonId, 'reject');
+
+  Future<Lesson> teacherCancel(int lessonId) =>
+      _teacherAction(lessonId, 'teacher-cancel');
 }

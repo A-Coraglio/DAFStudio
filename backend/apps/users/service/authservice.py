@@ -18,6 +18,7 @@ from apps.users.service.dto import (
     TokenOutputDTO
 )
 from apps.users.exceptions.exceptions import (
+    AccountBannedException,
     EmailAlreadyRegisteredException,
     GoogleAuthNotConfiguredException,
     InvalidCredentialsException,
@@ -150,6 +151,8 @@ class AuthService():
         )
         if not user or not self._verify_password(data.password, user.password_hash):
             raise InvalidCredentialsException()
+        if user.banned_at is not None:
+            raise AccountBannedException()
         return self._token_pair(user.id)
 
     async def users_login_with_google(self, id_token: str) -> TokenOutputDTO:
@@ -200,6 +203,8 @@ class AuthService():
                 has_password=False,
             )
 
+        if user.banned_at is not None:
+            raise AccountBannedException()
         return self._token_pair(user.id)
 
     async def users_refresh(self, refresh_token: str) -> TokenOutputDTO:
@@ -215,13 +220,18 @@ class AuthService():
         user = await UserModel().get_user_by_id(user_id=int(payload["sub"]))
         if user is None:
             raise UnauthorizedException()
+        if user.banned_at is not None:
+            raise AccountBannedException()
         return self._token_pair(user.id)
 
     async def users_getter(self, user_id: int) -> UserOutputDTO:
+        from apps.admin.models.models import AdminModel
         user = await UserModel().get_user_by_id(user_id=user_id)
         if not user:
             raise UserNotFoundException(message=f"No encontramos el usuario {user_id}")
-        return self._to_output_dto(user)
+        dto = self._to_output_dto(user)
+        dto.is_admin = await AdminModel().is_admin(user_id=user_id)
+        return dto
 
     async def users_updater(self, user_id: int, data: UpdateUserInputDTO) -> UserOutputDTO:
         user = await UserModel().get_user_by_id(user_id=user_id)

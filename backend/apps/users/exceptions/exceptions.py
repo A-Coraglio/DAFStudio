@@ -29,6 +29,15 @@ class UserNotFoundException(NotFoundException):
         super().__init__(message=message)
 
 
+class AccountBannedException(AppException):
+    def __init__(
+        self,
+        message: str = "Tu cuenta fue suspendida por un administrador",
+        error_code: int = 403,
+    ) -> None:
+        super().__init__(message=message, error_code=error_code)
+
+
 class InvalidHomeLocationException(AppException):
     def __init__(
         self,

@@ -1,7 +1,9 @@
 from fastapi import APIRouter, Depends, Query
 from apps.courts.service.dto import (
     CourtOutputDTO,
+    CourtSlotOutputDTO,
     CreatePrivateCourtInputDTO,
+    CreateSlotInputDTO,
     UpdatePrivateCourtInputDTO,
 )
 from apps.courts.service.appservice import AppService
@@ -33,6 +35,133 @@ async def list_courts(
         near_lon=near_lon,
         radius_km=radius_km,
     )
+
+
+# -------- Turnos (court_slot) --------
+# /my-bookings/ va ANTES de /{court_id}/ para no parsearse como id.
+
+@router.get("/courts/my-bookings/", responses={
+    200: {"model": list[CourtSlotOutputDTO], "description": "Mis turnos reservados (próximos)"},
+    401: {"description": "Unauthorized"},
+})
+async def my_bookings(
+    current_user_id: int = Depends(get_current_user_id),
+):
+    return await AppService().my_bookings_lister(
+        current_user_id=current_user_id
+    )
+
+
+@router.get("/courts/{court_id}/slots/", responses={
+    200: {"model": list[CourtSlotOutputDTO], "description": "Turnos de la cancha (próximos)"},
+    401: {"description": "Unauthorized"},
+    404: {"description": "Court not found"},
+})
+async def list_court_slots(
+    court_id: int,
+    current_user_id: int = Depends(get_current_user_id),
+):
+    return await AppService().slots_lister(
+        court_id=court_id, current_user_id=current_user_id
+    )
+
+
+@router.post("/courts/{court_id}/slots/", responses={
+    200: {"model": CourtSlotOutputDTO, "description": "Turno creado"},
+    400: {"description": "Horario inválido"},
+    401: {"description": "Unauthorized"},
+    403: {"description": "No administrás esta cancha"},
+    409: {"description": "Se pisa con otro turno"},
+})
+async def create_court_slot(
+    court_id: int,
+    body: CreateSlotInputDTO,
+    current_user_id: int = Depends(get_current_user_id),
+):
+    return await AppService().slot_creator(
+        court_id=court_id,
+        current_user_id=current_user_id,
+        start_time=body.start_time,
+        end_time=body.end_time,
+    )
+
+
+@router.delete("/courts/slots/{slot_id}/", responses={
+    200: {"description": "Turno eliminado"},
+    401: {"description": "Unauthorized"},
+    403: {"description": "No administrás esta cancha"},
+    409: {"description": "El turno está reservado"},
+})
+async def delete_court_slot(
+    slot_id: int,
+    current_user_id: int = Depends(get_current_user_id),
+):
+    await AppService().slot_deleter(
+        slot_id=slot_id, current_user_id=current_user_id
+    )
+    return {"ok": True}
+
+
+@router.post("/courts/slots/{slot_id}/block/", responses={
+    200: {"description": "Turno marcado como ocupado (limpia la reserva si había)"},
+    401: {"description": "Unauthorized"},
+    403: {"description": "No administrás esta cancha"},
+})
+async def block_court_slot(
+    slot_id: int,
+    current_user_id: int = Depends(get_current_user_id),
+):
+    await AppService().slot_status_setter(
+        slot_id=slot_id, current_user_id=current_user_id, status="blocked"
+    )
+    return {"ok": True}
+
+
+@router.post("/courts/slots/{slot_id}/free/", responses={
+    200: {"description": "Turno liberado (limpia la reserva si había)"},
+    401: {"description": "Unauthorized"},
+    403: {"description": "No administrás esta cancha"},
+})
+async def free_court_slot(
+    slot_id: int,
+    current_user_id: int = Depends(get_current_user_id),
+):
+    await AppService().slot_status_setter(
+        slot_id=slot_id, current_user_id=current_user_id, status="free"
+    )
+    return {"ok": True}
+
+
+@router.post("/courts/slots/{slot_id}/book/", responses={
+    200: {"description": "Turno reservado"},
+    401: {"description": "Unauthorized"},
+    404: {"description": "Turno inexistente"},
+    409: {"description": "El turno no está libre o ya pasó"},
+})
+async def book_court_slot(
+    slot_id: int,
+    current_user_id: int = Depends(get_current_user_id),
+):
+    await AppService().slot_booker(
+        slot_id=slot_id, current_user_id=current_user_id
+    )
+    return {"ok": True}
+
+
+@router.post("/courts/slots/{slot_id}/cancel-booking/", responses={
+    200: {"description": "Reserva cancelada, turno libre de nuevo"},
+    401: {"description": "Unauthorized"},
+    404: {"description": "No es una reserva tuya"},
+    409: {"description": "El turno ya pasó"},
+})
+async def cancel_court_slot_booking(
+    slot_id: int,
+    current_user_id: int = Depends(get_current_user_id),
+):
+    await AppService().slot_booking_canceller(
+        slot_id=slot_id, current_user_id=current_user_id
+    )
+    return {"ok": True}
 
 
 @router.get("/courts/{court_id}/", responses={

@@ -4,10 +4,12 @@ import '../../features/chats/providers/chats_providers.dart';
 import '../../features/classes/providers/classes_providers.dart';
 import '../../features/games/providers/games_providers.dart';
 import '../../features/classes/providers/class_detail_providers.dart';
+import '../../features/courts/providers/courts_providers.dart';
 import '../../features/home/providers/home_providers.dart';
 import '../../features/lessons/providers/lessons_providers.dart';
 import '../../features/profile/providers/profile_providers.dart';
 import '../../features/sports/providers/sports_providers.dart';
+import '../../features/teacher/providers/teacher_providers.dart';
 import '../../features/tournaments/providers/tournament_detail_providers.dart';
 import '../../features/tournaments/providers/tournaments_providers.dart';
 
@@ -43,6 +45,9 @@ void resetUserScopedCaches(WidgetRef ref) {
   ref.invalidate(tournamentParticipantsProvider);
   ref.invalidate(classDetailProvider);
   ref.invalidate(myLessonsProvider);
+  // Roles del usuario: modo profe y clubes propios.
+  ref.invalidate(myTeacherStatusProvider);
+  ref.invalidate(myClubsProvider);
   // Chats badge + active sport (persisted per userId).
   ref.invalidate(unreadTotalProvider);
   ref.invalidate(activeSportIdProvider);

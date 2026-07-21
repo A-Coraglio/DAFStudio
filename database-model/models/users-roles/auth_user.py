@@ -23,3 +23,6 @@ class AuthUser(SQLModel, table=True):
     # Soft-delete: la fila queda (historiales ajenos intactos) pero la cuenta
     # se anonimiza y los lookups de login filtran deleted_at IS NULL.
     deleted_at: datetime | None = Field(default=None)
+    # Ban de admin: bloquea login/refresh y cada request (expulsión
+    # inmediata). NULL = no baneado. Agregado 2026-07-21 (d1e2f3a4b5c6).
+    banned_at: datetime | None = Field(default=None)

@@ -11,6 +11,8 @@ class ClubOutputDTO(BaseModel):
 
 
 class CreateClubInputDTO(BaseModel):
+    # Alta solo por admin (2026-07-21): el admin elige quién es el dueño.
+    owner_user_id: int = Field(description="Usuario dueño/organizador del club")
     name: str = Field(description="Club name")
     address: str = Field(description="Street address")
     city: str = Field(description="City")

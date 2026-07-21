@@ -8,6 +8,9 @@ class UserAccount {
   final double? homeLat;
   final double? homeLon;
 
+  /// True si el usuario es admin — gatea la sección "Administración".
+  final bool isAdmin;
+
   const UserAccount({
     required this.id,
     required this.username,
@@ -15,6 +18,7 @@ class UserAccount {
     required this.hasPassword,
     required this.homeLat,
     required this.homeLon,
+    required this.isAdmin,
   });
 
   factory UserAccount.fromJson(Map<String, dynamic> json) => UserAccount(
@@ -24,6 +28,7 @@ class UserAccount {
     hasPassword: json['has_password'] as bool? ?? true,
     homeLat: (json['home_lat'] as num?)?.toDouble(),
     homeLon: (json['home_lon'] as num?)?.toDouble(),
+    isAdmin: json['is_admin'] as bool? ?? false,
   );
 
   bool get hasHomeLocation => homeLat != null && homeLon != null;

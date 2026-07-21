@@ -9,16 +9,21 @@ class LessonDDO(BaseModel):
 
     id: int = Field(description="The lesson id")
     teacher_id: int = Field(description="FK to teacher")
+    teacher_user_id: int = Field(description="auth_user del profe (permisos)")
     student_id: int = Field(description="FK to player")
     sport_id: int | None = Field(
         default=None, description="Sport of the lesson (None = not chosen)"
     )
     start_time: datetime
     end_time: datetime
-    status: str = Field(description="pending / confirmed / cancelled")
+    status: str = Field(
+        description="pending / confirmed / rejected / cancelled"
+    )
     total_price: float
     created_at: datetime
     teacher_name: str = Field(description="Teacher's name (or username fallback)")
+    # Solo en el listado del profe (join al player del alumno).
+    student_name: str | None = Field(default=None)
 
 
 class BusySlotDDO(BaseModel):

@@ -9,6 +9,7 @@ from apps.courts.service.dto import (
     CourtOutputDTO,
     CreatePrivateCourtInputDTO,
 )
+from apps.admin.service.auth_dependency import require_admin
 from apps.users.service.auth_dependency import get_current_user_id
 
 router: APIRouter = APIRouter(prefix="/api")
@@ -27,6 +28,17 @@ async def list_clubs(
     return await AppService().clubs_lister(city=city)
 
 
+# Antes de /{club_id}/ para que "mine" no se parsee como id.
+@router.get("/clubs/mine/", responses={
+    200: {"model": list[ClubOutputDTO], "description": "Clubes de los que sos dueño"},
+    401: {"description": "Unauthorized"},
+})
+async def my_clubs(
+    current_user_id: int = Depends(get_current_user_id),
+):
+    return await AppService().my_clubs_lister(owner_id=current_user_id)
+
+
 @router.get("/clubs/{club_id}/", responses={
     200: {"model": ClubOutputDTO, "description": "Club instance"},
     401: {"description": "Unauthorized"},
@@ -40,14 +52,18 @@ async def get_club(
 
 
 @router.post("/clubs/", responses={
-    200: {"model": ClubOutputDTO, "description": "Created club"},
+    200: {"model": ClubOutputDTO, "description": "Created club (admin only)"},
     401: {"description": "Unauthorized"},
+    403: {"description": "Not an admin"},
+    404: {"description": "Owner user not found"},
 })
 async def create_club(
     body: CreateClubInputDTO,
-    current_user_id: int = Depends(get_current_user_id),
+    admin_user_id: int = Depends(require_admin),
 ):
-    return await AppService().clubs_creator(data=body, owner_id=current_user_id)
+    return await AppService().clubs_creator_admin(
+        data=body, admin_user_id=admin_user_id
+    )
 
 
 @router.put("/clubs/{club_id}/", responses={

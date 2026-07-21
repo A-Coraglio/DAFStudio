@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/utils/safe_refresh.dart';
 import '../../../core/widgets/error_view.dart';
+import '../../admin/widgets/admin_game_menu.dart';
 import '../providers/games_providers.dart';
 import '../widgets/game_action_button.dart';
 import '../widgets/game_detail_skeleton.dart';
@@ -37,6 +38,7 @@ class GameDetailScreen extends ConsumerWidget {
           GameChatAppBarAction(gameId: gameId),
           if (game != null) GameShareAction(game: game),
           if (game != null) GameOrganizerMenu(game: game),
+          if (game != null) AdminGameMenu(game: game),
         ],
       ),
       body: gameAsync.when(

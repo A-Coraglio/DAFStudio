@@ -37,6 +37,19 @@ class ClubModel(GeneralModel):
             except Exception as e:
                 raise DatabaseException(message=f"Database error: {e}")
 
+    async def list_by_owner(self, owner_id: int) -> list[ClubDDO]:
+        async with self.get_db_connection() as connection:
+            connection: PoolConnectionProxy = cast(PoolConnectionProxy, connection)
+            query = (
+                f"SELECT * FROM {self.__table_name__} "
+                "WHERE owner_id = $1 ORDER BY name"
+            )
+            try:
+                results = await connection.fetch(query, owner_id)
+                return [_row_to_ddo(r) for r in results]
+            except Exception as e:
+                raise DatabaseException(message=f"Database error: {e}")
+
     async def get_club_by_id(self, club_id: int) -> ClubDDO:
         async with self.get_db_connection() as connection:
             connection: PoolConnectionProxy = cast(PoolConnectionProxy, connection)

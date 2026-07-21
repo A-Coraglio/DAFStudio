@@ -48,4 +48,33 @@ class CourtsRepository {
         .map(Club.fromJson)
         .toList();
   }
+
+  /// Clubes de los que soy dueño/organizador — gatea el panel "Mi club".
+  Future<List<Club>> myClubs() async {
+    final res = await _dio.get<List<dynamic>>('/api/clubs/mine/');
+    return (res.data ?? const [])
+        .cast<Map<String, dynamic>>()
+        .map(Club.fromJson)
+        .toList();
+  }
+
+  /// Alta de cancha dentro de un club propio (403 si no sos el dueño).
+  Future<Court> createClubCourt(
+    int clubId, {
+    required String name,
+    required int sportId,
+    required double pricePerHour,
+    bool isIndoor = false,
+  }) async {
+    final res = await _dio.post<Map<String, dynamic>>(
+      '/api/clubs/$clubId/courts/',
+      data: {
+        'name': name,
+        'sport_id': sportId,
+        'price_per_hour': pricePerHour,
+        'is_indoor': isIndoor,
+      },
+    );
+    return Court.fromJson(requireData(res));
+  }
 }

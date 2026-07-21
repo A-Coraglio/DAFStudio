@@ -44,6 +44,65 @@ async def my_lessons(
     return await AppService().my_lessons_lister(current_user_id=current_user_id)
 
 
+@router.get("/lessons/teaching/", responses={
+    200: {
+        "model": list[LessonOutputDTO],
+        "description": "Agenda del profe: pendientes primero, con nombre del alumno",
+    },
+    401: {"description": "Unauthorized"},
+    403: {"description": "No sos profesor"},
+})
+async def teaching_lessons(
+    current_user_id: int = Depends(get_current_user_id),
+):
+    return await AppService().teaching_lister(current_user_id=current_user_id)
+
+
+@router.post("/lessons/{lesson_id}/confirm/", responses={
+    200: {"model": LessonOutputDTO, "description": "Clase confirmada por el profe"},
+    401: {"description": "Unauthorized"},
+    404: {"description": "Clase inexistente (o no sos su profe)"},
+    409: {"description": "La clase no está pendiente"},
+})
+async def confirm_lesson(
+    lesson_id: int,
+    current_user_id: int = Depends(get_current_user_id),
+):
+    return await AppService().teacher_status_setter(
+        current_user_id=current_user_id, lesson_id=lesson_id, action="confirm"
+    )
+
+
+@router.post("/lessons/{lesson_id}/reject/", responses={
+    200: {"model": LessonOutputDTO, "description": "Clase rechazada por el profe"},
+    401: {"description": "Unauthorized"},
+    404: {"description": "Clase inexistente (o no sos su profe)"},
+    409: {"description": "La clase no está pendiente"},
+})
+async def reject_lesson(
+    lesson_id: int,
+    current_user_id: int = Depends(get_current_user_id),
+):
+    return await AppService().teacher_status_setter(
+        current_user_id=current_user_id, lesson_id=lesson_id, action="reject"
+    )
+
+
+@router.post("/lessons/{lesson_id}/teacher-cancel/", responses={
+    200: {"model": LessonOutputDTO, "description": "Clase cancelada por el profe"},
+    401: {"description": "Unauthorized"},
+    404: {"description": "Clase inexistente (o no sos su profe)"},
+    409: {"description": "La clase ya pasó o ya estaba cancelada"},
+})
+async def teacher_cancel_lesson(
+    lesson_id: int,
+    current_user_id: int = Depends(get_current_user_id),
+):
+    return await AppService().teacher_status_setter(
+        current_user_id=current_user_id, lesson_id=lesson_id, action="cancel"
+    )
+
+
 @router.get("/lessons/busy/", responses={
     200: {
         "model": list[BusySlotOutputDTO],
