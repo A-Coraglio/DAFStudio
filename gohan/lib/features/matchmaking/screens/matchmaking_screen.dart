@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/notify/web_notification.dart';
 import '../../../core/widgets/error_view.dart';
 import '../data/matchmaking_ticket.dart';
 import '../providers/matchmaking_providers.dart';
@@ -19,12 +20,21 @@ class MatchmakingScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     // Buzz when a proposal lands or the lobby completes — the user may not
-    // be looking at the screen while queued.
+    // be looking at the screen while queued. En web además va una
+    // notificación del browser (sirve con la pestaña en segundo plano);
+    // en mobile/desktop es un no-op.
     ref.listen(matchmakingStatusStreamProvider, (prev, next) {
       final p = prev?.valueOrNull?.ticket?.status;
       final n = next.valueOrNull?.ticket?.status;
-      if (p != n && (n == TicketStatus.proposed || n == TicketStatus.matched)) {
+      if (p == n) return;
+      if (n == TicketStatus.proposed || n == TicketStatus.matched) {
         HapticFeedback.heavyImpact();
+      }
+      if (n == TicketStatus.proposed) {
+        showWebNotification(
+          '¡Partido encontrado!',
+          'Tenés 10 minutos para aceptar — entrá a DAFStudio.',
+        );
       }
     });
 

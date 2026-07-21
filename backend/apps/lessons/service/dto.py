@@ -5,6 +5,13 @@ from pydantic import BaseModel, Field, field_validator
 
 class BookLessonInputDTO(BaseModel):
     teacher_id: int = Field(description="Teacher to book with")
+    sport_id: int | None = Field(
+        default=None,
+        description=(
+            "Sport of the lesson. Must be one the teacher offers; when "
+            "omitted and the teacher has exactly one sport, that one is used."
+        ),
+    )
     start_time: datetime = Field(description="User-local naive start time")
     end_time: datetime = Field(description="User-local naive end time")
 
@@ -21,6 +28,7 @@ class LessonOutputDTO(BaseModel):
     teacher_id: int
     teacher_name: str
     student_id: int
+    sport_id: int | None = None
     start_time: datetime
     end_time: datetime
     status: str = Field(description="pending / confirmed / cancelled")

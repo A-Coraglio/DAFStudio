@@ -105,6 +105,24 @@ class ProfileRepository {
     return UserAccount.fromJson(requireData(res));
   }
 
+  /// Changes (or creates, for Google accounts without one) the password.
+  /// [currentPassword] is required by the backend whenever the account
+  /// already has one (`has_password`).
+  Future<UserAccount> changePassword(
+    int userId, {
+    required String newPassword,
+    String? currentPassword,
+  }) async {
+    final res = await _dio.put<Map<String, dynamic>>(
+      '/api/auth/users/$userId/',
+      data: {
+        'password': newPassword,
+        if (currentPassword != null) 'current_password': currentPassword,
+      },
+    );
+    return UserAccount.fromJson(requireData(res));
+  }
+
   /// Sets the user's "casa" — classes/tournaments use it for distances.
   Future<UserAccount> setHomeLocation(
     int userId, {

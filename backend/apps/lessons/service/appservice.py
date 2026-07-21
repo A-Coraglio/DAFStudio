@@ -34,6 +34,7 @@ class AppService:
         teacher_id: int,
         start_time: datetime,
         end_time: datetime,
+        sport_id: int | None = None,
     ) -> LessonOutputDTO:
         player = await self._player_for_user(current_user_id)
         # 404 if the teacher doesn't exist; also the price source.
@@ -42,6 +43,12 @@ class AppService:
             raise LessonValidationException(
                 message="No podés reservar una clase con vos mismo"
             )
+        if sport_id is not None and sport_id not in teacher.sport_ids:
+            raise LessonValidationException(
+                message="El profe no da clases de ese deporte"
+            )
+        if sport_id is None and len(teacher.sport_ids) == 1:
+            sport_id = teacher.sport_ids[0]
         if end_time <= start_time:
             raise LessonValidationException(
                 message="La clase tiene que terminar después de empezar"
@@ -64,6 +71,7 @@ class AppService:
             start_time=start_time,
             end_time=end_time,
             total_price=total_price,
+            sport_id=sport_id,
         )
         lesson = await LessonModel().get_by_id(lesson_id=lesson_id)
         return self._to_output_dto(lesson)

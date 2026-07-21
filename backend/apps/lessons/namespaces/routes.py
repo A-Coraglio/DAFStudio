@@ -27,6 +27,7 @@ async def book_lesson(
         teacher_id=body.teacher_id,
         start_time=body.start_time,
         end_time=body.end_time,
+        sport_id=body.sport_id,
     )
 
 

@@ -35,6 +35,7 @@ class _LessonCancelButtonState extends ConsumerState<LessonCancelButton> {
     try {
       await ref.read(lessonsRepositoryProvider).cancel(widget.lesson.id);
       ref.invalidate(myLessonsProvider);
+      ref.invalidate(teacherBusySlotsProvider(widget.lesson.teacherId));
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Clase cancelada')),

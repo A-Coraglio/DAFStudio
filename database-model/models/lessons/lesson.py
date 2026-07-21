@@ -7,7 +7,10 @@ class Lesson(SQLModel, table=True):
     id: int = Field(primary_key=True, index=True)
     teacher_id: int = Field(foreign_key="teacher.id")
     student_id: int = Field(foreign_key="player.id")
-    # sport_id: int = Field(foreign_key="sports.id")
+    # Deporte de la clase (opcional: NULL = lecciones viejas / profe de un
+    # solo deporte donde no se eligió). Agregado 2026-07-21 (c0d1e2f3a4b5).
+    sport_id: int | None = Field(foreign_key="sports.id", default=None)
+    # court_id queda para cuando exista un flujo de elegir cancha para clases:
     # court_id: int | None = Field(foreign_key="court.id", default=None)
     start_time: datetime
     end_time: datetime

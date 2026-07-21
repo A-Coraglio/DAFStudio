@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/format/dates.dart';
+import '../../sports/providers/sports_providers.dart';
 import '../data/lesson_model.dart';
 import 'lesson_cancel_button.dart';
 import 'lesson_status_chip.dart';
@@ -17,6 +18,11 @@ class LessonCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final scheme = Theme.of(context).colorScheme;
+    final sports = ref.watch(sportsListProvider).valueOrNull ?? const [];
+    String? sportName;
+    for (final s in sports) {
+      if (s.id == lesson.sportId) sportName = s.name;
+    }
     return Card(
       clipBehavior: Clip.antiAlias,
       child: ListTile(
@@ -25,7 +31,11 @@ class LessonCard extends ConsumerWidget {
           backgroundColor: scheme.primaryContainer,
           child: Icon(Icons.school_outlined, color: scheme.onPrimaryContainer),
         ),
-        title: Text('Clase con ${lesson.teacherName}'),
+        title: Text(
+          sportName == null
+              ? 'Clase con ${lesson.teacherName}'
+              : 'Clase de $sportName con ${lesson.teacherName}',
+        ),
         subtitle: Text(
           '${formatSchedule(lesson.startTime)} – '
           '${formatHour(lesson.endTime)} · '

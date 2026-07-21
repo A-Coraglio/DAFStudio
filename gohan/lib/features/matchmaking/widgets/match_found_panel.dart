@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/confirm_dialog.dart';
 import '../../../core/errors/error_snackbar.dart';
 import '../../games/data/game.dart';
@@ -9,6 +8,7 @@ import '../../games/widgets/game_info_card.dart';
 import '../data/matchmaking_ticket.dart';
 import '../providers/matchmaking_providers.dart';
 import 'acceptance_countdown.dart';
+import 'match_found_header.dart';
 
 /// Proposal screen — backend found a match and the ticket flipped to
 /// `proposed`. After the user hits accept, the ticket becomes `accepted`
@@ -48,28 +48,7 @@ class _MatchFoundPanelState extends ConsumerState<MatchFoundPanel> {
       padding: const EdgeInsets.all(20),
       children: [
         // Momento-marca número uno: bolt dorado + headline, que se celebre.
-        Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(6),
-              decoration: BoxDecoration(
-                color: Theme.of(context).extension<AppColors>()!.accent,
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                Icons.bolt,
-                color: Theme.of(context).extension<AppColors>()!.onAccent,
-              ),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                '¡Partido encontrado!',
-                style: Theme.of(context).textTheme.headlineSmall,
-              ),
-            ),
-          ],
-        ),
+        const MatchFoundHeader(),
         const SizedBox(height: 8),
         Center(
           child: AcceptanceCountdown(

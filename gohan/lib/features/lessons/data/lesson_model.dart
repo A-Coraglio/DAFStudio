@@ -4,6 +4,9 @@ class Lesson {
   final int teacherId;
   final String teacherName;
   final int studentId;
+
+  /// Sport of the lesson; null on old bookings that predate the field.
+  final int? sportId;
   final DateTime startTime;
   final DateTime endTime;
   final String status;
@@ -14,6 +17,7 @@ class Lesson {
     required this.teacherId,
     required this.teacherName,
     required this.studentId,
+    required this.sportId,
     required this.startTime,
     required this.endTime,
     required this.status,
@@ -25,6 +29,7 @@ class Lesson {
     teacherId: json['teacher_id'] as int,
     teacherName: json['teacher_name'] as String,
     studentId: json['student_id'] as int,
+    sportId: json['sport_id'] as int?,
     startTime: DateTime.parse(json['start_time'] as String),
     endTime: DateTime.parse(json['end_time'] as String),
     status: json['status'] as String,

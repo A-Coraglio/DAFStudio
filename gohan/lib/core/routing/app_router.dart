@@ -11,6 +11,7 @@ import '../../features/games/screens/game_detail_screen.dart';
 import '../../features/games/screens/games_feed_screen.dart';
 import '../../features/home/screens/home_screen.dart';
 import '../../features/matchmaking/screens/matchmaking_screen.dart';
+import '../../features/profile/screens/change_password_screen.dart';
 import '../../features/profile/screens/complete_profile_screen.dart';
 import '../../features/profile/screens/my_games_screen.dart';
 import '../../features/profile/screens/players_discovery_screen.dart';
@@ -116,6 +117,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/my-lessons',
         builder: (_, _) => const MyLessonsScreen(),
+      ),
+      GoRoute(
+        path: '/change-password',
+        builder: (_, _) => const ChangePasswordScreen(),
       ),
       GoRoute(
         path: '/players/:id',

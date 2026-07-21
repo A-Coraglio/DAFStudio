@@ -5,12 +5,10 @@ import '../../../core/widgets/primary_submit_button.dart';
 import '../../../core/errors/error_snackbar.dart';
 import '../data/game.dart';
 import '../providers/games_providers.dart';
-import 'game_datetime_picker.dart';
-import 'game_level_picker.dart';
-import 'game_name_field.dart';
-import 'max_players_field.dart';
+import 'edit_game_fields.dart';
 
-/// Organizer-only bottom sheet to tweak a live game's basics.
+/// Organizer-only bottom sheet to tweak a live game's basics. Clearing the
+/// date or the court sends an explicit null (borrado real en el backend).
 class EditGameSheet extends ConsumerStatefulWidget {
   const EditGameSheet({super.key, required this.game});
 
@@ -36,6 +34,7 @@ class _EditGameSheetState extends ConsumerState<EditGameSheet> {
   );
   late String? _level = widget.game.level;
   late DateTime? _at = widget.game.scheduledAt;
+  bool _removeCourt = false;
   bool _loading = false;
 
   @override
@@ -49,14 +48,14 @@ class _EditGameSheetState extends ConsumerState<EditGameSheet> {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _loading = true);
     try {
-      await ref
-          .read(gamesRepositoryProvider)
-          .update(
+      await ref.read(gamesRepositoryProvider).update(
             widget.game.id,
             name: _nameCtrl.text.trim(),
             maxPlayers: int.parse(_maxCtrl.text.trim()),
             level: _level,
             scheduledAt: _at,
+            clearSchedule: _at == null && widget.game.scheduledAt != null,
+            clearCourt: _removeCourt,
           );
       ref.invalidate(gameByIdProvider(widget.game.id));
       ref.invalidate(feedGamesProvider);
@@ -88,18 +87,16 @@ class _EditGameSheetState extends ConsumerState<EditGameSheet> {
               style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: 20),
-            GameNameField(controller: _nameCtrl),
-            const SizedBox(height: 12),
-            MaxPlayersField(controller: _maxCtrl),
-            const SizedBox(height: 12),
-            GameLevelPicker(
-              value: _level,
-              onChanged: (v) => setState(() => _level = v),
-            ),
-            const SizedBox(height: 12),
-            GameDateTimePicker(
-              value: _at,
-              onChanged: (v) => setState(() => _at = v),
+            EditGameFields(
+              nameCtrl: _nameCtrl,
+              maxCtrl: _maxCtrl,
+              level: _level,
+              onLevel: (v) => setState(() => _level = v),
+              at: _at,
+              onAt: (v) => setState(() => _at = v),
+              hasCourt: widget.game.courtId != null,
+              removeCourt: _removeCourt,
+              onRemoveCourt: (v) => setState(() => _removeCourt = v),
             ),
             const SizedBox(height: 20),
             PrimarySubmitButton(

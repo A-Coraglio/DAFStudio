@@ -10,6 +10,9 @@ class LessonDDO(BaseModel):
     id: int = Field(description="The lesson id")
     teacher_id: int = Field(description="FK to teacher")
     student_id: int = Field(description="FK to player")
+    sport_id: int | None = Field(
+        default=None, description="Sport of the lesson (None = not chosen)"
+    )
     start_time: datetime
     end_time: datetime
     status: str = Field(description="pending / confirmed / cancelled")

@@ -52,7 +52,9 @@ class GamesRepository {
   }
 
   /// Organizer-only partial update (PUT /api/games/{id}/). Nulls are
-  /// skipped — only the provided fields change.
+  /// skipped — only the provided fields change. The `clear*` flags send an
+  /// EXPLICIT null, which the backend interprets as "borrar el campo"
+  /// (quitar cancha / fecha / nivel).
   Future<Game> update(
     int id, {
     String? name,
@@ -60,6 +62,9 @@ class GamesRepository {
     String? level,
     DateTime? scheduledAt,
     String? status,
+    bool clearCourt = false,
+    bool clearSchedule = false,
+    bool clearLevel = false,
   }) async {
     final res = await _dio.put<Map<String, dynamic>>(
       '/api/games/$id/',
@@ -67,7 +72,10 @@ class GamesRepository {
         if (name != null) 'name': name,
         if (maxPlayers != null) 'max_players': maxPlayers,
         if (level != null) 'level': level,
+        if (clearLevel) 'level': null,
         if (scheduledAt != null) 'scheduled_at': scheduledAt.toIso8601String(),
+        if (clearSchedule) 'scheduled_at': null,
+        if (clearCourt) 'court_id': null,
         if (status != null) 'status': status,
       },
     );

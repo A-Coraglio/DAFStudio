@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/providers/core_providers.dart';
+import '../../../core/widgets/debug_base_url_notice.dart';
 import '../../../core/widgets/primary_submit_button.dart';
 import '../../../core/errors/error_snackbar.dart';
 import '../data/auth_models.dart';
@@ -116,6 +117,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             : () => context.go('/register'),
                         child: const Text('Crear cuenta'),
                       ),
+                      const DebugBaseUrlNotice(),
                     ],
                   ),
                 ),

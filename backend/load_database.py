@@ -20,8 +20,10 @@ class DatabaseManager:
                 user=os.environ.get("DB_USER", ""),
                 password=os.environ.get("DB_PASS", ""),
                 database=os.environ.get("DB_NAME", ""),
-                min_size=int(os.environ.get("DB_POOL_SIZE", 1)),
-                max_size=int(os.environ.get("DB_MAX_OVERFLOW", 2)),
+                # Defaults sized for real use: the old 1-2 pool serialized
+                # every request behind a single connection.
+                min_size=int(os.environ.get("DB_POOL_SIZE", 2)),
+                max_size=int(os.environ.get("DB_MAX_OVERFLOW", 10)),
             )
             self._pool = database_pool
 

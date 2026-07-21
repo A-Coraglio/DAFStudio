@@ -20,6 +20,7 @@ def _row_to_ddo(row) -> LessonDDO:
         id=row["id"],
         teacher_id=row["teacher_id"],
         student_id=row["student_id"],
+        sport_id=row.get("sport_id"),
         start_time=row["start_time"],
         end_time=row["end_time"],
         status=row["status"],
@@ -87,6 +88,7 @@ class LessonModel(GeneralModel):
         start_time: datetime,
         end_time: datetime,
         total_price: float,
+        sport_id: int | None = None,
     ) -> int:
         """Single-transaction booking. Locks the teacher row (FOR UPDATE) so
         two concurrent bookings can't take overlapping slots — the overlap
@@ -114,11 +116,12 @@ class LessonModel(GeneralModel):
                         )
                     return await connection.fetchval(
                         f"INSERT INTO {self.__table_name__} "
-                        "(teacher_id, student_id, start_time, end_time, "
-                        "status, total_price) "
-                        "VALUES ($1, $2, $3, $4, 'confirmed', $5) RETURNING id",
-                        teacher_id, student_id, start_time, end_time,
-                        total_price,
+                        "(teacher_id, student_id, sport_id, start_time, "
+                        "end_time, status, total_price) "
+                        "VALUES ($1, $2, $3, $4, $5, 'confirmed', $6) "
+                        "RETURNING id",
+                        teacher_id, student_id, sport_id, start_time,
+                        end_time, total_price,
                     )
             except AppException:
                 raise

@@ -8,6 +8,7 @@ import '../../lessons/providers/lessons_providers.dart';
 import '../data/class_model.dart';
 import '../providers/class_detail_providers.dart';
 import '../widgets/book_lesson_sheet.dart';
+import '../widgets/class_busy_card.dart';
 import '../widgets/class_info_card.dart';
 import '../widgets/class_lessons_card.dart';
 
@@ -21,6 +22,7 @@ class ClassDetailScreen extends ConsumerWidget {
   Future<void> _refresh(WidgetRef ref) => safeRefresh(() async {
     ref.invalidate(classDetailProvider(teacherId));
     ref.invalidate(myLessonsProvider);
+    ref.invalidate(teacherBusySlotsProvider(teacherId));
     await ref.read(classDetailProvider(teacherId).future);
   });
 
@@ -50,6 +52,8 @@ class ClassDetailScreen extends ConsumerWidget {
             padding: const EdgeInsets.all(16),
             children: [
               ClassInfoCard(offering: offering),
+              const SizedBox(height: 12),
+              ClassBusyCard(teacherId: teacherId),
               const SizedBox(height: 12),
               ClassLessonsCard(teacherId: teacherId),
             ],

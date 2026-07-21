@@ -14,6 +14,7 @@ class BookLessonFooter extends ConsumerStatefulWidget {
     required this.offering,
     required this.start,
     required this.minutes,
+    required this.sportId,
   });
 
   final ClassOffering offering;
@@ -21,6 +22,10 @@ class BookLessonFooter extends ConsumerStatefulWidget {
   /// Null while the form is incomplete (no date/time picked yet).
   final DateTime? start;
   final int minutes;
+
+  /// Sport of the lesson; null when the teacher has several and none was
+  /// picked yet (the backend also auto-fills single-sport teachers).
+  final int? sportId;
 
   @override
   ConsumerState<BookLessonFooter> createState() => _BookLessonFooterState();
@@ -37,8 +42,10 @@ class _BookLessonFooterState extends ConsumerState<BookLessonFooter> {
             teacherId: widget.offering.id,
             start: start,
             end: start.add(Duration(minutes: widget.minutes)),
+            sportId: widget.sportId,
           );
       ref.invalidate(myLessonsProvider);
+      ref.invalidate(teacherBusySlotsProvider(widget.offering.id));
       if (!mounted) return;
       Navigator.of(context).pop();
       ScaffoldMessenger.of(context).showSnackBar(
