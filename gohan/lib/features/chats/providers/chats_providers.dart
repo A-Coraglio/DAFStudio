@@ -48,7 +48,16 @@ final chatMessagesStreamProvider = StreamProvider.autoDispose
 /// bottom navigation; the always-mounted nav shell keeps it alive, so a
 /// failure must never end the stream — it would kill the badge for the
 /// whole session. Errors just skip the tick.
+///
+/// Watching the session stops the poll while logged out (before this, the
+/// login screen kept hitting the backend with 401s every 15s) and restarts
+/// it fresh when someone signs in.
 final unreadTotalProvider = StreamProvider<int>((ref) async* {
+  final session = ref.watch(sessionProvider);
+  if (!session.isAuthenticated) {
+    yield 0;
+    return;
+  }
   final repo = ref.read(chatsRepositoryProvider);
   while (true) {
     try {

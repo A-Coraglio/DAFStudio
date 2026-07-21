@@ -6,4 +6,7 @@ class UserDDO(BaseModel):
     username: str
     email: str
     password_hash: str
+    # False = provisioned via Google with a random hash the user never saw;
+    # they may SET a first password without providing the current one.
+    has_password: bool = Field(default=True)
     created_at: datetime

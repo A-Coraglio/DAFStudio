@@ -19,14 +19,23 @@ class GoogleLoginRequest {
   Map<String, dynamic> toJson() => {'id_token': idToken};
 }
 
-/// Response of `POST /api/auth/login/`.
+/// Response of `POST /api/auth/login/` (also google/ and refresh/).
 class LoginResponse {
   final String accessToken;
+
+  /// Long-lived token to silently renew the session. Nullable for backward
+  /// compat with older backend responses.
+  final String? refreshToken;
   final String tokenType;
-  const LoginResponse({required this.accessToken, required this.tokenType});
+  const LoginResponse({
+    required this.accessToken,
+    this.refreshToken,
+    required this.tokenType,
+  });
 
   factory LoginResponse.fromJson(Map<String, dynamic> json) => LoginResponse(
     accessToken: json['access_token'] as String,
+    refreshToken: json['refresh_token'] as String?,
     tokenType: (json['token_type'] as String?) ?? 'bearer',
   );
 }

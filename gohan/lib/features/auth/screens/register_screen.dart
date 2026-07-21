@@ -61,7 +61,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           password: _passCtrl.text,
         ),
       );
-      await ref.read(sessionProvider.notifier).setToken(login.accessToken);
+      await ref
+          .read(sessionProvider.notifier)
+          .setToken(login.accessToken, refreshToken: login.refreshToken);
       if (!mounted) return;
       context.go('/home');
     } catch (e) {

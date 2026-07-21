@@ -152,6 +152,9 @@ class Matcher:
         for game_id in game_ids:
             await GamesModel().update_game(game_id=game_id, status="cancelled")
             await MatchmakingTicketModel().expire_group(matched_game_id=game_id)
+            # The proposed game had its roster pre-linked — clear it so no
+            # player stays attached to a cancelled game.
+            await GamePlayerModel().remove_all_for_game(game_id=game_id)
         return len(game_ids)
 
     async def _match_pool(self, sport: SportDDO, mode: str) -> int:
@@ -209,54 +212,23 @@ class Matcher:
             centroid_lon=centroid_lon,
         )
 
-        # The game is created in pending_acceptance — participants must each
-        # accept/reject before it becomes playable.
+        # Game + ticket flips + roster happen in ONE transaction
+        # (propose_group_atomic). If a concurrent matcher already grabbed any
+        # of these tickets, the whole thing rolls back and returns None —
+        # nothing half-built survives, so there's no teardown path here.
         organizer_id = tickets[0].user_id
         earliest_start = max(t.window_start for t in tickets)
-        game = await GamesModel().create_game(
+        await MatchmakingTicketModel().propose_group_atomic(
+            ticket_ids=[t.id for t in tickets],
+            user_ids=[t.user_id for t in tickets],
             name=_group_name(sport, group, mode),
             sport_id=sport.id,
             max_players=len(tickets),
             organizer_id=organizer_id,
             mode=mode,
-            level=None,
             court_id=venue.id if venue else None,
             scheduled_at=earliest_start,
         )
-        await GamesModel().update_game(game_id=game.id, status="pending_acceptance")
-
-        # Flip tickets to 'proposed'. `set_proposed` is guarded by
-        # `status='waiting'` so a concurrent matcher that already grabbed
-        # any of these tickets returns None — we treat that as a partial
-        # flip and tear down this group instead of leaving a half-built
-        # game live.
-        flipped_ids: list[int] = []
-        aborted = False
-        for ctx in group:
-            updated = await MatchmakingTicketModel().set_proposed(
-                ticket_id=ctx.ticket.id,
-                matched_game_id=game.id,
-            )
-            if updated is None:
-                aborted = True
-                break
-            flipped_ids.append(ctx.ticket.id)
-
-        if aborted:
-            await MatchmakingTicketModel().reopen_group(matched_game_id=game.id)
-            await GamesModel().update_game(game_id=game.id, status="cancelled")
-            return
-
-        # All tickets flipped — now link the players to the game.
-        for ctx in group:
-            player = await PlayerModel().get_player_by_user_id(
-                user_id=ctx.ticket.user_id
-            )
-            if player is None:
-                continue
-            await GamePlayerModel().add_player(
-                game_id=game.id, player_id=player.id
-            )
 
     async def _pick_venue(
         self,

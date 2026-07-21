@@ -12,6 +12,8 @@ def _row_to_ddo(row) -> UserDDO:
         username=row["username"],
         email=row["email"],
         password_hash=row["password_hash"],
+        # .get() keeps this working if the column is missing (pre-migration).
+        has_password=bool(row.get("has_password", True)),
         created_at=row["created_at"],
     )
 
@@ -22,7 +24,10 @@ class UserModel(GeneralModel):
     async def get_user_by_email(self, email: str) -> UserDDO | None:
         async with self.get_db_connection() as connection:
             connection : PoolConnectionProxy = cast(PoolConnectionProxy,connection)
-            query = f"SELECT * from {self.__table_name__} WHERE email = $1"
+            query = (
+                f"SELECT * from {self.__table_name__} "
+                "WHERE email = $1 AND deleted_at IS NULL"
+            )
             try:
                 result = await connection.fetchrow(query, email)
                 return _row_to_ddo(result) if result else None
@@ -38,7 +43,7 @@ class UserModel(GeneralModel):
             connection: PoolConnectionProxy = cast(PoolConnectionProxy, connection)
             query = (
                 f"SELECT * FROM {self.__table_name__} "
-                "WHERE email = $1 OR username = $1"
+                "WHERE (email = $1 OR username = $1) AND deleted_at IS NULL"
             )
             try:
                 result = await connection.fetchrow(query, identifier)
@@ -49,10 +54,30 @@ class UserModel(GeneralModel):
     async def get_user_by_id(self, user_id: int) -> UserDDO | None:
         async with self.get_db_connection() as connection:
             connection: PoolConnectionProxy = cast(PoolConnectionProxy, connection)
-            query = f"SELECT * FROM {self.__table_name__} WHERE id = $1"
+            query = (
+                f"SELECT * FROM {self.__table_name__} "
+                "WHERE id = $1 AND deleted_at IS NULL"
+            )
             try:
                 result = await connection.fetchrow(query, user_id)
                 return _row_to_ddo(result) if result else None
+            except Exception as e:
+                raise DatabaseException(message=f"Database error: {e}")
+
+    async def list_existing_ids(self, user_ids: list[int]) -> set[int]:
+        """Which of these ids exist in auth_user — one query, used to validate
+        references (e.g. chat participants) before hitting FK constraints."""
+        if not user_ids:
+            return set()
+        async with self.get_db_connection() as connection:
+            connection: PoolConnectionProxy = cast(PoolConnectionProxy, connection)
+            query = (
+                f"SELECT id FROM {self.__table_name__} "
+                "WHERE id = ANY($1::int[])"
+            )
+            try:
+                rows = await connection.fetch(query, user_ids)
+                return {int(r["id"]) for r in rows}
             except Exception as e:
                 raise DatabaseException(message=f"Database error: {e}")
 
@@ -66,6 +91,33 @@ class UserModel(GeneralModel):
             try:
                 result = await connection.fetchrow(query, username, email, password_hash)
                 return _row_to_ddo(result)
+            except Exception as e:
+                raise DatabaseException(message=f"Database error: {e}")
+
+    async def create_user_with_player(
+        self, username: str, email: str, password_hash: str,
+        has_password: bool = True,
+    ) -> UserDDO:
+        """Registration inserts the auth_user AND its empty player profile in
+        one transaction — a failure halfway can't leave an auth_user without
+        player (which breaks every player-scoped endpoint for that account).
+        `has_password=False` marks Google-provisioned accounts (random hash)."""
+        async with self.get_db_connection() as connection:
+            connection: PoolConnectionProxy = cast(PoolConnectionProxy, connection)
+            try:
+                async with connection.transaction():
+                    result = await connection.fetchrow(
+                        f"INSERT INTO {self.__table_name__} "
+                        "(username, email, password_hash, has_password) "
+                        "VALUES ($1, $2, $3, $4) RETURNING *",
+                        username, email, password_hash, has_password,
+                    )
+                    await connection.execute(
+                        "INSERT INTO player (user_id, ranking_points) "
+                        "VALUES ($1, 0)",
+                        result["id"],
+                    )
+                    return _row_to_ddo(result)
             except Exception as e:
                 raise DatabaseException(message=f"Database error: {e}")
 
@@ -94,6 +146,9 @@ class UserModel(GeneralModel):
                 fields.append(f"password_hash = ${idx}")
                 values.append(password_hash)
                 idx += 1
+                # Setting any password makes it a "real" one from now on —
+                # future changes will require knowing it.
+                fields.append("has_password = TRUE")
 
             if not fields:
                 return None
@@ -109,12 +164,42 @@ class UserModel(GeneralModel):
             except Exception as e:
                 raise DatabaseException(message=f"Database error: {e}")
 
-    async def delete_user(self, user_id: int) -> int | None:
+    async def soft_delete_user(
+        self, user_id: int, scrambled_password_hash: str
+    ) -> int | None:
+        """Account deletion = soft-delete + anonymization in one transaction:
+        the auth_user row stays (games, messages and other players' histories
+        keep their FKs intact) but every personal field is wiped, and the
+        rename frees the original email/username for a future registration.
+        Active matchmaking tickets are cancelled so no ghost queues remain."""
         async with self.get_db_connection() as connection:
             connection: PoolConnectionProxy = cast(PoolConnectionProxy, connection)
-            query = f"DELETE FROM {self.__table_name__} WHERE id = $1 RETURNING id"
             try:
-                result = await connection.fetchrow(query, user_id)
-                return result["id"] if result else None
+                async with connection.transaction():
+                    result = await connection.fetchrow(
+                        f"UPDATE {self.__table_name__} SET "
+                        "deleted_at = now(), "
+                        "username = 'usuario_eliminado_' || id, "
+                        "email = 'deleted+' || id || '@dafstudio.invalid', "
+                        "password_hash = $2, has_password = FALSE, "
+                        "home_lat = NULL, home_lon = NULL "
+                        "WHERE id = $1 AND deleted_at IS NULL RETURNING id",
+                        user_id, scrambled_password_hash,
+                    )
+                    if result is None:
+                        return None
+                    await connection.execute(
+                        "UPDATE player SET first_name = NULL, "
+                        "last_name = NULL, avatar_path = NULL "
+                        "WHERE user_id = $1",
+                        user_id,
+                    )
+                    await connection.execute(
+                        "UPDATE matchmaking_ticket SET status = 'cancelled' "
+                        "WHERE user_id = $1 "
+                        "AND status IN ('waiting', 'proposed', 'accepted')",
+                        user_id,
+                    )
+                    return int(result["id"])
             except Exception as e:
                 raise DatabaseException(message=f"Database error: {e}")

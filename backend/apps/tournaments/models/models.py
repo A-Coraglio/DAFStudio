@@ -168,7 +168,7 @@ class TournamentModel(GeneralModel):
                 result = await connection.fetchrow(query, tournament_id)
                 if result is None:
                     raise TournamentNotFoundException(
-                        message=f"Tournament with id {tournament_id} not found"
+                        message=f"No encontramos el torneo {tournament_id}"
                     )
                 return _row_to_ddo(result)
             except TournamentNotFoundException:

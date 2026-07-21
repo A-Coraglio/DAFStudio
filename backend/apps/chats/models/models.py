@@ -66,22 +66,36 @@ class ChatModel(GeneralModel):
             except Exception as e:
                 raise DatabaseException(message=f"Database error: {e}")
 
-    async def create(
-        self, game_id: int | None = None, name: str | None = None
-    ) -> ChatDDO:
+    async def get_or_create_for_game(self, game_id: int) -> ChatDDO:
+        """Atomic get-or-create. `chat.game_id` has no unique index, so a
+        plain get-then-insert under two concurrent requests creates two chats
+        for the same game; the per-game advisory lock serializes creators."""
         async with self.get_db_connection() as connection:
             connection: PoolConnectionProxy = cast(PoolConnectionProxy, connection)
-            query = (
-                f"INSERT INTO {self.__table_name__} (game_id, name) "
-                "VALUES ($1, $2) RETURNING *"
-            )
             try:
-                row = await connection.fetchrow(query, game_id, name)
-                return _row_to_chat(row)
+                async with connection.transaction():
+                    # Namespace 42 = "chat per game". Released at commit.
+                    await connection.execute(
+                        "SELECT pg_advisory_xact_lock(42, $1)", game_id
+                    )
+                    row = await connection.fetchrow(
+                        f"SELECT * FROM {self.__table_name__} "
+                        "WHERE game_id = $1",
+                        game_id,
+                    )
+                    if row is None:
+                        row = await connection.fetchrow(
+                            f"INSERT INTO {self.__table_name__} "
+                            "(game_id, name) VALUES ($1, NULL) RETURNING *",
+                            game_id,
+                        )
+                    return _row_to_chat(row)
             except Exception as e:
                 raise DatabaseException(message=f"Database error: {e}")
 
-    async def list_for_user(self, user_id: int) -> list[ChatDDO]:
+    async def list_for_user(
+        self, user_id: int, limit: int = 100, offset: int = 0
+    ) -> list[ChatDDO]:
         """Every chat the user can see — general chats they're listed in,
         plus game chats whose game they're joined to (via game_player)."""
         async with self.get_db_connection() as connection:
@@ -112,10 +126,11 @@ class ChatModel(GeneralModel):
                 "    JOIN player p ON p.id = gp.player_id "
                 "    WHERE p.user_id = $1 "
                 ") "
-                "ORDER BY COALESCE(lm.created_at, c.created_at) DESC"
+                "ORDER BY COALESCE(lm.created_at, c.created_at) DESC "
+                "LIMIT $2 OFFSET $3"
             )
             try:
-                rows = await connection.fetch(query, user_id)
+                rows = await connection.fetch(query, user_id, limit, offset)
                 return [_row_to_chat(r) for r in rows]
             except Exception as e:
                 raise DatabaseException(message=f"Database error: {e}")

@@ -182,7 +182,7 @@ class ClassModel(GeneralModel):
                 result = await connection.fetchrow(query, teacher_id)
                 if result is None:
                     raise ClassNotFoundException(
-                        message=f"Teacher with id {teacher_id} not found"
+                        message=f"No encontramos la clase (profe {teacher_id})"
                     )
                 return _row_to_ddo(result)
             except ClassNotFoundException:

@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 
+import '../../../core/http/response_data.dart';
 import 'club.dart';
 import 'court.dart';
 
@@ -36,7 +37,7 @@ class CourtsRepository {
 
   Future<Court> getById(int id) async {
     final res = await _dio.get<Map<String, dynamic>>('/api/courts/$id/');
-    return Court.fromJson(res.data!);
+    return Court.fromJson(requireData(res));
   }
 
   /// `GET /api/clubs/` — used to group club courts by venue in the picker.

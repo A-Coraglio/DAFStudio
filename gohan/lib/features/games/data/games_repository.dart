@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 
+import '../../../core/http/response_data.dart';
 import 'create_game_request.dart';
 import 'game.dart';
 import 'game_player.dart';
@@ -70,12 +71,12 @@ class GamesRepository {
         if (status != null) 'status': status,
       },
     );
-    return Game.fromJson(res.data!);
+    return Game.fromJson(requireData(res));
   }
 
   Future<Game> getById(int id) async {
     final res = await _dio.get<Map<String, dynamic>>('/api/games/$id/');
-    return Game.fromJson(res.data!);
+    return Game.fromJson(requireData(res));
   }
 
   Future<List<GamePlayer>> listPlayers(int gameId) async {
@@ -96,14 +97,14 @@ class GamesRepository {
         if (position != null) 'position': position,
       },
     );
-    return Game.fromJson(res.data!);
+    return Game.fromJson(requireData(res));
   }
 
   Future<Game> leave(int gameId) async {
     final res = await _dio.post<Map<String, dynamic>>(
       '/api/games/$gameId/leave/',
     );
-    return Game.fromJson(res.data!);
+    return Game.fromJson(requireData(res));
   }
 
   Future<Game> create(CreateGameRequest req) async {
@@ -111,7 +112,7 @@ class GamesRepository {
       '/api/games/',
       data: req.toJson(),
     );
-    return Game.fromJson(res.data!);
+    return Game.fromJson(requireData(res));
   }
 
   /// Reports a result. Single-score sports pass [home]/[away]; set-based
@@ -134,6 +135,6 @@ class GamesRepository {
           ],
       },
     );
-    return Game.fromJson(res.data!);
+    return Game.fromJson(requireData(res));
   }
 }

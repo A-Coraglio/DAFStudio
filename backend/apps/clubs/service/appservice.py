@@ -74,7 +74,7 @@ class AppService:
 
         deleted_id = await ClubModel().delete_club(club_id=club_id)
         if deleted_id is None:
-            raise ClubNotFoundException(message=f"Club with id {club_id} not found")
+            raise ClubNotFoundException(message=f"No encontramos el club {club_id}")
         return deleted_id
 
     # ---- nested courts ----
@@ -99,7 +99,7 @@ class AppService:
         club = await ClubModel().get_club_by_id(club_id=club_id)
         if club.owner_id != current_user_id:
             raise ClubForbiddenException(
-                message="Only the club owner can add courts to it"
+                message="Solo el dueño del club puede agregarle canchas"
             )
         return await CourtsAppService().courts_creator_club(
             data=data, club_id=club_id

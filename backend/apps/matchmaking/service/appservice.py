@@ -7,7 +7,6 @@ from apps.matchmaking.service.dto import (
     QueueInputDTO,
     TicketOutputDTO,
     StatusOutputDTO,
-    RunMatcherOutputDTO,
 )
 from apps.matchmaking.service.matcher import Matcher
 from apps.matchmaking.exceptions.exceptions import (
@@ -16,6 +15,7 @@ from apps.matchmaking.exceptions.exceptions import (
     TicketForbiddenException,
     TicketNotFoundException,
 )
+from apps.games.models.game_player import GamePlayerModel
 from apps.games.models.models import GamesModel
 from apps.games.service.appservice import AppService as GamesAppService
 from apps.games.service.dto import GamesOutputDTO
@@ -85,7 +85,7 @@ class AppService:
         )
         if existing is None:
             raise TicketNotFoundException(
-                message="You have no active matchmaking ticket"
+                message="No tenés una búsqueda activa"
             )
         # If they're in acceptance phase already, cancelling is equivalent
         # to rejecting the proposal — collapse the group.
@@ -161,7 +161,7 @@ class AppService:
             raise TicketForbiddenException()
         if ticket.status != "proposed":
             raise InvalidTicketStateException(
-                message=f"Ticket is '{ticket.status}', can't accept"
+                message="La búsqueda ya no está activa"
             )
 
         updated = await MatchmakingTicketModel().set_status(
@@ -196,7 +196,7 @@ class AppService:
             raise TicketForbiddenException()
         if ticket.status not in ("proposed", "accepted"):
             raise InvalidTicketStateException(
-                message=f"Ticket is '{ticket.status}', can't reject"
+                message="La búsqueda ya no está activa"
             )
 
         updated = await MatchmakingTicketModel().set_status(
@@ -212,9 +212,9 @@ class AppService:
             await MatchmakingTicketModel().reopen_group(
                 matched_game_id=ticket.matched_game_id
             )
+            # Clear the pre-linked roster of the now-cancelled game.
+            await GamePlayerModel().remove_all_for_game(
+                game_id=ticket.matched_game_id
+            )
 
         return self._to_output_dto(updated or ticket)
-
-    async def run_matcher(self) -> RunMatcherOutputDTO:
-        matches = await Matcher().run()
-        return RunMatcherOutputDTO(matches_created=matches)

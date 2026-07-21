@@ -30,7 +30,7 @@ class PlayerModel(GeneralModel):
                 result = await connection.fetchrow(query, player_id)
                 if result is None:
                     raise PlayerNotFoundException(
-                        message=f"Player with id {player_id} not found"
+                        message=f"No encontramos el jugador {player_id}"
                     )
                 return _row_to_ddo(result)
             except PlayerNotFoundException:
@@ -208,23 +208,6 @@ class PlayerModel(GeneralModel):
             except Exception as e:
                 raise DatabaseException(message=f"Database error: {e}")
 
-    async def adjust_ranking_points(
-        self, player_id: int, delta: int
-    ) -> PlayerDDO | None:
-        """Used by the result-finalization flow to apply ELO deltas."""
-        async with self.get_db_connection() as connection:
-            connection: PoolConnectionProxy = cast(PoolConnectionProxy, connection)
-            query = (
-                f"UPDATE {self.__table_name__} "
-                "SET ranking_points = ranking_points + $1 "
-                "WHERE id = $2 RETURNING *"
-            )
-            try:
-                result = await connection.fetchrow(query, delta, player_id)
-                return _row_to_ddo(result) if result else None
-            except Exception as e:
-                raise DatabaseException(message=f"Database error: {e}")
-
     # --- Per-sport ranking (player_sport_stat) -----------------------------
 
     async def get_sport_ranking(self, player_id: int, sport_id: int) -> int:
@@ -264,20 +247,27 @@ class PlayerModel(GeneralModel):
             except Exception as e:
                 raise DatabaseException(message=f"Database error: {e}")
 
-    async def adjust_sport_ranking(
+    async def adjust_rankings(
         self, player_id: int, sport_id: int, delta: int
     ) -> None:
-        """Applies an ELO delta to a (player, sport) ranking, creating the row
-        at 1000 + delta on the player's first ranked game in that sport."""
+        """ELO application for one player: the per-sport ranking (source of
+        truth) and the denormalised overall move in one transaction, so a
+        failure between the two can't leave them out of sync."""
         async with self.get_db_connection() as connection:
             connection: PoolConnectionProxy = cast(PoolConnectionProxy, connection)
             try:
-                await connection.execute(
-                    "INSERT INTO player_sport_stat "
-                    "(player_id, sport_id, ranking_points) VALUES ($1, $2, 1000 + $3) "
-                    "ON CONFLICT (player_id, sport_id) DO UPDATE "
-                    "SET ranking_points = player_sport_stat.ranking_points + $3",
-                    player_id, sport_id, delta,
-                )
+                async with connection.transaction():
+                    await connection.execute(
+                        "INSERT INTO player_sport_stat "
+                        "(player_id, sport_id, ranking_points) VALUES ($1, $2, 1000 + $3) "
+                        "ON CONFLICT (player_id, sport_id) DO UPDATE "
+                        "SET ranking_points = player_sport_stat.ranking_points + $3",
+                        player_id, sport_id, delta,
+                    )
+                    await connection.execute(
+                        f"UPDATE {self.__table_name__} "
+                        "SET ranking_points = ranking_points + $1 WHERE id = $2",
+                        delta, player_id,
+                    )
             except Exception as e:
                 raise DatabaseException(message=f"Database error: {e}")

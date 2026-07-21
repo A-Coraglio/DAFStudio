@@ -45,6 +45,8 @@ class _ChatPanelState extends ConsumerState<ChatPanel> {
           ref.invalidate(myChatsProvider);
           ref.invalidate(unreadTotalProvider);
         })
+        // Silencioso a propósito: si el mark-read falla (red), se reintenta
+        // solo en el próximo mensaje visible — no vale un snackbar.
         .catchError((_) {});
   }
 

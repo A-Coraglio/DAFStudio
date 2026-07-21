@@ -114,7 +114,10 @@ class _ReportResultSheetState extends ConsumerState<ReportResultSheet> {
     final maxSets = maxSetsForSport(game?.sportName);
     final bottom = MediaQuery.of(context).viewInsets.bottom;
 
-    return Padding(
+    // Scrollable: with several sets + keyboard on a short screen the column
+    // used to overflow — the sheet is isScrollControlled, the content must
+    // scroll too.
+    return SingleChildScrollView(
       padding: EdgeInsets.fromLTRB(24, 24, 24, 24 + bottom),
       child: Column(
         mainAxisSize: MainAxisSize.min,

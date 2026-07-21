@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/utils/safe_refresh.dart';
 import '../../../core/widgets/error_view.dart';
 import '../../sports/providers/sports_providers.dart';
 import '../../sports/widgets/sport_selector_button.dart';
@@ -14,10 +15,10 @@ import '../widgets/feed_skeleton.dart';
 class GamesFeedScreen extends ConsumerWidget {
   const GamesFeedScreen({super.key});
 
-  Future<void> _refresh(WidgetRef ref) async {
+  Future<void> _refresh(WidgetRef ref) => safeRefresh(() async {
     ref.invalidate(feedGamesProvider);
     await ref.read(feedGamesProvider.future);
-  }
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

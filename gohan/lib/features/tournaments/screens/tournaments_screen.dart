@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/utils/safe_refresh.dart';
 import '../../../core/widgets/error_view.dart';
 import '../providers/tournaments_providers.dart';
 import '../widgets/tournament_card.dart';
@@ -10,10 +11,10 @@ import '../widgets/tournaments_filter_bar.dart';
 class TournamentsScreen extends ConsumerWidget {
   const TournamentsScreen({super.key});
 
-  Future<void> _refresh(WidgetRef ref) async {
+  Future<void> _refresh(WidgetRef ref) => safeRefresh(() async {
     ref.invalidate(tournamentsFetchProvider);
     await ref.read(tournamentsListProvider.future);
-  }
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

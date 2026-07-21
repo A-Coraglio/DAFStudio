@@ -7,7 +7,6 @@ from apps.chats.models.models import (
 )
 from apps.chats.models.ddo import ChatDDO, ChatMessageDDO
 from apps.chats.service.dto import (
-    ChatCreateInputDTO,
     ChatOutputDTO,
     MessageCreateInputDTO,
     MessageOutputDTO,
@@ -53,6 +52,18 @@ class AppService:
             author_player_id=msg.author_player_id,
         )
 
+    async def _assert_user_in_game(
+        self, game_id: int, current_user_id: int
+    ) -> None:
+        rows = await GamePlayerModel().list_players(game_id=game_id)
+        player_ids = {r.player_id for r in rows}
+        if not player_ids:
+            raise ChatForbiddenException()
+        players = await PlayerModel().list_players_by_ids(list(player_ids))
+        user_ids = {p.user_id for p in players}
+        if current_user_id not in user_ids:
+            raise ChatForbiddenException()
+
     async def _assert_can_read(
         self, chat: ChatDDO, current_user_id: int
     ) -> None:
@@ -61,14 +72,7 @@ class AppService:
           - general chat → current user must be a chat_participant.
         """
         if chat.game_id is not None:
-            rows = await GamePlayerModel().list_players(game_id=chat.game_id)
-            player_ids = {r.player_id for r in rows}
-            if not player_ids:
-                raise ChatForbiddenException()
-            players = await PlayerModel().list_players_by_ids(list(player_ids))
-            user_ids = {p.user_id for p in players}
-            if current_user_id not in user_ids:
-                raise ChatForbiddenException()
+            await self._assert_user_in_game(chat.game_id, current_user_id)
             return
         is_participant = await ChatParticipantModel().is_participant(
             chat_id=chat.id, user_id=current_user_id
@@ -76,8 +80,12 @@ class AppService:
         if not is_participant:
             raise ChatForbiddenException()
 
-    async def list_mine(self, current_user_id: int) -> list[ChatOutputDTO]:
-        chats = await ChatModel().list_for_user(user_id=current_user_id)
+    async def list_mine(
+        self, current_user_id: int, limit: int = 100, offset: int = 0
+    ) -> list[ChatOutputDTO]:
+        chats = await ChatModel().list_for_user(
+            user_id=current_user_id, limit=limit, offset=offset
+        )
         return [self._chat_to_dto(c) for c in chats]
 
     async def get_chat(
@@ -87,22 +95,18 @@ class AppService:
         await self._assert_can_read(chat, current_user_id)
         return self._chat_to_dto(chat)
 
-    async def create_general(
-        self, data: ChatCreateInputDTO, current_user_id: int
-    ) -> ChatOutputDTO:
-        chat = await ChatModel().create(game_id=None, name=data.name)
-        participants = set(data.participant_user_ids) | {current_user_id}
-        for uid in participants:
-            await ChatParticipantModel().add(chat_id=chat.id, user_id=uid)
-        return self._chat_to_dto(chat)
+    # NOTE: create_general (chats generales) se eliminó el 2026-07-21 junto
+    # con su ruta POST /chats/ — sin modelo de invitaciones era un vector de
+    # spam. Recuperar de git cuando exista la feature social.
 
-    async def ensure_chat_for_game(self, game_id: int) -> ChatOutputDTO:
+    async def ensure_chat_for_game(
+        self, game_id: int, current_user_id: int
+    ) -> ChatOutputDTO:
         """Idempotent — returns the game's chat, creating it on first call.
-        Used when a game is opened for the first time."""
-        existing = await ChatModel().get_by_game_id(game_id=game_id)
-        if existing is not None:
-            return self._chat_to_dto(existing)
-        chat = await ChatModel().create(game_id=game_id, name=None)
+        Only roster members may call it (same rule as reading messages);
+        creation is atomic so two concurrent opens can't duplicate the chat."""
+        await self._assert_user_in_game(game_id, current_user_id)
+        chat = await ChatModel().get_or_create_for_game(game_id=game_id)
         return self._chat_to_dto(chat)
 
     async def list_messages(

@@ -11,6 +11,7 @@ import '../../sports/providers/sports_providers.dart';
 import '../../sports/widgets/sport_dropdown_field.dart';
 import '../data/queue_request.dart';
 import '../providers/matchmaking_providers.dart';
+import 'location_fallback_notice.dart';
 import 'radius_slider.dart';
 import 'time_window_picker.dart';
 
@@ -98,6 +99,7 @@ class _QueueFormState extends ConsumerState<QueueForm> {
           'Te emparejamos con gente de nivel similar cerca tuyo.',
           style: Theme.of(context).textTheme.bodyMedium,
         ),
+        const LocationFallbackNotice(),
         const SizedBox(height: 24),
         SportDropdownField(
           value: _sportId,

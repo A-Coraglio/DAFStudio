@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/utils/safe_refresh.dart';
 import '../../../core/widgets/error_view.dart';
 import '../../../core/widgets/tile_list_skeleton.dart';
 import '../providers/profile_providers.dart';
@@ -66,11 +67,11 @@ class _MyGamesScreenState extends ConsumerState<MyGamesScreen> {
                   );
                 }
                 return RefreshIndicator(
-                  onRefresh: () async {
+                  onRefresh: () => safeRefresh(() async {
                     ref.invalidate(myGamesProvider(_mode));
                     ref.invalidate(myStatsProvider);
                     await ref.read(myGamesProvider(_mode).future);
-                  },
+                  }),
                   child: ListView.separated(
                     itemCount: games.length,
                     separatorBuilder: (_, _) => const Divider(height: 1),

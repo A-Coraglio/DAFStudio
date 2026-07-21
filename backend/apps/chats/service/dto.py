@@ -1,13 +1,6 @@
 from pydantic import BaseModel, Field
 
 
-class ChatCreateInputDTO(BaseModel):
-    """Creates a general chat (not tied to a game). Pass the user_ids of
-    everyone who should be a participant — the current user is added too."""
-    name: str | None = Field(default=None, max_length=100)
-    participant_user_ids: list[int] = Field(default_factory=list)
-
-
 class ChatOutputDTO(BaseModel):
     id: int
     game_id: int | None = None

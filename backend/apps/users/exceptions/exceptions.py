@@ -2,12 +2,20 @@ from apps.common.exceptions.exceptions import AppException, NotFoundException
 
 
 class UnauthorizedException(AppException):
-    def __init__(self, message: str = "Unauthorized", error_code: int = 401) -> None:
+    def __init__(
+        self,
+        message: str = "Tu sesión expiró. Ingresá de nuevo",
+        error_code: int = 401,
+    ) -> None:
         super().__init__(message=message, error_code=error_code)
 
 
 class ForbiddenException(AppException):
-    def __init__(self, message: str = "Forbidden", error_code: int = 403) -> None:
+    def __init__(
+        self,
+        message: str = "No tenés permiso para hacer esto",
+        error_code: int = 403,
+    ) -> None:
         super().__init__(message=message, error_code=error_code)
 
 
@@ -17,7 +25,7 @@ class InvalidCredentialsException(UnauthorizedException):
 
 
 class UserNotFoundException(NotFoundException):
-    def __init__(self, message: str = "User not found") -> None:
+    def __init__(self, message: str = "No encontramos ese usuario") -> None:
         super().__init__(message=message)
 
 
@@ -26,6 +34,35 @@ class EmailAlreadyRegisteredException(AppException):
         self,
         message: str = "El email ya está registrado",
         error_code: int = 409,
+    ) -> None:
+        super().__init__(message=message, error_code=error_code)
+
+
+class UsernameAlreadyRegisteredException(AppException):
+    def __init__(
+        self,
+        message: str = "El nombre de usuario ya está en uso",
+        error_code: int = 409,
+    ) -> None:
+        super().__init__(message=message, error_code=error_code)
+
+
+class InvalidRegistrationException(AppException):
+    """Bad registration input (weak password, malformed email, short
+    username). 400 with a user-facing Spanish message — kept as AppException
+    instead of pydantic validators so the client renders it like any other
+    business error."""
+    def __init__(self, message: str, error_code: int = 400) -> None:
+        super().__init__(message=message, error_code=error_code)
+
+
+class InvalidPasswordChangeException(AppException):
+    """Current password missing or wrong when trying to set a new one. 400 on
+    purpose — a 401 would make the client interceptor log the user out."""
+    def __init__(
+        self,
+        message: str = "La contraseña actual es incorrecta",
+        error_code: int = 400,
     ) -> None:
         super().__init__(message=message, error_code=error_code)
 

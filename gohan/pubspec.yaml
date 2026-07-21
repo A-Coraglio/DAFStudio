@@ -82,6 +82,10 @@ flutter:
 
   assets:
     - assets/google_g.svg
+    # Sora/Inter bundleadas (estáticas + OFL). El paquete google_fonts busca
+    # acá ANTES de bajar de la red: primer arranque sin internet ya no pierde
+    # la tipografía. Convención de nombres: Familia-Variante.ttf.
+    - google_fonts/
 
   # To add assets to your application, add an assets section, like this:
   # assets:

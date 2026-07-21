@@ -100,7 +100,7 @@ class CourtModel(GeneralModel):
                 result = await connection.fetchrow(query, court_id, current_user_id)
                 if result is None:
                     raise CourtNotFoundException(
-                        message=f"Court with id {court_id} not found"
+                        message=f"No encontramos la cancha {court_id}"
                     )
                 return _row_to_ddo(result)
             except CourtNotFoundException:

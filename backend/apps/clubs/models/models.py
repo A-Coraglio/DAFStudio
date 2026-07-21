@@ -45,7 +45,7 @@ class ClubModel(GeneralModel):
                 result = await connection.fetchrow(query, club_id)
                 if result is None:
                     raise ClubNotFoundException(
-                        message=f"Club with id {club_id} not found"
+                        message=f"No encontramos el club {club_id}"
                     )
                 return _row_to_ddo(result)
             except ClubNotFoundException:

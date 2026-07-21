@@ -104,7 +104,9 @@ async def upload_my_avatar(
     # available; fall back to reading into memory would lose the stream.
     # UploadFile's `size` is set by Starlette when the upload is buffered.
     if file.size is not None and file.size > MAX_AVATAR_BYTES:
-        raise HTTPException(status_code=400, detail="Avatar too large (2MB max)")
+        raise HTTPException(
+            status_code=400, detail="El avatar supera el máximo de 2MB"
+        )
     try:
         return await AppService().set_avatar_for_user(
             user_id=current_user_id,

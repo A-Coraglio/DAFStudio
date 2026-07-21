@@ -16,8 +16,11 @@ async def get_current_user_id(
             credentials.credentials, SECRET_KEY, algorithms=[ALGORITHM]
         )
         subject = payload.get("sub")
-        if subject is None:
-            raise UnauthorizedException(message="Invalid token")
+        # A refresh token is NOT an access token — it only works against
+        # /auth/refresh/. Without this check a leaked 30-day refresh token
+        # would grant direct API access.
+        if subject is None or payload.get("type") == "refresh":
+            raise UnauthorizedException(message="Sesión inválida. Ingresá de nuevo")
         return int(subject)
     except JWTError:
-        raise UnauthorizedException(message="Invalid or expired token")
+        raise UnauthorizedException(message="Tu sesión expiró. Ingresá de nuevo")

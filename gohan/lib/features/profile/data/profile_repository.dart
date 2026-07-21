@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 
+import '../../../core/http/response_data.dart';
 import '../../games/data/game.dart';
 import 'player_profile.dart';
 import 'player_stats.dart';
@@ -11,13 +12,13 @@ class ProfileRepository {
 
   Future<PlayerProfile> getMyProfile() async {
     final res = await _dio.get<Map<String, dynamic>>('/api/players/me/');
-    return PlayerProfile.fromJson(res.data!);
+    return PlayerProfile.fromJson(requireData(res));
   }
 
   /// Public profile of any player by id — backs the `/players/:id` screen.
   Future<PlayerProfile> getPlayer(int playerId) async {
     final res = await _dio.get<Map<String, dynamic>>('/api/players/$playerId/');
-    return PlayerProfile.fromJson(res.data!);
+    return PlayerProfile.fromJson(requireData(res));
   }
 
   /// Personal history feed. Each Game is enriched with `outcome` + `teamSide`.
@@ -47,7 +48,7 @@ class ProfileRepository {
       '/api/players/me/stats/',
       queryParameters: {if (sportId != null) 'sport_id': sportId},
     );
-    return PlayerStats.fromJson(res.data!);
+    return PlayerStats.fromJson(requireData(res));
   }
 
   /// Public W/L/D stats of any player — backs the public profile screen.
@@ -56,7 +57,7 @@ class ProfileRepository {
       '/api/players/$playerId/stats/',
       queryParameters: {if (sportId != null) 'sport_id': sportId},
     );
-    return PlayerStats.fromJson(res.data!);
+    return PlayerStats.fromJson(requireData(res));
   }
 
   /// Public recent history of any player (outcomes from their perspective).
@@ -100,7 +101,7 @@ class ProfileRepository {
       '/api/players/me/',
       data: req.toJson(),
     );
-    return PlayerProfile.fromJson(res.data!);
+    return PlayerProfile.fromJson(requireData(res));
   }
 
   /// Uploads a new avatar via multipart. `bytes` is the raw image bytes;
@@ -116,6 +117,6 @@ class ProfileRepository {
       '/api/players/me/avatar/',
       data: form,
     );
-    return PlayerProfile.fromJson(res.data!);
+    return PlayerProfile.fromJson(requireData(res));
   }
 }

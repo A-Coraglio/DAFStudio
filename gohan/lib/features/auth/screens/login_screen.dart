@@ -50,7 +50,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               password: _passCtrl.text,
             ),
           );
-      await ref.read(sessionProvider.notifier).setToken(res.accessToken);
+      await ref
+          .read(sessionProvider.notifier)
+          .setToken(res.accessToken, refreshToken: res.refreshToken);
       if (!mounted) return;
       context.go('/home');
     } catch (e) {

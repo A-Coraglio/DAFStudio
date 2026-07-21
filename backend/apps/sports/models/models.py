@@ -35,7 +35,7 @@ class SportModel(GeneralModel):
                 result = await connection.fetchrow(query, sport_id)
                 if result is None:
                     raise SportNotFoundException(
-                        message=f"Sport with id {sport_id} not found"
+                        message=f"No encontramos el deporte {sport_id}"
                     )
                 return _row_to_ddo(result)
             except SportNotFoundException:

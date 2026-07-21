@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 
+import '../../../core/http/response_data.dart';
 import 'auth_models.dart';
 
 class AuthRepository {
@@ -12,7 +13,7 @@ class AuthRepository {
       '/api/auth/login/',
       data: req.toJson(),
     );
-    return LoginResponse.fromJson(res.data!);
+    return LoginResponse.fromJson(requireData(res));
   }
 
   Future<UserAccount> register(RegisterRequest req) async {
@@ -20,7 +21,7 @@ class AuthRepository {
       '/api/auth/register/',
       data: req.toJson(),
     );
-    return UserAccount.fromJson(res.data!);
+    return UserAccount.fromJson(requireData(res));
   }
 
   /// Exchanges a Google id_token (obtained by the native Google Sign-In SDK)
@@ -30,6 +31,6 @@ class AuthRepository {
       '/api/auth/google/',
       data: req.toJson(),
     );
-    return LoginResponse.fromJson(res.data!);
+    return LoginResponse.fromJson(requireData(res));
   }
 }

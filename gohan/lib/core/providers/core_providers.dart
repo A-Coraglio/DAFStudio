@@ -44,8 +44,11 @@ class SessionNotifier extends StateNotifier<SessionState> {
         : SessionState.unauthenticated;
   }
 
-  Future<void> setToken(String token) async {
+  Future<void> setToken(String token, {String? refreshToken}) async {
     await AuthStorage.saveToken(token);
+    if (refreshToken != null && refreshToken.isNotEmpty) {
+      await AuthStorage.saveRefreshToken(refreshToken);
+    }
     state = SessionState.authenticated(token);
   }
 

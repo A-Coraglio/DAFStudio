@@ -69,6 +69,8 @@ class GamesModel(GeneralModel):
         radius_km: float | None = None,
         for_user_id: int | None = None,
         court_id: int | None = None,
+        limit: int = 200,
+        offset: int = 0,
     ) -> list[GameDDO]:
         """Lists games with optional filters. Geo filtering joins against the
         court table and excludes games without a resolved court."""
@@ -138,6 +140,7 @@ class GamesModel(GeneralModel):
                 idx += 1
 
             where_sql = f"WHERE {' AND '.join(where_clauses)}" if where_clauses else ""
+            params.extend([limit, offset])
             query = (
                 f"SELECT g.*, s.name AS sport_name, c.name AS court_name, "
                 f"COALESCE(pss.ranking_points, 1000) AS organizer_ranking_points"
@@ -148,7 +151,8 @@ class GamesModel(GeneralModel):
                 f"LEFT JOIN player pl ON pl.user_id = g.organizer_id "
                 f"LEFT JOIN player_sport_stat pss "
                 f"ON pss.player_id = pl.id AND pss.sport_id = g.sport_id "
-                f"{where_sql} {order_clause}"
+                f"{where_sql} {order_clause} "
+                f"LIMIT ${idx} OFFSET ${idx + 1}"
             )
             try:
                 results = await connection.fetch(query, *params)
@@ -175,7 +179,7 @@ class GamesModel(GeneralModel):
                 result = await connection.fetchrow(query, game_id)
                 if result is None:
                     raise NotFoundException(
-                        message=f"Game with id {game_id} not found"
+                        message=f"No encontramos el partido {game_id}"
                     )
                 return _row_to_ddo(result)
             except NotFoundException:
@@ -210,6 +214,9 @@ class GamesModel(GeneralModel):
             except Exception as e:
                 raise DatabaseException(message=f"Database error: {e}")
 
+    # Nullable columns a PUT may clear by sending an explicit null.
+    CLEARABLE_FIELDS = ("court_id", "level", "scheduled_at")
+
     async def update_game(
         self,
         game_id: int,
@@ -219,7 +226,11 @@ class GamesModel(GeneralModel):
         level: str | None = None,
         scheduled_at: datetime | None = None,
         status: str | None = None,
+        clear_fields: set[str] | frozenset[str] = frozenset(),
     ) -> GameDDO | None:
+        """Partial update. A None argument means "don't touch" — EXCEPT for
+        the columns named in `clear_fields`, which are set to NULL (that's how
+        the service distinguishes an absent field from an explicit null)."""
         async with self.get_db_connection() as connection:
             connection: PoolConnectionProxy = cast(PoolConnectionProxy, connection)
 
@@ -238,6 +249,9 @@ class GamesModel(GeneralModel):
                 fields.append(f"scheduled_at = ${idx}"); values.append(scheduled_at); idx += 1
             if status is not None:
                 fields.append(f"status = ${idx}"); values.append(status); idx += 1
+            for column in clear_fields:
+                if column in self.CLEARABLE_FIELDS:
+                    fields.append(f"{column} = NULL")
 
             if not fields:
                 return None
@@ -363,7 +377,7 @@ class GamesModel(GeneralModel):
                 result = await connection.fetchrow(query, game_id)
                 if result is None:
                     raise NotFoundException(
-                        message=f"Game with id {game_id} not found"
+                        message=f"No encontramos el partido {game_id}"
                     )
                 return result["id"]
             except NotFoundException:

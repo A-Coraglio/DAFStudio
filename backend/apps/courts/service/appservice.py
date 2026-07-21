@@ -95,7 +95,7 @@ class AppService:
     ) -> CourtOutputDTO:
         existing = await CourtModel().get_court_raw(court_id=court_id)
         if existing is None:
-            raise CourtNotFoundException(message=f"Court with id {court_id} not found")
+            raise CourtNotFoundException(message=f"No encontramos la cancha {court_id}")
         if existing.owner_id != current_user_id:
             # Either a club court or someone else's private court.
             raise CourtForbiddenException()
@@ -116,11 +116,11 @@ class AppService:
     ) -> int:
         existing = await CourtModel().get_court_raw(court_id=court_id)
         if existing is None:
-            raise CourtNotFoundException(message=f"Court with id {court_id} not found")
+            raise CourtNotFoundException(message=f"No encontramos la cancha {court_id}")
         if existing.owner_id != current_user_id:
             raise CourtForbiddenException()
 
         deleted_id = await CourtModel().delete_court(court_id=court_id)
         if deleted_id is None:
-            raise CourtNotFoundException(message=f"Court with id {court_id} not found")
+            raise CourtNotFoundException(message=f"No encontramos la cancha {court_id}")
         return deleted_id

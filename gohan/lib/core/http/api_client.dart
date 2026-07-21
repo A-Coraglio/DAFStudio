@@ -18,6 +18,7 @@ Dio buildApiClient({required Future<void> Function() onUnauthorized}) {
           status != null && status >= 200 && status < 300,
     ),
   );
-  dio.interceptors.add(AuthInterceptor(onUnauthorized: onUnauthorized));
+  final auth = AuthInterceptor(onUnauthorized: onUnauthorized)..dio = dio;
+  dio.interceptors.add(auth);
   return dio;
 }

@@ -1,3 +1,5 @@
+import logging
+import os
 from contextlib import asynccontextmanager
 from pathlib import Path
 from fastapi import FastAPI, Request
@@ -20,7 +22,17 @@ from apps.sport_modes.namespaces.routes import router as sport_modes_router
 from apps.chats.namespaces.routes import router as chats_router
 from apps.tournaments.namespaces.routes import router as tournaments_router
 from apps.classes.namespaces.routes import router as classes_router
-from traceback import format_exc
+from traceback import format_exc  # solo para el trace opt-in del handler
+
+
+# App-wide logging: timestamped, leveled, per-module logger names. Anything
+# that used to be a bare print() in server code goes through this — greppable
+# by logger name ("dafstudio.matcher", "dafstudio.settle", ...).
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)-7s %(name)s: %(message)s",
+)
+logger = logging.getLogger("dafstudio")
 
 
 # Interval (seconds) at which the matchmaker sweeps the queue. The queue
@@ -40,16 +52,16 @@ async def _run_matcher_job() -> None:
         await Matcher().run()
     except Exception:
         # Never let a matcher failure crash the scheduler; log and continue.
-        print("[matcher cron] run failed:\n" + format_exc())
+        logger.exception("[matcher cron] run failed")
 
 
 async def _run_settle_job() -> None:
     try:
         stats = await GamesAppService().settle_pending_results()
         if stats.get("checked"):
-            print(f"[settle cron] {stats}")
+            logger.info("[settle cron] %s", stats)
     except Exception:
-        print("[settle cron] run failed:\n" + format_exc())
+        logger.exception("[settle cron] run failed")
 
 
 @asynccontextmanager
@@ -109,14 +121,27 @@ app.mount("/uploads", StaticFiles(directory=UPLOADS_DIR), name="uploads")
 
 
 
+@app.get("/health")
+async def health():
+    """Unauthenticated liveness probe (monitors, future deploys)."""
+    return {"status": "ok"}
+
+
+# Tracebacks in error responses leak SQL, table names and file paths, so they
+# are opt-in: only with DEBUG=1 in the environment (.env) does `trace` appear.
+DEBUG = os.environ.get("DEBUG", "0") == "1"
+
+
 # Registered as an exception handler (not an HTTP middleware) on purpose: a
 # middleware wrapping CORSMiddleware would build its response outside the CORS
 # layer, and the browser would reject every AppException — including the 401 of
 # an expired token — as a CORS failure instead of surfacing the status code.
 @app.exception_handler(AppException)
 async def app_exception_handler(request: Request, exc: AppException):
-    return JSONResponse({
-        "type_exception" : exc.__class__.__name__,
-        "error" : str(exc),
-        "trace" : format_exc()
-    }, status_code=exc.error_code)
+    body = {
+        "type_exception": exc.__class__.__name__,
+        "error": str(exc),
+    }
+    if DEBUG:
+        body["trace"] = format_exc()
+    return JSONResponse(body, status_code=exc.error_code)

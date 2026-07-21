@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/theme/app_colors.dart';
+import '../../../core/utils/safe_refresh.dart';
 import '../../../core/widgets/error_view.dart';
 import '../../games/providers/games_providers.dart';
 import '../../profile/providers/profile_providers.dart';
@@ -58,14 +59,14 @@ class HomeScreen extends ConsumerWidget {
               onRetry: () => ref.invalidate(sportsListProvider),
             ),
             data: (_) => RefreshIndicator(
-              onRefresh: () async {
+              onRefresh: () => safeRefresh(() async {
                 ref.invalidate(myGamesProvider);
                 ref.invalidate(nextGameProvider);
                 ref.invalidate(feedGamesProvider);
                 ref.invalidate(recommendedTournamentsProvider);
                 ref.invalidate(recommendedClassesProvider);
                 await ref.read(nextGameProvider.future);
-              },
+              }),
               child: ListView(
                 padding: const EdgeInsets.all(16),
                 children: const [

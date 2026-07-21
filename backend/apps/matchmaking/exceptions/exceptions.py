@@ -2,14 +2,14 @@ from apps.common.exceptions.exceptions import AppException, NotFoundException
 
 
 class TicketNotFoundException(NotFoundException):
-    def __init__(self, message: str = "Matchmaking ticket not found") -> None:
+    def __init__(self, message: str = "No tenés una búsqueda activa") -> None:
         super().__init__(message=message)
 
 
 class TicketForbiddenException(AppException):
     def __init__(
         self,
-        message: str = "This ticket does not belong to you",
+        message: str = "Esa búsqueda no te pertenece",
         error_code: int = 403,
     ) -> None:
         super().__init__(message=message, error_code=error_code)
@@ -18,7 +18,7 @@ class TicketForbiddenException(AppException):
 class AlreadyInQueueException(AppException):
     def __init__(
         self,
-        message: str = "You already have an active matchmaking ticket",
+        message: str = "Ya estás en una búsqueda de partido",
         error_code: int = 409,
     ) -> None:
         super().__init__(message=message, error_code=error_code)
@@ -26,7 +26,7 @@ class AlreadyInQueueException(AppException):
 
 class InvalidTicketStateException(AppException):
     def __init__(
-        self, message: str = "Ticket state does not allow this action",
+        self, message: str = "La búsqueda ya no está activa",
         error_code: int = 409,
     ) -> None:
         super().__init__(message=message, error_code=error_code)

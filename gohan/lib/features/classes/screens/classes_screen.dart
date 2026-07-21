@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/utils/safe_refresh.dart';
 import '../../../core/widgets/error_view.dart';
 import '../providers/classes_providers.dart';
 import '../widgets/class_card.dart';
@@ -10,10 +11,10 @@ import '../widgets/classes_filter_bar.dart';
 class ClassesScreen extends ConsumerWidget {
   const ClassesScreen({super.key});
 
-  Future<void> _refresh(WidgetRef ref) async {
+  Future<void> _refresh(WidgetRef ref) => safeRefresh(() async {
     ref.invalidate(classesFetchProvider);
     await ref.read(classesListProvider.future);
-  }
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

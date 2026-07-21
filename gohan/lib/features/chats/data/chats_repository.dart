@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 
+import '../../../core/http/response_data.dart';
 import 'chat.dart';
 
 class ChatsRepository {
@@ -9,35 +10,24 @@ class ChatsRepository {
 
   Future<List<Chat>> listMine() async {
     final res = await _dio.get<List<dynamic>>('/api/chats/');
-    return res.data!
+    return requireData(res)
         .map((e) => Chat.fromJson(e as Map<String, dynamic>))
         .toList();
   }
 
   Future<Chat> getById(int id) async {
     final res = await _dio.get<Map<String, dynamic>>('/api/chats/$id/');
-    return Chat.fromJson(res.data!);
+    return Chat.fromJson(requireData(res));
   }
 
-  Future<Chat> createGeneral({
-    String? name,
-    required List<int> participantUserIds,
-  }) async {
-    final res = await _dio.post<Map<String, dynamic>>(
-      '/api/chats/',
-      data: {
-        if (name != null) 'name': name,
-        'participant_user_ids': participantUserIds,
-      },
-    );
-    return Chat.fromJson(res.data!);
-  }
+  // createGeneral se eliminó (2026-07-21): el backend deshabilitó
+  // POST /api/chats/ hasta que exista el modelo social con invitaciones.
 
   Future<Chat> ensureForGame(int gameId) async {
     final res = await _dio.get<Map<String, dynamic>>(
       '/api/games/$gameId/chat/',
     );
-    return Chat.fromJson(res.data!);
+    return Chat.fromJson(requireData(res));
   }
 
   Future<List<ChatMessage>> listMessages(
@@ -52,7 +42,7 @@ class ChatsRepository {
         if (beforeId != null) 'before_id': beforeId,
       },
     );
-    return res.data!
+    return requireData(res)
         .map((e) => ChatMessage.fromJson(e as Map<String, dynamic>))
         .toList();
   }
@@ -62,7 +52,7 @@ class ChatsRepository {
       '/api/chats/$chatId/messages/',
       data: {'content': content},
     );
-    return ChatMessage.fromJson(res.data!);
+    return ChatMessage.fromJson(requireData(res));
   }
 
   /// Edits an own message. Backend rejects with 403 if the caller isn't
@@ -76,7 +66,7 @@ class ChatsRepository {
       '/api/chats/$chatId/messages/$messageId/',
       data: {'content': content},
     );
-    return ChatMessage.fromJson(res.data!);
+    return ChatMessage.fromJson(requireData(res));
   }
 
   /// Deletes an own message (hard delete).

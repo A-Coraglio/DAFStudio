@@ -5,7 +5,12 @@ from asyncpg.pool import PoolConnectionProxy
 from pydantic import BaseModel, Field
 
 from apps.games.models import GeneralModel
-from apps.common.exceptions.exceptions import DatabaseException
+from apps.common.exceptions.exceptions import (
+    AppException,
+    DatabaseException,
+    NotFoundException,
+)
+from apps.games.exceptions.exceptions import GameStateException
 
 
 class GamePlayerDDO(BaseModel):
@@ -75,6 +80,43 @@ class GamePlayerModel(GeneralModel):
             except Exception as e:
                 raise DatabaseException(message=f"Database error: {e}")
 
+    async def list_players_by_game_ids(
+        self, game_ids: list[int]
+    ) -> dict[int, list[GamePlayerDDO]]:
+        """Bulk rosters keyed by game_id, join order preserved. Backs the
+        stats/history endpoints so outcomes for N games cost one query
+        instead of N."""
+        if not game_ids:
+            return {}
+        async with self.get_db_connection() as connection:
+            connection: PoolConnectionProxy = cast(PoolConnectionProxy, connection)
+            query = (
+                f"SELECT * FROM {self.__table_name__} "
+                "WHERE game_id = ANY($1::int[]) ORDER BY created_at"
+            )
+            try:
+                results = await connection.fetch(query, game_ids)
+                rosters: dict[int, list[GamePlayerDDO]] = {}
+                for r in results:
+                    rosters.setdefault(int(r["game_id"]), []).append(
+                        _row_to_ddo(r)
+                    )
+                return rosters
+            except Exception as e:
+                raise DatabaseException(message=f"Database error: {e}")
+
+    async def remove_all_for_game(self, game_id: int) -> int:
+        """Clears the roster of a game — used when matchmaking cancels a
+        proposed game (reject/expire) so no players stay linked to it."""
+        async with self.get_db_connection() as connection:
+            connection: PoolConnectionProxy = cast(PoolConnectionProxy, connection)
+            query = f"DELETE FROM {self.__table_name__} WHERE game_id = $1"
+            try:
+                result = await connection.execute(query, game_id)
+                return int(result.split(" ")[-1])
+            except Exception as e:
+                raise DatabaseException(message=f"Database error: {e}")
+
     async def is_player_in_game(self, game_id: int, player_id: int) -> bool:
         async with self.get_db_connection() as connection:
             connection: PoolConnectionProxy = cast(PoolConnectionProxy, connection)
@@ -120,6 +162,86 @@ class GamePlayerModel(GeneralModel):
                     query, game_id, player_id, team_id, position
                 )
                 return _row_to_ddo(result)
+            except Exception as e:
+                raise DatabaseException(message=f"Database error: {e}")
+
+    async def join_atomic(
+        self,
+        game_id: int,
+        player_id: int,
+        team_id: int | None = None,
+        position: int | None = None,
+    ) -> bool:
+        """Single-transaction join. Locks the game row (FOR UPDATE) so two
+        concurrent joins can't overbook the roster or take the same position
+        slot — validations and the insert see a frozen state. Also flips the
+        game to 'full' inside the same transaction when the last slot fills.
+        Returns True if this join filled the game."""
+        async with self.get_db_connection() as connection:
+            connection: PoolConnectionProxy = cast(PoolConnectionProxy, connection)
+            try:
+                async with connection.transaction():
+                    game = await connection.fetchrow(
+                        "SELECT status, max_players FROM game "
+                        "WHERE id = $1 FOR UPDATE",
+                        game_id,
+                    )
+                    if game is None:
+                        raise NotFoundException(
+                            message=f"No encontramos el partido {game_id}"
+                        )
+                    if game["status"] != "open":
+                        raise GameStateException(
+                            message="Ya no es posible unirse a este partido"
+                        )
+                    already = await connection.fetchrow(
+                        f"SELECT 1 FROM {self.__table_name__} "
+                        "WHERE game_id = $1 AND player_id = $2",
+                        game_id, player_id,
+                    )
+                    if already:
+                        raise GameStateException(
+                            message="Ya estás anotado en este partido"
+                        )
+                    count = await connection.fetchval(
+                        f"SELECT COUNT(*) FROM {self.__table_name__} "
+                        "WHERE game_id = $1",
+                        game_id,
+                    )
+                    if count >= game["max_players"]:
+                        raise GameStateException(
+                            message="El partido está completo"
+                        )
+                    if position is not None:
+                        if position >= game["max_players"]:
+                            raise GameStateException(
+                                message="Esa posición no existe en este partido",
+                                error_code=400,
+                            )
+                        taken = await connection.fetchrow(
+                            f"SELECT 1 FROM {self.__table_name__} "
+                            "WHERE game_id = $1 AND position = $2",
+                            game_id, position,
+                        )
+                        if taken:
+                            raise GameStateException(
+                                message="Esa posición ya está ocupada"
+                            )
+                    await connection.execute(
+                        f"INSERT INTO {self.__table_name__} "
+                        "(game_id, player_id, team_id, position) "
+                        "VALUES ($1, $2, $3, $4)",
+                        game_id, player_id, team_id, position,
+                    )
+                    filled = count + 1 >= game["max_players"]
+                    if filled:
+                        await connection.execute(
+                            "UPDATE game SET status = 'full' WHERE id = $1",
+                            game_id,
+                        )
+                    return filled
+            except AppException:
+                raise
             except Exception as e:
                 raise DatabaseException(message=f"Database error: {e}")
 

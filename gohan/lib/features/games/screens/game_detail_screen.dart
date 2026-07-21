@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/utils/safe_refresh.dart';
 import '../../../core/widgets/error_view.dart';
 import '../providers/games_providers.dart';
 import '../widgets/game_action_button.dart';
@@ -45,11 +46,11 @@ class GameDetailScreen extends ConsumerWidget {
           onRetry: () => ref.invalidate(gameByIdProvider(gameId)),
         ),
         data: (game) => RefreshIndicator(
-          onRefresh: () async {
+          onRefresh: () => safeRefresh(() async {
             ref.invalidate(gameByIdProvider(gameId));
             ref.invalidate(gamePlayersProvider(gameId));
             await ref.read(gameByIdProvider(gameId).future);
-          },
+          }),
           child: ListView(
             padding: const EdgeInsets.all(16),
             children: [

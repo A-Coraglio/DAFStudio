@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 
+import '../../../core/http/response_data.dart';
 import 'tournament_model.dart';
 
 class TournamentsRepository {
@@ -53,7 +54,7 @@ class TournamentsRepository {
 
   Future<Tournament> getById(int id) async {
     final res = await _dio.get<Map<String, dynamic>>('/api/tournaments/$id/');
-    return Tournament.fromJson(res.data!);
+    return Tournament.fromJson(requireData(res));
   }
 
   List<Tournament> _parse(List<dynamic>? data) => (data ?? const [])

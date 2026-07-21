@@ -51,7 +51,7 @@ class SportModeModel(GeneralModel):
                 result = await connection.fetchrow(query, mode_id)
                 if result is None:
                     raise SportModeNotFoundException(
-                        message=f"Sport mode {mode_id} not found"
+                        message=f"No encontramos el modo de juego {mode_id}"
                     )
                 return _row_to_ddo(result)
             except SportModeNotFoundException:

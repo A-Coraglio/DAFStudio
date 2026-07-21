@@ -1,8 +1,7 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 
 from apps.chats.service.appservice import AppService
 from apps.chats.service.dto import (
-    ChatCreateInputDTO,
     ChatOutputDTO,
     MessageCreateInputDTO,
     MessageOutputDTO,
@@ -21,24 +20,19 @@ router: APIRouter = APIRouter(prefix="/api")
         401: {"description": "Unauthorized"},
     },
 )
-async def list_my_chats(current_user_id: int = Depends(get_current_user_id)):
-    return await AppService().list_mine(current_user_id=current_user_id)
-
-
-@router.post(
-    "/chats/",
-    responses={
-        200: {"model": ChatOutputDTO, "description": "Created chat"},
-        401: {"description": "Unauthorized"},
-    },
-)
-async def create_chat(
-    body: ChatCreateInputDTO,
+async def list_my_chats(
+    limit: int = Query(default=100, ge=1, le=200),
+    offset: int = Query(default=0, ge=0),
     current_user_id: int = Depends(get_current_user_id),
 ):
-    return await AppService().create_general(
-        data=body, current_user_id=current_user_id
+    return await AppService().list_mine(
+        current_user_id=current_user_id, limit=limit, offset=offset
     )
+
+
+# NOTE: POST /chats/ (chats generales) fue deshabilitado el 2026-07-21: la UI
+# nunca lo usó y permitía meter a cualquiera en un chat sin consentimiento.
+# Revivirlo recién cuando exista el modelo social (amigos/invitaciones).
 
 
 @router.get(
@@ -83,7 +77,7 @@ async def get_chat(
 )
 async def list_messages(
     chat_id: int,
-    limit: int = 50,
+    limit: int = Query(default=50, ge=1, le=200),
     before_id: int | None = None,
     current_user_id: int = Depends(get_current_user_id),
 ):
@@ -186,10 +180,13 @@ async def mark_chat_read(
             "description": "The chat for this game (auto-created if missing)",
         },
         401: {"description": "Unauthorized"},
+        403: {"description": "Not a participant of this game"},
     },
 )
 async def get_or_create_game_chat(
     game_id: int,
     current_user_id: int = Depends(get_current_user_id),
 ):
-    return await AppService().ensure_chat_for_game(game_id=game_id)
+    return await AppService().ensure_chat_for_game(
+        game_id=game_id, current_user_id=current_user_id
+    )

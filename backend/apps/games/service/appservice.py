@@ -1,6 +1,6 @@
+import logging
 from collections import Counter
 from datetime import datetime
-from traceback import format_exc
 
 from apps.games.service.iso_utils import iso_utc
 from apps.games.service.dto import (
@@ -9,7 +9,10 @@ from apps.games.service.dto import (
     GameUpdateInputDTO,
     GamePlayerOutputDTO,
     GAME_MODES,
+    GAME_LEVELS,
+    ORGANIZER_SETTABLE_STATUSES,
 )
+from apps.games.service.team_split import split_home_away
 from apps.games.models.models import GamesModel
 from apps.games.models.ddo import GameDDO
 from apps.games.models.game_player import GamePlayerModel
@@ -21,6 +24,8 @@ from apps.games.exceptions.exceptions import (
 from apps.players.models.models import PlayerModel
 from apps.players.exceptions.exceptions import PlayerNotFoundException
 
+
+_settle_logger = logging.getLogger("dafstudio.settle")
 
 # Classic chess ELO: K=32 is the usual amateur value. Higher K swings
 # rankings faster (good for a new app bootstrapping rankings); lower K
@@ -107,6 +112,8 @@ class AppService:
         radius_km: float | None = None,
         for_user_id: int | None = None,
         court_id: int | None = None,
+        limit: int = 200,
+        offset: int = 0,
     ) -> list[GamesOutputDTO]:
         games: list[GameDDO] = await GamesModel().list_games(
             sport_id=sport_id,
@@ -121,6 +128,8 @@ class AppService:
             radius_km=radius_km,
             for_user_id=for_user_id,
             court_id=court_id,
+            limit=limit,
+            offset=offset,
         )
         counts = await GamePlayerModel().counts_by_game_ids(
             [g.id for g in games]
@@ -134,12 +143,26 @@ class AppService:
         result: GameDDO = await GamesModel().get_game_by_id(game_id=game_id)
         return await self._game_to_dto_with_confirmations(result)
 
+    def _validate_level(self, level: str | None) -> None:
+        if level is not None and level not in GAME_LEVELS:
+            raise GameStateException(
+                message=f"Nivel inválido (opciones: {', '.join(GAME_LEVELS)})",
+                error_code=400,
+            )
+
     async def games_creator(
         self, data: GameCreateInputDTO, organizer_id: int
     ) -> GamesOutputDTO:
         if data.mode not in GAME_MODES:
             raise GameStateException(
-                message=f"mode must be one of {GAME_MODES}", error_code=400
+                message=f"Modo inválido (opciones: {', '.join(GAME_MODES)})",
+                error_code=400,
+            )
+        self._validate_level(data.level)
+        if not 2 <= data.max_players <= 50:
+            raise GameStateException(
+                message="La cantidad de jugadores debe ser entre 2 y 50",
+                error_code=400,
             )
         result: GameDDO = await GamesModel().create_game(
             name=data.name,
@@ -162,7 +185,36 @@ class AppService:
         existing = await GamesModel().get_game_by_id(game_id=game_id)
         if existing.organizer_id != current_user_id:
             raise GameForbiddenException()
+        if existing.status in ("finished", "cancelled"):
+            raise GameStateException(
+                message="Este partido ya no se puede editar"
+            )
+        if data.status is not None and data.status not in ORGANIZER_SETTABLE_STATUSES:
+            # 'full'/'finished'/'pending_acceptance' are outcomes of the
+            # join/result/matchmaking flows — hand-setting them skips ELO
+            # and consensus. Cancelling is the only manual transition.
+            raise GameStateException(
+                message="Ese cambio de estado no está permitido",
+                error_code=400,
+            )
+        self._validate_level(data.level)
+        if data.max_players is not None:
+            current_count = await GamePlayerModel().count_players(
+                game_id=game_id
+            )
+            if data.max_players < max(2, current_count):
+                raise GameStateException(
+                    message="No podés bajar el cupo por debajo de los jugadores ya anotados",
+                    error_code=400,
+                )
 
+        # A field sent explicitly as null clears it (quitar cancha, fecha o
+        # nivel); a field simply absent from the body stays untouched.
+        # model_fields_set is how pydantic distinguishes the two.
+        clear = {
+            f for f in GamesModel.CLEARABLE_FIELDS
+            if f in data.model_fields_set and getattr(data, f) is None
+        }
         updated = await GamesModel().update_game(
             game_id=game_id,
             name=data.name,
@@ -171,6 +223,7 @@ class AppService:
             level=data.level,
             scheduled_at=data.scheduled_at,
             status=data.status,
+            clear_fields=clear,
         )
         return await self._game_to_dto_with_count(updated or existing)
 
@@ -219,7 +272,7 @@ class AppService:
         player = await PlayerModel().get_player_by_user_id(user_id=user_id)
         if player is None:
             raise PlayerNotFoundException(
-                message=f"No player profile for user {user_id}"
+                message=f"El usuario {user_id} no tiene perfil de jugador"
             )
         return player
 
@@ -230,41 +283,15 @@ class AppService:
         team_id: int | None = None,
         position: int | None = None,
     ) -> GamesOutputDTO:
-        game = await GamesModel().get_game_by_id(game_id=game_id)
-        if game.status != "open":
-            raise GameStateException(
-                message=f"Cannot join a '{game.status}' game"
-            )
-
         player = await self._player_for_user(current_user_id)
-
-        if await GamePlayerModel().is_player_in_game(
-            game_id=game_id, player_id=player.id
-        ):
-            raise GameStateException(message="You already joined this game")
-
-        current_count = await GamePlayerModel().count_players(game_id=game_id)
-        if current_count >= game.max_players:
-            raise GameStateException(message="Game is full")
-
-        if position is not None:
-            if position >= game.max_players:
-                raise GameStateException(
-                    message="Position is out of range", error_code=400
-                )
-            taken = await GamePlayerModel().taken_positions(game_id=game_id)
-            if position in taken:
-                raise GameStateException(message="Position already taken")
-
-        await GamePlayerModel().add_player(
+        # All validations (status, roster count, position slot) live inside
+        # join_atomic: they must run under the same row lock as the insert,
+        # or two concurrent joins can overbook / share a slot.
+        await GamePlayerModel().join_atomic(
             game_id=game_id, player_id=player.id, team_id=team_id,
             position=position,
         )
-
-        # Flip to 'full' if we just filled the last slot.
-        if current_count + 1 >= game.max_players:
-            updated = await GamesModel().update_game(game_id=game_id, status="full")
-            return await self._game_to_dto_with_count(updated or game)
+        game = await GamesModel().get_game_by_id(game_id=game_id)
         return await self._game_to_dto_with_count(game)
 
     async def game_leave(
@@ -273,7 +300,7 @@ class AppService:
         game = await GamesModel().get_game_by_id(game_id=game_id)
         if game.status not in ("open", "full"):
             raise GameStateException(
-                message=f"Cannot leave a '{game.status}' game"
+                message="Ya no es posible salir de este partido"
             )
 
         player = await self._player_for_user(current_user_id)
@@ -281,7 +308,7 @@ class AppService:
             game_id=game_id, player_id=player.id
         )
         if not removed:
-            raise GameStateException(message="You are not in this game")
+            raise GameStateException(message="No estás anotado en este partido")
 
         # If the game was full, it now has space — reopen.
         if game.status == "full":
@@ -302,7 +329,7 @@ class AppService:
         game = await GamesModel().get_game_by_id(game_id=game_id)
         if game.status not in ("open", "full"):
             raise GameStateException(
-                message=f"Cannot report result for a '{game.status}' game"
+                message="Ya no se puede cargar el resultado de este partido"
             )
 
         player = await self._player_for_user(current_user_id)
@@ -310,7 +337,7 @@ class AppService:
             game_id=game_id, player_id=player.id
         ):
             raise GameStateException(
-                message="Only participants can report the result"
+                message="Solo los participantes pueden cargar el resultado"
             )
 
         # Set-based sports send `sets`; result_home/away become the SETS won and
@@ -384,22 +411,9 @@ class AppService:
         if len(game_players) < 2:
             return
 
-        home_slots = game.max_players // 2
-        home_gps = [
-            gp for gp in game_players
-            if gp.position is not None and gp.position < home_slots
-        ]
-        away_gps = [
-            gp for gp in game_players
-            if gp.position is not None and gp.position >= home_slots
-        ]
-        # Unpositioned players fill home up to half the roster (join order),
-        # then away — for odd counts the larger team goes away, as before.
-        mid = len(game_players) // 2
-        for gp in game_players:
-            if gp.position is not None:
-                continue
-            (home_gps if len(home_gps) < mid else away_gps).append(gp)
+        # Shared split rule (team_split.py) — the players app uses the same
+        # helper to compute outcomes, so W/L always matches the ELO applied.
+        home_gps, away_gps = split_home_away(game_players, game.max_players)
         if not home_gps or not away_gps:
             return
 
@@ -426,19 +440,14 @@ class AppService:
 
         # Per-sport ranking is the source of truth; player.ranking_points is
         # kept updated too as a denormalised "overall" for the players search.
+        # adjust_rankings moves both in one transaction per player.
         for gp in home_gps:
-            await PlayerModel().adjust_sport_ranking(
+            await PlayerModel().adjust_rankings(
                 gp.player_id, game.sport_id, delta
             )
-            await PlayerModel().adjust_ranking_points(
-                player_id=gp.player_id, delta=delta
-            )
         for gp in away_gps:
-            await PlayerModel().adjust_sport_ranking(
+            await PlayerModel().adjust_rankings(
                 gp.player_id, game.sport_id, -delta
-            )
-            await PlayerModel().adjust_ranking_points(
-                player_id=gp.player_id, delta=-delta
             )
 
     # -------- auto-settle --------
@@ -464,8 +473,8 @@ class AppService:
             except Exception:
                 # One bad game shouldn't poison the whole sweep — log and
                 # move on. Next run will pick it up again.
-                print(
-                    f"[settle] failed for game {game.id}:\n" + format_exc()
+                _settle_logger.exception(
+                    "settle failed for game %s", game.id
                 )
                 continue
             stats[outcome] = stats.get(outcome, 0) + 1
@@ -488,6 +497,15 @@ class AppService:
         top_score, top_count = ranked[0]
         if len(ranked) > 1 and ranked[1][1] == top_count:
             # Tied vote — can't pick a winner fairly. Close without result.
+            await GamesModel().finish_without_result(game_id=game.id)
+            return "no_result"
+
+        # Quorum: the winning score needs at least half the roster behind it.
+        # Without this, 1 vote out of 4 players would decide the result (and
+        # move ELO) just because everyone else forgot to report.
+        participants = await GamePlayerModel().list_players(game_id=game.id)
+        quorum = max(1, -(-len(participants) // 2))  # ceil(n/2)
+        if top_count < quorum:
             await GamesModel().finish_without_result(game_id=game.id)
             return "no_result"
 

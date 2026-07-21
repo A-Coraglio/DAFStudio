@@ -39,7 +39,9 @@ class _GoogleSignInButtonState extends ConsumerState<GoogleSignInButton> {
       final res = await ref
           .read(authRepositoryProvider)
           .loginWithGoogle(GoogleLoginRequest(idToken: idToken));
-      await ref.read(sessionProvider.notifier).setToken(res.accessToken);
+      await ref
+          .read(sessionProvider.notifier)
+          .setToken(res.accessToken, refreshToken: res.refreshToken);
       if (!mounted) return;
       context.go('/home');
     } on DioException catch (e) {

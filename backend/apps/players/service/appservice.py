@@ -4,9 +4,10 @@ import shutil
 from pathlib import Path
 
 from apps.games.models.ddo import GameDDO
-from apps.games.models.game_player import GamePlayerModel
+from apps.games.models.game_player import GamePlayerDDO, GamePlayerModel
 from apps.games.models.models import GamesModel
 from apps.games.service.appservice import AppService as GamesAppService
+from apps.games.service.team_split import split_home_away
 from apps.players.models.models import PlayerModel
 from apps.players.models.ddo import PlayerDDO
 from apps.players.service.dto import (
@@ -27,6 +28,15 @@ UPLOADS_ROOT = Path(__file__).resolve().parents[3] / "uploads"
 AVATAR_DIR = UPLOADS_ROOT / "avatars"
 ALLOWED_AVATAR_EXT = {".png", ".jpg", ".jpeg", ".webp"}
 MAX_AVATAR_BYTES = 2 * 1024 * 1024  # 2 MB
+
+
+def _looks_like_image(head: bytes) -> bool:
+    """Magic-bytes check for the formats in ALLOWED_AVATAR_EXT."""
+    return (
+        head.startswith(b"\x89PNG\r\n\x1a\n")
+        or head.startswith(b"\xff\xd8\xff")
+        or (head[:4] == b"RIFF" and head[8:12] == b"WEBP")
+    )
 
 
 class AppService:
@@ -70,7 +80,7 @@ class AppService:
         player = await PlayerModel().get_player_by_user_id(user_id=user_id)
         if player is None:
             raise PlayerNotFoundException(
-                message=f"No player profile for user {user_id}"
+                message=f"El usuario {user_id} no tiene perfil de jugador"
             )
         return self._to_output_dto(player)
 
@@ -91,7 +101,7 @@ class AppService:
         existing = await PlayerModel().get_player_by_user_id(user_id=user_id)
         if existing is None:
             raise PlayerNotFoundException(
-                message=f"No player profile for user {user_id}"
+                message=f"El usuario {user_id} no tiene perfil de jugador"
             )
         updated = await PlayerModel().update_player(
             player_id=existing.id,
@@ -115,7 +125,7 @@ class AppService:
         player = await PlayerModel().get_player_by_user_id(user_id=user_id)
         if player is None:
             raise PlayerNotFoundException(
-                message=f"No player profile for user {user_id}"
+                message=f"El usuario {user_id} no tiene perfil de jugador"
             )
         games = await GamesModel().list_games_for_player(
             player_id=player.id,
@@ -124,10 +134,7 @@ class AppService:
             limit=limit,
             offset=offset,
         )
-        return [
-            await self._game_to_my_dto(game=g, player_id=player.id)
-            for g in games
-        ]
+        return await self._games_to_my_dtos(games=games, player_id=player.id)
 
     async def my_stats(
         self, user_id: int, sport_id: int | None = None
@@ -139,7 +146,7 @@ class AppService:
         player = await PlayerModel().get_player_by_user_id(user_id=user_id)
         if player is None:
             raise PlayerNotFoundException(
-                message=f"No player profile for user {user_id}"
+                message=f"El usuario {user_id} no tiene perfil de jugador"
             )
         return await self._stats_for_player(player, sport_id=sport_id)
 
@@ -161,10 +168,7 @@ class AppService:
             player_id=player.id, status=None, mode=None,
             limit=limit, offset=offset,
         )
-        return [
-            await self._game_to_my_dto(game=g, player_id=player.id)
-            for g in games
-        ]
+        return await self._games_to_my_dtos(games=games, player_id=player.id)
 
     async def _stats_for_player(
         self, player, sport_id: int | None = None
@@ -177,14 +181,24 @@ class AppService:
             player_id=player.id, status="finished", limit=10_000, offset=0,
         )
         wins = losses = draws = casual = total_with_result = 0
+        relevant: list[GameDDO] = []
         for game in finished:
             if sport_id is not None and game.sport_id != sport_id:
                 continue
             if game.mode == "casual":
                 casual += 1
                 continue
-            outcome, _ = await self._player_outcome(
-                game=game, player_id=player.id,
+            relevant.append(game)
+        # One bulk roster fetch for every counted game — per-game lookups
+        # here were the worst N+1 of the backend (10k games → 10k queries).
+        rosters = await GamePlayerModel().list_players_by_game_ids(
+            [g.id for g in relevant]
+        )
+        for game in relevant:
+            outcome, _ = self._outcome_from_roster(
+                game=game,
+                roster=rosters.get(game.id, []),
+                player_id=player.id,
             )
             if outcome == "pending":
                 continue
@@ -210,39 +224,51 @@ class AppService:
             casual_played=casual,
         )
 
-    async def _game_to_my_dto(
-        self, game: GameDDO, player_id: int,
-    ) -> MyGameOutputDTO:
-        outcome, side = await self._player_outcome(
-            game=game, player_id=player_id,
+    async def _games_to_my_dtos(
+        self, games: list[GameDDO], player_id: int,
+    ) -> list[MyGameOutputDTO]:
+        """History cards for a batch of games with ONE roster query total —
+        the roster gives both the player count and the outcome, so no
+        per-game lookups remain. Shape stays consistent with /api/games/
+        (built on GamesOutputDTO) so the frontend reuses the same widgets."""
+        rosters = await GamePlayerModel().list_players_by_game_ids(
+            [g.id for g in games]
         )
-        # Build on top of the standard GamesOutputDTO so the shape stays
-        # consistent with /api/games/ — the frontend can render with the same
-        # widgets and just read the extra fields.
-        base = await GamesAppService()._game_to_dto_with_count(game)
-        return MyGameOutputDTO(
-            **base.model_dump(),
-            outcome=outcome,
-            team_side=side,
-        )
+        games_service = GamesAppService()
+        result: list[MyGameOutputDTO] = []
+        for game in games:
+            roster = rosters.get(game.id, [])
+            outcome, side = self._outcome_from_roster(
+                game=game, roster=roster, player_id=player_id,
+            )
+            base = games_service._to_output_dto(
+                game, current_players=len(roster)
+            )
+            result.append(MyGameOutputDTO(
+                **base.model_dump(),
+                outcome=outcome,
+                team_side=side,
+            ))
+        return result
 
-    async def _player_outcome(
-        self, game: GameDDO, player_id: int,
+    def _outcome_from_roster(
+        self,
+        game: GameDDO,
+        roster: list[GamePlayerDDO],
+        player_id: int,
     ) -> tuple[str, str | None]:
-        """Replicates the team-split rule from `_apply_elo` so the outcome
-        the user sees in their history matches the ELO that was applied:
-        first half by join order = home, rest = away."""
+        """Outcome from the player's perspective, using the SAME split rule
+        as `_apply_elo` (games/service/team_split.py) — positions count when
+        chosen, join order fills the rest — so the W/L shown always matches
+        the ELO that was applied."""
         if game.result_home is None or game.result_away is None:
             return "pending", None
-        game_players = await GamePlayerModel().list_players(game_id=game.id)
-        if len(game_players) < 2:
+        if len(roster) < 2:
             return "pending", None
-        mid = len(game_players) // 2
-        home_ids = {gp.player_id for gp in game_players[:mid]}
-        away_ids = {gp.player_id for gp in game_players[mid:]}
-        if player_id in home_ids:
+        home, away = split_home_away(roster, game.max_players)
+        if player_id in {gp.player_id for gp in home}:
             side = "home"
-        elif player_id in away_ids:
+        elif player_id in {gp.player_id for gp in away}:
             side = "away"
         else:
             return "pending", None
@@ -265,16 +291,27 @@ class AppService:
         existing = await PlayerModel().get_player_by_user_id(user_id=user_id)
         if existing is None:
             raise PlayerNotFoundException(
-                message=f"No player profile for user {user_id}"
+                message=f"El usuario {user_id} no tiene perfil de jugador"
             )
         ext = os.path.splitext(filename)[1].lower()
         if ext not in ALLOWED_AVATAR_EXT:
-            raise ValueError(f"Unsupported avatar extension: {ext}")
+            raise ValueError(
+                "Formato de avatar no soportado (usá PNG, JPG o WebP)"
+            )
+
+        # The extension is user-controlled — check the actual bytes so a
+        # renamed script/HTML can't land in /uploads and be served back.
+        head = file_obj.read(12)
+        if not _looks_like_image(head):
+            raise ValueError(
+                "El archivo no es una imagen válida (PNG, JPG o WebP)"
+            )
 
         AVATAR_DIR.mkdir(parents=True, exist_ok=True)
         new_name = f"p{existing.id}_{secrets.token_hex(8)}{ext}"
         dest = AVATAR_DIR / new_name
         with dest.open("wb") as out:
+            out.write(head)
             shutil.copyfileobj(file_obj, out)
 
         if existing.avatar_path:

@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 
+import '../../../core/http/response_data.dart';
 import 'class_model.dart';
 
 class ClassesRepository {
@@ -51,7 +52,7 @@ class ClassesRepository {
 
   Future<ClassOffering> getById(int teacherId) async {
     final res = await _dio.get<Map<String, dynamic>>('/api/classes/$teacherId/');
-    return ClassOffering.fromJson(res.data!);
+    return ClassOffering.fromJson(requireData(res));
   }
 
   List<ClassOffering> _parse(List<dynamic>? data) => (data ?? const [])

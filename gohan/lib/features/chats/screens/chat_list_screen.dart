@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/utils/safe_refresh.dart';
 import '../../../core/widgets/error_view.dart';
 import '../data/chat.dart';
 import '../providers/chats_providers.dart';
@@ -65,10 +66,10 @@ class _ChatListScreenState extends ConsumerState<ChatListScreen> {
                 child: visible.isEmpty
                     ? const Center(child: Text('Ningún chat coincide.'))
                     : RefreshIndicator(
-                        onRefresh: () async {
+                        onRefresh: () => safeRefresh(() async {
                           ref.invalidate(myChatsProvider);
                           await ref.read(myChatsProvider.future);
-                        },
+                        }),
                         child: ListView.separated(
                           itemCount: visible.length,
                           separatorBuilder: (_, _) => const Divider(height: 1),

@@ -3,6 +3,11 @@ from pydantic import BaseModel, Field
 
 
 GAME_MODES = ("casual", "competitive")
+GAME_LEVELS = ("beginner", "intermediate", "advanced")
+# Statuses an organizer may set directly via PUT. Everything else ('full',
+# 'finished', 'pending_acceptance') is driven by the join/result/matchmaking
+# flows and must not be settable by hand.
+ORGANIZER_SETTABLE_STATUSES = ("cancelled",)
 
 
 class GameCreateInputDTO(BaseModel):

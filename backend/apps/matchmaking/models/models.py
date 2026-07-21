@@ -15,6 +15,11 @@ from apps.common.exceptions.exceptions import DatabaseException
 ACTIVE_STATES = ("waiting", "proposed", "accepted")
 
 
+class _GroupTakenError(Exception):
+    """Internal: a concurrent matcher already grabbed part of the group —
+    used to roll back propose_group_atomic without surfacing an error."""
+
+
 def _row_to_ddo(row) -> MatchmakingTicketDDO:
     return MatchmakingTicketDDO(
         id=row["id"],
@@ -44,7 +49,7 @@ class MatchmakingTicketModel(GeneralModel):
                 result = await connection.fetchrow(query, ticket_id)
                 if result is None:
                     raise TicketNotFoundException(
-                        message=f"Ticket {ticket_id} not found"
+                        message=f"No encontramos la búsqueda {ticket_id}"
                     )
                 return _row_to_ddo(result)
             except TicketNotFoundException:
@@ -159,30 +164,61 @@ class MatchmakingTicketModel(GeneralModel):
             except Exception as e:
                 raise DatabaseException(message=f"Database error: {e}")
 
-    async def set_proposed(
+    async def propose_group_atomic(
         self,
-        ticket_id: int,
-        matched_game_id: int,
-    ) -> MatchmakingTicketDDO | None:
-        """Flip a waiting ticket into 'proposed' and stamp proposed_at = now().
-        proposed_at is the anchor for the acceptance-phase timeout.
+        ticket_ids: list[int],
+        user_ids: list[int],
+        name: str,
+        sport_id: int,
+        max_players: int,
+        organizer_id: int,
+        mode: str,
+        court_id: int | None,
+        scheduled_at: datetime | None,
+    ) -> int | None:
+        """Group finalization in ONE transaction: creates the
+        pending-acceptance game, flips every ticket 'waiting' → 'proposed'
+        (stamping proposed_at) and links the players' roster. If any ticket
+        was already grabbed by a concurrent matcher, everything rolls back
+        and None is returned — a crash or race can never leave a half-built
+        game, half-flipped tickets or a dangling roster behind.
 
-        Guarded by `WHERE status = 'waiting'` so a concurrent matcher that
-        already flipped this ticket can't double-propose it. Returns None
-        when the ticket was already taken — the caller should treat the
-        group as dead on a partial flip and not create the game.
-        """
+        Returns the new game id, or None when the group was lost."""
         async with self.get_db_connection() as connection:
             connection: PoolConnectionProxy = cast(PoolConnectionProxy, connection)
-            query = (
-                f"UPDATE {self.__table_name__} "
-                "SET status = 'proposed', matched_game_id = $1, "
-                "    proposed_at = now() "
-                "WHERE id = $2 AND status = 'waiting' RETURNING *"
-            )
             try:
-                result = await connection.fetchrow(query, matched_game_id, ticket_id)
-                return _row_to_ddo(result) if result else None
+                async with connection.transaction():
+                    game_row = await connection.fetchrow(
+                        "INSERT INTO game "
+                        "(name, sport_id, organizer_id, max_players, mode, "
+                        " level, court_id, scheduled_at, status) "
+                        "VALUES ($1, $2, $3, $4, $5, NULL, $6, $7, "
+                        "        'pending_acceptance') RETURNING id",
+                        name, sport_id, organizer_id, max_players,
+                        mode, court_id, scheduled_at,
+                    )
+                    game_id = int(game_row["id"])
+                    flipped = await connection.fetch(
+                        f"UPDATE {self.__table_name__} "
+                        "SET status = 'proposed', matched_game_id = $1, "
+                        "    proposed_at = now() "
+                        "WHERE id = ANY($2::int[]) AND status = 'waiting' "
+                        "RETURNING id",
+                        game_id, ticket_ids,
+                    )
+                    if len(flipped) != len(ticket_ids):
+                        raise _GroupTakenError()
+                    # Users without a player profile are skipped naturally
+                    # (same behavior the old per-ticket loop had).
+                    await connection.execute(
+                        "INSERT INTO game_player (game_id, player_id) "
+                        "SELECT $1, p.id FROM player p "
+                        "WHERE p.user_id = ANY($2::int[])",
+                        game_id, user_ids,
+                    )
+                    return game_id
+            except _GroupTakenError:
+                return None
             except Exception as e:
                 raise DatabaseException(message=f"Database error: {e}")
 
