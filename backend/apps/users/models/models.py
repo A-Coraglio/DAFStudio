@@ -115,8 +115,7 @@ class UserModel(GeneralModel):
                         username, email, password_hash, has_password,
                     )
                     await connection.execute(
-                        "INSERT INTO player (user_id, ranking_points) "
-                        "VALUES ($1, 0)",
+                        "INSERT INTO player (user_id) VALUES ($1)",
                         result["id"],
                     )
                     return _row_to_ddo(result)

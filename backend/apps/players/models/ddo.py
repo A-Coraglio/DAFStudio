@@ -10,7 +10,9 @@ class PlayerDDO(BaseModel):
         default=None,
         description="Self-reported level: beginner, intermediate, advanced",
     )
-    ranking_points: int = Field(default=0, description="ELO-like ranking")
+    # ELO in the relevant sport (search join / service lookup fills it).
+    # NOT a player-table column anymore — the legacy overall was dropped.
+    ranking_points: int = Field(default=1000, description="ELO-like ranking")
     favorite_sport_id: int | None = Field(
         default=None,
         description="Sport the user picked during onboarding",

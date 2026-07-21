@@ -224,10 +224,15 @@ class AppService:
                 losses += 1
             elif outcome == "draw":
                 draws += 1
+        # Without a sport filter, headline the player's favorite sport (the
+        # same number their profile shows); 1000 base if they never ranked.
+        ranking_sport = (
+            sport_id if sport_id is not None else player.favorite_sport_id
+        )
         ranking = (
-            await PlayerModel().get_sport_ranking(player.id, sport_id)
-            if sport_id is not None
-            else player.ranking_points
+            await PlayerModel().get_sport_ranking(player.id, ranking_sport)
+            if ranking_sport is not None
+            else 1000
         )
         return PlayerStatsOutputDTO(
             sport_id=sport_id,

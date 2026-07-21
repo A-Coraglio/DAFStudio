@@ -144,16 +144,12 @@ async def main():
             print("Faltan players base (agustin/rival/profe_ana/profe_bruno). Abortando.")
             return
 
-        # Give the real accounts a home + a non-zero ranking so profiles look real.
+        # Give the real accounts a home so distance-based features look real.
+        # (Ranking lives only in player_sport_stat, seeded further down.)
         for uid in (u_me1, u_me2):
             await conn.execute(
                 "UPDATE auth_user SET home_lat = COALESCE(home_lat, -34.603), "
                 "home_lon = COALESCE(home_lon, -58.381) WHERE id = $1", uid,
-            )
-        for pid in (me1, me2):
-            await conn.execute(
-                "UPDATE player SET ranking_points = 1050 WHERE id = $1 AND ranking_points = 0",
-                pid,
             )
 
         # Courts near CABA (for feed distance).

@@ -13,7 +13,6 @@ def _row_to_ddo(row) -> PlayerDDO:
         first_name=row["first_name"],
         last_name=row["last_name"],
         level=row["level"],
-        ranking_points=row["ranking_points"],
         favorite_sport_id=row["favorite_sport_id"],
         avatar_path=row["avatar_path"],
     )
@@ -163,8 +162,8 @@ class PlayerModel(GeneralModel):
             connection: PoolConnectionProxy = cast(PoolConnectionProxy, connection)
             query = (
                 f"INSERT INTO {self.__table_name__} "
-                "(user_id, first_name, last_name, level, ranking_points, favorite_sport_id) "
-                "VALUES ($1, $2, $3, $4, 0, $5) RETURNING *"
+                "(user_id, first_name, last_name, level, favorite_sport_id) "
+                "VALUES ($1, $2, $3, $4, $5) RETURNING *"
             )
             try:
                 result = await connection.fetchrow(
@@ -268,24 +267,19 @@ class PlayerModel(GeneralModel):
     async def adjust_rankings(
         self, player_id: int, sport_id: int, delta: int
     ) -> None:
-        """ELO application for one player: the per-sport ranking (source of
-        truth) and the denormalised overall move in one transaction, so a
-        failure between the two can't leave them out of sync."""
+        """ELO application for one player. player_sport_stat is the only
+        ranking store (the legacy player.ranking_points overall was dropped
+        2026-07-21); the upsert makes first-ranked-game players start from
+        the 1000 base."""
         async with self.get_db_connection() as connection:
             connection: PoolConnectionProxy = cast(PoolConnectionProxy, connection)
             try:
-                async with connection.transaction():
-                    await connection.execute(
-                        "INSERT INTO player_sport_stat "
-                        "(player_id, sport_id, ranking_points) VALUES ($1, $2, 1000 + $3) "
-                        "ON CONFLICT (player_id, sport_id) DO UPDATE "
-                        "SET ranking_points = player_sport_stat.ranking_points + $3",
-                        player_id, sport_id, delta,
-                    )
-                    await connection.execute(
-                        f"UPDATE {self.__table_name__} "
-                        "SET ranking_points = ranking_points + $1 WHERE id = $2",
-                        delta, player_id,
-                    )
+                await connection.execute(
+                    "INSERT INTO player_sport_stat "
+                    "(player_id, sport_id, ranking_points) VALUES ($1, $2, 1000 + $3) "
+                    "ON CONFLICT (player_id, sport_id) DO UPDATE "
+                    "SET ranking_points = player_sport_stat.ranking_points + $3",
+                    player_id, sport_id, delta,
+                )
             except Exception as e:
                 raise DatabaseException(message=f"Database error: {e}")

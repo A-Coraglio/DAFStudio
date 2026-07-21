@@ -44,7 +44,9 @@ class PlayerStatsOutputDTO(BaseModel):
         default=None,
         description="Sport these stats are scoped to; null = all sports",
     )
-    ranking_points: int = Field(description="Ranking in this sport (or overall)")
+    ranking_points: int = Field(
+        description="Ranking in this sport (or the favorite sport, sin filtro)"
+    )
     total_played: int = Field(description="Finished games WITH a final score")
     wins: int = Field(description="Competitive wins")
     losses: int = Field(description="Competitive losses")

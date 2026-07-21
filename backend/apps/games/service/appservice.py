@@ -505,9 +505,8 @@ class AppService:
         expected_home = 1.0 / (1.0 + 10 ** ((avg_away - avg_home) / 400.0))
         delta = round(_ELO_K_FACTOR * (actual_home - expected_home))
 
-        # Per-sport ranking is the source of truth; player.ranking_points is
-        # kept updated too as a denormalised "overall" for the players search.
-        # adjust_rankings moves both in one transaction per player.
+        # Per-sport ranking (player_sport_stat) is the only ranking store —
+        # the legacy overall column was dropped.
         for gp in home_gps:
             await PlayerModel().adjust_rankings(
                 gp.player_id, game.sport_id, delta
