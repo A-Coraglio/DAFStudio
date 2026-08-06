@@ -1,0 +1,18 @@
+from datetime import datetime
+from sqlmodel import SQLModel, Field
+
+class Tournament(SQLModel, table=True):
+    __tablename__ = "tournament" # type: ignore
+    id: int = Field(primary_key=True, index=True)
+    organizer_id: int = Field(foreign_key="auth_user.id")
+    sport_id: int = Field(foreign_key="sports.id")
+    club_id: int | None = Field(foreign_key="club.id", default=None)
+    name: str = Field(max_length=100)
+    description: str | None = None
+    start_date: datetime
+    end_date: datetime
+    max_participants: int
+    status: str = Field(default="upcoming")  # upcoming, ongoing, finished
+    level: str | None = Field(default=None, max_length=20)  # beginner/intermediate/advanced
+    lat: float | None = None
+    lon: float | None = None

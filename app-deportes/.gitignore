@@ -1,0 +1,11 @@
+docker-compose.yml
+proyect/
+project/
+.env
+__pycache__/
+database-env/
+documentation/
+venv/
+.claude/
+.venv/
+docs/
