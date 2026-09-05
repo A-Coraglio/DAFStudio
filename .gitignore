@@ -9,3 +9,6 @@ venv/
 .claude/
 .venv/
 docs/
+logs/
+*.log
+*.log.*
